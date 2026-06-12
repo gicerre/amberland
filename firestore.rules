@@ -1,0 +1,227 @@
+rules_version = '2';
+
+// ============================================================
+// AMBERLAND — Firestore Security Rules
+// RBAC basato sui custom claims del token (request.auth.token.role):
+//   ADMIN  → accesso totale
+//   MASTER → gestione contenuti (sistema entità + relazioni)
+//   PLAYER → lettura delle sole entità con visibility == 'PLAYERS'
+//            + propria area personale
+// Gli account vengono creati/modificati SOLO dall'Admin SDK (API server),
+// che bypassa queste regole.
+//
+// NOTA: le query dei giocatori sulla collection `entities` DEVONO
+// includere where('visibility', '==', 'PLAYERS') — l'app lo fa sempre.
+// ============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return (isSignedIn() && 'role' in request.auth.token)
+        ? request.auth.token.role
+        : '';
+    }
+
+    function isAdmin() {
+      return role() == 'ADMIN';
+    }
+
+    function isMaster() {
+      return isAdmin() || role() == 'MASTER';
+    }
+
+    // Può creare/modificare contenuti. Il ruolo VISITOR è di sola lettura:
+    // vede ciò che vedono i giocatori ma non può scrivere da nessuna parte.
+    function isContributor() {
+      return isSignedIn() && role() != 'VISITOR';
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ---------- Utenti ----------
+    match /users/{userId} {
+      allow get: if isSelf(userId) || isAdmin();
+      allow list: if isAdmin();
+      // Creazione/eliminazione solo via Admin SDK
+      allow create, delete: if false;
+      // L'utente può aggiornare solo lastLogin e azzerare mustChangePassword
+      allow update: if isAdmin()
+        || (
+          isSelf(userId)
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['lastLogin', 'mustChangePassword'])
+          && (
+            request.resource.data.mustChangePassword == false
+            || request.resource.data.mustChangePassword == resource.data.mustChangePassword
+          )
+        );
+    }
+
+    // ---------- Sistema universale delle entità ----------
+    match /entities/{entityId} {
+      // Proprietario di un PC: l'uid combacia con il campo ownerId.
+      // NB: accesso DIRETTO al campo (no .get(), no vincolo su type) così che
+      // Firestore possa abbinare questa regola alla query list
+      // where("ownerId","==",uid) — solo i PC hanno ownerId, quindi è sicuro.
+      function isCharacterOwner() {
+        return isSignedIn() && resource.data.ownerId == request.auth.uid;
+      }
+      // Chiavi che il giocatore proprietario NON può alterare sul proprio PC.
+      function ownerKeepsProtected() {
+        return request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['name', 'description', 'imageUrl', 'gallery', 'tags',
+                    'fields', 'sheet', 'history', 'updatedAt']);
+      }
+
+      // Master: tutto. Giocatori: voci pubbliche/di party o il proprio PC.
+      allow read: if isMaster()
+        || (isSignedIn() && resource.data.visibility in ['PUBLIC', 'PARTY_ONLY'])
+        || isCharacterOwner();
+
+      // Creazione: Master sempre; il giocatore può creare SOLO il proprio PC
+      // (non può fabbricare altre entità).
+      allow create: if isMaster()
+        || (
+          isContributor()
+          && request.resource.data.type == 'character'
+          && request.resource.data.get('ownerId', '') == request.auth.uid
+          && request.resource.data.fields.get('kind', '') == 'PC'
+          && request.resource.data.visibility in ['PUBLIC', 'PARTY_ONLY', 'OWNER_ONLY']
+        )
+        // Un membro del party può creare un oggetto conservabile: entra in
+        // approvazione (PENDING_APPROVAL) finché il Master non lo valida.
+        || (
+          isContributor()
+          && request.resource.data.type == 'item'
+          && request.resource.data.fields.get('approvalStatus', '') == 'PENDING_APPROVAL'
+          && request.resource.data.fields.get('conservabile', false) == true
+          && request.resource.data.visibility in ['PUBLIC', 'PARTY_ONLY']
+        );
+
+      // Aggiornamento: Master sempre; il proprietario solo sul proprio PC e
+      // senza toccare tipo/proprietario/visibilità/gerarchia/sblocco.
+      allow update: if isMaster()
+        || (isCharacterOwner() && ownerKeepsProtected());
+
+      allow delete: if isMaster();
+
+      // Contenuti riservati (note del Master, segreti, scheda NPC riservata)
+      match /private/{docId} {
+        allow read, write: if isMaster();
+      }
+
+      // Card pubblica di un PC: la scheda principale è OWNER_ONLY, ma
+      // questa proiezione è leggibile da tutti gli autenticati (ciò che
+      // gli altri giocatori vedono). Scrivibile da Master o proprietario.
+      match /public/{docId} {
+        allow read: if isSignedIn();
+        allow write: if isMaster()
+          || (
+            isSignedIn()
+            && get(/databases/$(database)/documents/entities/$(entityId))
+                 .data.get('ownerId', '') == request.auth.uid
+          );
+      }
+    }
+
+    // Lettura delle card pubbliche via collectionGroup('public').
+    match /{path=**}/public/{cardId} {
+      allow read: if isSignedIn();
+    }
+
+    // ---------- Relazioni tra entità ----------
+    // Contengono solo id, tipi, nomi ed etichetta; il client risolve
+    // le entità collegate e quelle non leggibili vengono scartate.
+    match /relations/{relationId} {
+      allow read: if isSignedIn();
+      allow write: if isMaster();
+    }
+
+    // ---------- Borsa Conservante (deposito condiviso del party) ----------
+    match /bag_items/{bagId} {
+      allow read: if isSignedIn();
+      allow create: if isContributor();
+      // Deposito condiviso: ogni membro del party può prelevare/aggiornare
+      // (necessario anche per spostare un oggetto nel proprio inventario).
+      allow update, delete: if isContributor();
+    }
+
+    // ---------- Inventario personale (oggetti del singolo PC) ----------
+    match /inventory_items/{itemId} {
+      allow read: if isMaster()
+        || (isSignedIn() && resource.data.ownerId == request.auth.uid);
+      allow create: if isContributor()
+        && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isMaster()
+        || (isContributor() && resource.data.ownerId == request.auth.uid);
+    }
+
+    // ---------- Obiettivi personali del giocatore ----------
+    match /goals/{goalId} {
+      allow read: if isMaster()
+        || (isSignedIn() && resource.data.ownerId == request.auth.uid);
+      allow create: if isContributor()
+        && request.resource.data.ownerId == request.auth.uid;
+      allow update, delete: if isMaster()
+        || (isContributor() && resource.data.ownerId == request.auth.uid);
+    }
+
+    // ---------- Configurazioni globali (es. identità del Party) ----------
+    match /settings/{docId} {
+      allow read: if isSignedIn();
+      allow write: if isMaster();
+    }
+
+    // Cronologia movimenti della Borsa (append-only per i giocatori).
+    match /bag_log/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isContributor();
+      allow update, delete: if isMaster();
+    }
+
+    // ---------- Diario di Campagna: note condivise ----------
+    match /notes/{noteId} {
+      // Master/Admin vedono sempre tutto. Gli altri: pubbliche/party + le proprie
+      // (incluse le OWNER_ONLY personali, non leggibili dagli altri giocatori).
+      allow read: if isMaster()
+        || (isSignedIn() && resource.data.visibility in ['PUBLIC', 'PARTY_ONLY'])
+        || (isSignedIn() && resource.data.authorId == request.auth.uid);
+      allow create: if isContributor()
+        && request.resource.data.authorId == request.auth.uid;
+      allow update, delete: if isMaster()
+        || (isContributor() && resource.data.authorId == request.auth.uid);
+    }
+
+    // Collegamenti nota ↔ entità (bidirezionali, dinamici).
+    match /note_links/{linkId} {
+      allow read: if isSignedIn();
+      allow create, update, delete: if isContributor();
+    }
+
+    // Cronologia operazioni sulle note (append-only per i giocatori).
+    match /note_log/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isContributor();
+      allow update, delete: if isMaster();
+    }
+
+    // ---------- Area personale: SOLO il proprietario ----------
+    match /personal_areas/{userId} {
+      allow read: if isSelf(userId);
+      // I VISITATORI non scrivono nemmeno la propria area (preferiti inclusi).
+      allow write: if isSelf(userId) && isContributor();
+    }
+
+    // ---------- Tutto il resto: negato ----------
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

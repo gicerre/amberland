@@ -1,0 +1,40 @@
+rules_version = '2';
+
+// ============================================================
+// AMBERLAND — Firebase Storage Security Rules
+// Lettura immagini: tutti gli utenti autenticati.
+// Caricamento/eliminazione: solo MASTER e ADMIN (custom claims),
+// solo immagini, massimo 10 MB.
+// ============================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isMaster() {
+      return isSignedIn()
+        && 'role' in request.auth.token
+        && request.auth.token.role in ['ADMIN', 'MASTER'];
+    }
+
+    function isValidImage() {
+      return request.resource == null  // eliminazione
+        || (
+          request.resource.size < 10 * 1024 * 1024
+          && request.resource.contentType.matches('image/.*')
+        );
+    }
+
+    match /images/{folder}/{fileName=**} {
+      allow read: if isSignedIn();
+      allow write: if isMaster() && isValidImage();
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
