@@ -1,7 +1,8 @@
 "use client";
 
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Star, Trash2 } from "lucide-react";
 
+import { ImageUpload } from "@/components/shared/image-upload";
 import { TagInput } from "@/components/shared/tag-input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,6 +24,7 @@ import {
   type Ability,
   type CharacterSheet,
   type ClassEntry,
+  type Companion,
   type EquipmentItem,
   type SpellEntry,
   type SpellSlot,
@@ -817,6 +819,434 @@ export function MagicSection({
           </ul>
         )}
       </div>
+    </div>
+  );
+}
+
+/* ----------------------- Famigli / Compagni ----------------------- */
+
+export function CompanionsSection({
+  sheet,
+  patch,
+}: {
+  sheet: CharacterSheet;
+  patch: Patch;
+}) {
+  const companions = sheet.companions ?? [];
+
+  const update = (id: string, partial: Partial<Companion>) =>
+    patch({
+      companions: companions.map((c) =>
+        c.id === id ? { ...c, ...partial } : c
+      ),
+    });
+  const add = () =>
+    patch({
+      companions: [
+        ...companions,
+        {
+          id: genId(),
+          name: "",
+          kind: "",
+          size: "",
+          alignment: "",
+          abilities: Object.fromEntries(
+            ABILITIES.map((a) => [a, 10])
+          ) as Record<Ability, number>,
+          armorClass: "",
+          hitPoints: "",
+          speed: "",
+          senses: "",
+          languages: "",
+          traits: [],
+          attacks: [],
+          description: "",
+          imageUrl: "",
+          featured: false,
+        },
+      ],
+    });
+  const remove = (id: string) =>
+    patch({ companions: companions.filter((c) => c.id !== id) });
+
+  // Compagno in evidenza: uno solo accanto alla card del Party.
+  const setFeatured = (cid: string, on: boolean) =>
+    patch({
+      companions: companions.map((c) => ({
+        ...c,
+        featured: c.id === cid ? on : on ? false : c.featured,
+      })),
+    });
+  const setAbility = (cid: string, ability: Ability, value: number) => {
+    const c = companions.find((x) => x.id === cid);
+    if (!c) return;
+    update(cid, {
+      abilities: {
+        ...(c.abilities ?? ({} as Record<Ability, number>)),
+        [ability]: Math.max(1, Math.min(30, value)),
+      } as Record<Ability, number>,
+    });
+  };
+
+  const addTrait = (cid: string) => {
+    const c = companions.find((x) => x.id === cid);
+    if (!c) return;
+    update(cid, {
+      traits: [...(c.traits ?? []), { id: genId(), name: "", detail: "" }],
+    });
+  };
+  const updateTrait = (
+    cid: string,
+    tid: string,
+    partial: Partial<{ name: string; detail: string }>
+  ) => {
+    const c = companions.find((x) => x.id === cid);
+    if (!c) return;
+    update(cid, {
+      traits: (c.traits ?? []).map((t) =>
+        t.id === tid ? { ...t, ...partial } : t
+      ),
+    });
+  };
+  const removeTrait = (cid: string, tid: string) => {
+    const c = companions.find((x) => x.id === cid);
+    if (!c) return;
+    update(cid, { traits: (c.traits ?? []).filter((t) => t.id !== tid) });
+  };
+
+  const addAttack = (cid: string) => {
+    const c = companions.find((x) => x.id === cid);
+    if (!c) return;
+    update(cid, {
+      attacks: [...(c.attacks ?? []), { id: genId(), name: "", detail: "" }],
+    });
+  };
+  const updateAttack = (
+    cid: string,
+    aid: string,
+    partial: Partial<{ name: string; detail: string }>
+  ) => {
+    const c = companions.find((x) => x.id === cid);
+    if (!c) return;
+    update(cid, {
+      attacks: (c.attacks ?? []).map((a) =>
+        a.id === aid ? { ...a, ...partial } : a
+      ),
+    });
+  };
+  const removeAttack = (cid: string, aid: string) => {
+    const c = companions.find((x) => x.id === cid);
+    if (!c) return;
+    update(cid, { attacks: (c.attacks ?? []).filter((a) => a.id !== aid) });
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">
+          Famigli e compagni che porti con te.
+        </span>
+        <Button type="button" size="sm" variant="outline" onClick={add}>
+          <Plus className="size-3.5" />
+          Famiglio
+        </Button>
+      </div>
+
+      {companions.length === 0 ? (
+        <EmptyHint text="Nessun famiglio. Aggiungine uno con le sue caratteristiche e i suoi attacchi." />
+      ) : (
+        <ul className="space-y-4">
+          {companions.map((companion) => (
+            <li
+              key={companion.id}
+              className="space-y-3 rounded-lg border border-gold/15 bg-night/30 p-3"
+            >
+              <div className="flex items-start justify-between gap-2">
+                <div className="grid flex-1 grid-cols-2 gap-2">
+                  <Field label="Nome">
+                    <Input
+                      value={companion.name}
+                      onChange={(event) =>
+                        update(companion.id, { name: event.target.value })
+                      }
+                      placeholder="Argo"
+                    />
+                  </Field>
+                  <Field label="Tipo">
+                    <Input
+                      value={companion.kind}
+                      onChange={(event) =>
+                        update(companion.id, { kind: event.target.value })
+                      }
+                      placeholder="Lupo, pseudodrago…"
+                    />
+                  </Field>
+                </div>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon-sm"
+                  aria-label="Rimuovi famiglio"
+                  onClick={() => remove(companion.id)}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+
+              <label className="flex items-center justify-between gap-2 rounded-lg border border-gold/20 bg-gold/5 px-3 py-2">
+                <span className="flex items-center gap-2 text-sm">
+                  <Star className="size-4 text-gold/70" />
+                  Compagno in evidenza (accanto alla card del Party)
+                </span>
+                <Switch
+                  checked={companion.featured ?? false}
+                  onCheckedChange={(on) => setFeatured(companion.id, on)}
+                />
+              </label>
+
+              <Field label="Immagine (opzionale)">
+                <ImageUpload
+                  value={companion.imageUrl}
+                  onChange={(url) => update(companion.id, { imageUrl: url })}
+                  folder="character"
+                />
+              </Field>
+
+              <div className="grid grid-cols-2 gap-2">
+                <Field label="Taglia">
+                  <Input
+                    value={companion.size ?? ""}
+                    onChange={(event) =>
+                      update(companion.id, { size: event.target.value })
+                    }
+                    placeholder="Grande"
+                  />
+                </Field>
+                <Field label="Allineamento">
+                  <Input
+                    value={companion.alignment ?? ""}
+                    onChange={(event) =>
+                      update(companion.id, { alignment: event.target.value })
+                    }
+                    placeholder="Senza allineamento"
+                  />
+                </Field>
+              </div>
+
+              {/* Caratteristiche */}
+              <div>
+                <Label className="text-xs text-muted-foreground">
+                  Caratteristiche
+                </Label>
+                <div className="mt-1 grid grid-cols-3 gap-2 sm:grid-cols-6">
+                  {ABILITIES.map((ability) => {
+                    const score = companion.abilities?.[ability] ?? 10;
+                    return (
+                      <div
+                        key={ability}
+                        className="rounded-lg border border-gold/15 bg-night/20 p-2 text-center"
+                      >
+                        <p className="text-[10px] tracking-widest text-muted-foreground uppercase">
+                          {ABILITY_SHORT[ability]}
+                        </p>
+                        <NumberInput
+                          value={score}
+                          onChange={(v) => setAbility(companion.id, ability, v)}
+                          className="mt-1 h-8 text-center"
+                        />
+                        <p className="mt-0.5 text-[10px] font-semibold text-gold-bright">
+                          {formatModifier(abilityModifier(score))}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                <Field label="Classe Armatura">
+                  <Input
+                    value={companion.armorClass ?? ""}
+                    onChange={(event) =>
+                      update(companion.id, { armorClass: event.target.value })
+                    }
+                    placeholder="11 (armatura naturale)"
+                  />
+                </Field>
+                <Field label="Punti Ferita">
+                  <Input
+                    value={companion.hitPoints ?? ""}
+                    onChange={(event) =>
+                      update(companion.id, { hitPoints: event.target.value })
+                    }
+                    placeholder="45 (6d10 + 12)"
+                  />
+                </Field>
+                <Field label="Velocità">
+                  <Input
+                    value={companion.speed ?? ""}
+                    onChange={(event) =>
+                      update(companion.id, { speed: event.target.value })
+                    }
+                    placeholder="12 m"
+                  />
+                </Field>
+                <Field label="Sensi">
+                  <Input
+                    value={companion.senses ?? ""}
+                    onChange={(event) =>
+                      update(companion.id, { senses: event.target.value })
+                    }
+                    placeholder="Percezione passiva 11"
+                  />
+                </Field>
+                <Field label="Linguaggi">
+                  <Input
+                    value={companion.languages ?? ""}
+                    onChange={(event) =>
+                      update(companion.id, { languages: event.target.value })
+                    }
+                    placeholder="–"
+                  />
+                </Field>
+              </div>
+
+              {/* Tratti */}
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">Tratti</Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => addTrait(companion.id)}
+                  >
+                    <Plus className="size-3.5" />
+                    Tratto
+                  </Button>
+                </div>
+                {(companion.traits ?? []).length === 0 ? (
+                  <EmptyHint text="Nessun tratto speciale." />
+                ) : (
+                  <ul className="space-y-2">
+                    {(companion.traits ?? []).map((trait) => (
+                      <li
+                        key={trait.id}
+                        className="space-y-1.5 rounded-lg border border-gold/15 bg-night/20 p-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={trait.name}
+                            onChange={(event) =>
+                              updateTrait(companion.id, trait.id, {
+                                name: event.target.value,
+                              })
+                            }
+                            placeholder="Carica"
+                            className="h-8"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon-sm"
+                            aria-label="Rimuovi tratto"
+                            onClick={() => removeTrait(companion.id, trait.id)}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </div>
+                        <Textarea
+                          value={trait.detail}
+                          onChange={(event) =>
+                            updateTrait(companion.id, trait.id, {
+                              detail: event.target.value,
+                            })
+                          }
+                          rows={2}
+                          placeholder="Descrizione del tratto…"
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              {/* Azioni / attacchi */}
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">
+                    Azioni / attacchi
+                  </Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => addAttack(companion.id)}
+                  >
+                    <Plus className="size-3.5" />
+                    Attacco
+                  </Button>
+                </div>
+                {(companion.attacks ?? []).length === 0 ? (
+                  <EmptyHint text="Nessun attacco." />
+                ) : (
+                  <ul className="space-y-2">
+                    {(companion.attacks ?? []).map((attack) => (
+                      <li
+                        key={attack.id}
+                        className="space-y-1.5 rounded-lg border border-gold/15 bg-night/20 p-2"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={attack.name}
+                            onChange={(event) =>
+                              updateAttack(companion.id, attack.id, {
+                                name: event.target.value,
+                              })
+                            }
+                            placeholder="Incornata"
+                            className="h-8"
+                          />
+                          <Button
+                            type="button"
+                            variant="destructive"
+                            size="icon-sm"
+                            aria-label="Rimuovi attacco"
+                            onClick={() => removeAttack(companion.id, attack.id)}
+                          >
+                            <Trash2 />
+                          </Button>
+                        </div>
+                        <Textarea
+                          value={attack.detail}
+                          onChange={(event) =>
+                            updateAttack(companion.id, attack.id, {
+                              detail: event.target.value,
+                            })
+                          }
+                          rows={2}
+                          placeholder="+7 a colpire, portata 1,5 m. 14 (2d8+5) danni contundenti."
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+
+              <Field label="Note (opzionale)">
+                <Textarea
+                  value={companion.description ?? ""}
+                  onChange={(event) =>
+                    update(companion.id, { description: event.target.value })
+                  }
+                  rows={2}
+                  placeholder="Note libere…"
+                />
+              </Field>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

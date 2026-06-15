@@ -7,6 +7,7 @@ import { HubShell, type HubSection } from "@/components/shared/hub-shell";
 
 import { BagSection } from "../bag/bag-section";
 import { DiaryBook } from "../diary/diary-book";
+import { ActiveQuestsReminder } from "./active-quests-reminder";
 import { PartyCharacters } from "./party-characters";
 import { PartyHeaderPanel } from "./party-header-panel";
 
@@ -50,9 +51,12 @@ export function PartyHub() {
       active={active}
       onSelect={setActive}
     >
-      {active === "personaggi" && <PartyCharacters />}
-      {active === "borsa" && <BagSection />}
-      {active === "diario" && <DiaryBook scope="party" />}
+      <div className="space-y-6">
+        <ActiveQuestsReminder />
+        {active === "personaggi" && <PartyCharacters />}
+        {active === "borsa" && <BagSection />}
+        {active === "diario" && <DiaryBook scope="party" />}
+      </div>
     </HubShell>
   );
 }

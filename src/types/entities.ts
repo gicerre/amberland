@@ -116,6 +116,52 @@ export interface EquipmentItem {
   notes: string;
 }
 
+/** Azione/attacco di un famiglio/compagno. */
+export interface CompanionAttack {
+  id: string;
+  name: string;
+  detail: string;
+}
+
+/** Tratto speciale di un famiglio (es. "Carica"). */
+export interface CompanionTrait {
+  id: string;
+  name: string;
+  detail: string;
+}
+
+/**
+ * Famiglio/compagno che il PG porta con sé: vero stat block in stile mostro
+ * (taglia, tipo, allineamento, caratteristiche, CA/PF, sensi, tratti, azioni).
+ */
+export interface Companion {
+  id: string;
+  name: string;
+  /** Tipo (es. "Bestia"). */
+  kind: string;
+  /** Taglia (es. "Grande"). */
+  size: string;
+  alignment: string;
+  /** Punteggi delle sei caratteristiche (il modificatore è calcolato). */
+  abilities: Record<Ability, number>;
+  /** Classe Armatura (testo libero, es. "11 (armatura naturale)"). */
+  armorClass: string;
+  /** Punti Ferita (testo libero, es. "45 (6d10 + 12)"). */
+  hitPoints: string;
+  speed: string;
+  senses: string;
+  languages: string;
+  /** Tratti speciali (es. Carica). */
+  traits: CompanionTrait[];
+  /** Azioni/attacchi. */
+  attacks: CompanionAttack[];
+  /** Note libere aggiuntive. */
+  description: string;
+  imageUrl: string;
+  /** Se true, è il compagno mostrato accanto alla card del Party (uno solo). */
+  featured: boolean;
+}
+
 /** Denaro (platino/oro/electrum/argento/rame). */
 export interface Money {
   pp: number;
@@ -178,6 +224,8 @@ export interface CharacterSheet {
   weaponProficiencies: string;
   // Multiclasse
   classes: ClassEntry[];
+  // Famigli/compagni
+  companions: Companion[];
   // Equipaggiamento
   equipment: EquipmentItem[];
   money: Money;
@@ -280,6 +328,8 @@ export interface EntityPublicCard {
   /** Nomi dell'equipaggiamento pubblico (oggetti equipaggiati). */
   publicEquipment: string[];
   ownerName: string;
+  /** Compagno in evidenza, mostrato accanto alla card del Party. */
+  companion?: { name: string; imageUrl: string };
 }
 
 /**

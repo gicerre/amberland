@@ -12,6 +12,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { SectionDivider } from "@/components/shared/fantasy-card";
 import { cn } from "@/lib/utils";
+
+import { CompanionsGrid } from "./companion-sheet";
 import {
   ABILITIES,
   type CharacterSheet,
@@ -36,7 +38,13 @@ const COIN_LABELS: Record<string, string> = {
 };
 
 /** Visualizzazione in sola lettura della scheda D&D completa. */
-export function CharacterSheetDisplay({ sheet }: { sheet: CharacterSheet }) {
+export function CharacterSheetDisplay({
+  sheet,
+  ownerName,
+}: {
+  sheet: CharacterSheet;
+  ownerName?: string;
+}) {
   const totalLevel = sheet.classes.reduce(
     (sum, entry) => sum + (entry.level || 0),
     0
@@ -126,6 +134,14 @@ export function CharacterSheetDisplay({ sheet }: { sheet: CharacterSheet }) {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {/* Famigli / compagni — stat block */}
+      {(sheet.companions?.length ?? 0) > 0 && (
+        <section>
+          <SectionTitle title="Famigli e compagni" />
+          <CompanionsGrid companions={sheet.companions} ownerName={ownerName} />
         </section>
       )}
 

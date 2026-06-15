@@ -147,12 +147,15 @@ export function useNoteMutations() {
       content,
       visibility,
       links,
+      questStatus,
     }: {
       title: string;
       content: NoteContent;
       visibility: Visibility;
       /** Entità a cui collegare la nota appena creata (una o più). */
       links?: Entity[];
+      /** Marca la nota come evento di una quest (stato della missione). */
+      questStatus?: string;
     }) => {
       const noteId = await noteService.create({
         title: title.trim(),
@@ -163,6 +166,7 @@ export function useNoteMutations() {
         authorName: me.name,
         lastEditedBy: me.id,
         lastEditedByName: me.name,
+        ...(questStatus ? { questStatus } : {}),
       });
       await log(noteId, "CREATE");
       for (const entity of links ?? []) {
@@ -265,5 +269,66 @@ export function useNoteMutations() {
       toast.error("Rimozione non riuscita", { description: error.message }),
   });
 
-  return { create, update, remove, link, unlink };
+  /**
+   * Sincronizza l'evento-quest nel Diario: tiene UNA sola nota-evento per
+   * quest (lo stato corrente). Rimuove l'eventuale evento precedente —
+   * lasciando intatte le note "vere" collegate alla missione — e ne crea uno
+   * nuovo solo se lo stato lo prevede (ACTIVE/COMPLETED/FAILED). Tornando a
+   * "Disponibile" l'evento sparisce e basta (niente duplicati).
+   */
+  const syncQuestEvent = useMutation({
+    mutationFn: async ({
+      entity,
+      status,
+    }: {
+      entity: Entity;
+      status: string;
+    }) => {
+      // 1. Rimuovi gli eventi-quest già presenti per questa missione.
+      const links = await noteLinkService.list(
+        where("entityId", "==", entity.id)
+      );
+      for (const link of links) {
+        const note = await noteService.get(link.noteId).catch(() => null);
+        if (!note?.questStatus) continue; // solo le note-evento, non quelle scritte
+        const noteLinks = await noteLinkService.list(
+          where("noteId", "==", note.id)
+        );
+        await Promise.all(noteLinks.map((l) => noteLinkService.remove(l.id)));
+        await noteService.remove(note.id);
+      }
+
+      // 2. Crea il nuovo evento se lo stato lo richiede.
+      const messages: Record<string, string> = {
+        ACTIVE: `La missione «${entity.name}» è iniziata.`,
+        COMPLETED: `La missione «${entity.name}» è stata completata.`,
+        FAILED: `La missione «${entity.name}» è fallita.`,
+      };
+      const message = messages[status];
+      if (!message) return;
+      const noteId = await noteService.create({
+        title: message,
+        content: message,
+        contentText: message,
+        visibility: entity.visibility,
+        authorId: me.id,
+        authorName: me.name,
+        lastEditedBy: me.id,
+        lastEditedByName: me.name,
+        questStatus: status,
+      });
+      await noteLinkService.create({
+        noteId,
+        entityType: entity.type,
+        entityId: entity.id,
+        entityName: entity.name,
+      });
+      await log(noteId, "CREATE");
+    },
+    onSuccess: () => invalidate(),
+    // Best-effort: non bloccare il cambio di stato della quest.
+    onError: () => undefined,
+  });
+
+  return { create, update, remove, link, unlink, syncQuestEvent };
 }

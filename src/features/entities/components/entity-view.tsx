@@ -50,6 +50,7 @@ import { cn } from "@/lib/utils";
 
 import { EntityTypeBanner } from "./entity-type-banner";
 import { GeoTrail } from "./geo-trail";
+import { QuestStatusBar } from "./quest-status-bar";
 import { QuickLinks } from "./quick-links";
 
 import {
@@ -348,6 +349,9 @@ export function EntityView({ id }: { id: string }) {
           )}
         </div>
       </header>
+
+      {/* Presa in carico (solo quest) */}
+      {entity.type === "quest" && <QuestStatusBar entity={entity} />}
 
       {/* Collegamenti rapidi */}
       <QuickLinks entity={entity} />

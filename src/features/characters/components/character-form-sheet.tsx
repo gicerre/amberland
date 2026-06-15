@@ -59,6 +59,7 @@ import {
 import {
   AbilitiesSection,
   ClassesSection,
+  CompanionsSection,
   EquipmentSection,
   IdentitySheetSection,
   MagicSection,
@@ -294,6 +295,7 @@ export function CharacterFormSheet({
               <TabsTrigger value="competenze">Competenze</TabsTrigger>
             )}
             {hasSheet && <TabsTrigger value="classi">Classi</TabsTrigger>}
+            {hasSheet && <TabsTrigger value="famigli">Famigli</TabsTrigger>}
             {hasSheet && <TabsTrigger value="equip">Equip.</TabsTrigger>}
             {hasSheet && <TabsTrigger value="magia">Magia</TabsTrigger>}
             <TabsTrigger value="immagini">Immagini</TabsTrigger>
@@ -429,6 +431,9 @@ export function CharacterFormSheet({
                 </TabsContent>
                 <TabsContent value="classi">
                   <ClassesSection sheet={sheet} patch={patchSheet} />
+                </TabsContent>
+                <TabsContent value="famigli">
+                  <CompanionsSection sheet={sheet} patch={patchSheet} />
                 </TabsContent>
                 <TabsContent value="equip">
                   <EquipmentSection sheet={sheet} patch={patchSheet} />

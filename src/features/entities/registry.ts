@@ -2,14 +2,19 @@ import {
   BookOpen,
   CalendarDays,
   Castle,
+  CheckCircle2,
+  EyeOff,
   Flag,
   Gem,
   Globe,
+  Hourglass,
   Map,
   MapPin,
   ScrollText,
   Skull,
+  Swords,
   User,
+  XCircle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -84,14 +89,62 @@ const ALIGNMENTS = [
 
 export const QUEST_STATUS_OPTIONS = [
   { value: "AVAILABLE", label: "Disponibile" },
+  { value: "NEXT", label: "Prossima" },
   { value: "ACTIVE", label: "Attiva" },
   { value: "COMPLETED", label: "Completata" },
   { value: "FAILED", label: "Fallita" },
   { value: "SECRET", label: "Segreta" },
 ];
 
+/**
+ * Stile degli eventi-quest nel Diario: icona e colore dedicati per ogni
+ * stato della missione (presa in carico, completata, fallita…).
+ */
+export const QUEST_EVENT_STYLE: Record<
+  string,
+  { icon: LucideIcon; label: string; iconWrap: string; stripe: string }
+> = {
+  AVAILABLE: {
+    icon: ScrollText,
+    label: "Disponibile",
+    iconWrap: "bg-slate-500 text-white",
+    stripe: "border-l-slate-400",
+  },
+  NEXT: {
+    icon: Hourglass,
+    label: "Prossima",
+    iconWrap: "bg-amber-600 text-white",
+    stripe: "border-l-amber-500",
+  },
+  ACTIVE: {
+    icon: Swords,
+    label: "In corso",
+    iconWrap: "bg-emerald-600 text-white",
+    stripe: "border-l-emerald-500",
+  },
+  COMPLETED: {
+    icon: CheckCircle2,
+    label: "Completata",
+    iconWrap: "bg-teal-600 text-white",
+    stripe: "border-l-teal-500",
+  },
+  FAILED: {
+    icon: XCircle,
+    label: "Fallita",
+    iconWrap: "bg-red-600 text-white",
+    stripe: "border-l-red-500",
+  },
+  SECRET: {
+    icon: EyeOff,
+    label: "Segreta",
+    iconWrap: "bg-purple-600 text-white",
+    stripe: "border-l-purple-500",
+  },
+};
+
 export const QUEST_STATUS_BADGES: Record<string, string> = {
   AVAILABLE: "border-sky-500/50 bg-sky-500/10 text-sky-300",
+  NEXT: "border-amber-500/50 bg-amber-500/10 text-amber-300",
   ACTIVE: "border-gold/50 bg-gold/15 text-gold-bright",
   COMPLETED: "border-emerald-600/50 bg-emerald-900/30 text-emerald-300",
   FAILED: "border-red-500/50 bg-red-500/10 text-red-300",

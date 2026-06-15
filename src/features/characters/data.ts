@@ -32,6 +32,7 @@ import {
   type CharacterSheet,
   type CharacterStatus,
   type ClassEntry,
+  type Companion,
   type Entity,
   type EntityPrivate,
   type EntityPublicCard,
@@ -86,6 +87,7 @@ export function emptySheet(): CharacterSheet {
     armorProficiencies: "",
     weaponProficiencies: "",
     classes: [],
+    companions: [],
     equipment: [],
     money: { pp: 0, gp: 0, ep: 0, sp: 0, cp: 0 },
     spellcastingAbility: "",
@@ -169,6 +171,10 @@ export interface PcWizardDraft {
   age: string;
   weight: string;
   abilities: Record<Ability, AbilityScore>;
+  /** Famigli/compagni del personaggio. */
+  companions: Companion[];
+  /** Se entra subito nel Party. */
+  partyMember: boolean;
 }
 
 /** Costruisce l'EntityInput di un PC a partire dai dati del wizard. */
@@ -194,6 +200,7 @@ export function buildPcInput(
     class: primaryClass,
     level: totalLevel,
     alignment: draft.alignment,
+    partyMember: draft.partyMember,
   };
   input.sheet = {
     ...(input.sheet ?? emptySheet()),
@@ -203,6 +210,7 @@ export function buildPcInput(
     height: draft.height.trim(),
     age: draft.age.trim(),
     weight: draft.weight.trim(),
+    companions: draft.companions,
   };
   return input;
 }
@@ -236,6 +244,10 @@ export function buildPublicCard(
     .filter((item) => item.equipped)
     .map((item) => item.name)
     .filter(Boolean);
+  // Compagno in evidenza (uno solo) mostrato accanto alla card del Party.
+  const featured = (sheet?.companions ?? []).find(
+    (companion) => companion.featured && companion.imageUrl
+  );
   return {
     name: source.name,
     imageUrl: source.imageUrl,
@@ -250,6 +262,9 @@ export function buildPublicCard(
     subclasses,
     publicEquipment,
     ownerName: String(source.fields.ownerName ?? ""),
+    ...(featured
+      ? { companion: { name: featured.name, imageUrl: featured.imageUrl } }
+      : {}),
   };
 }
 

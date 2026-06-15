@@ -23,6 +23,11 @@ export interface Note {
   authorName: string;
   lastEditedBy: string;
   lastEditedByName: string;
+  /**
+   * Se valorizzato, la nota è un evento automatico legato al cambio di stato
+   * di una quest (es. "ACTIVE"): il Diario la mostra con colore e icona dedicati.
+   */
+  questStatus?: string;
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
 }

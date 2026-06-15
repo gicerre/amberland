@@ -414,7 +414,12 @@ export function CharacterView({ entity }: { entity: Entity }) {
       )}
 
       {/* Scheda D&D completa (PC: dal doc; NPC: riservata, solo Master) */}
-      {sheet && <CharacterSheetDisplay sheet={sheet} />}
+      {sheet && (
+        <CharacterSheetDisplay
+          sheet={sheet}
+          ownerName={String(entity.fields.ownerName ?? "")}
+        />
+      )}
 
       {/* Galleria */}
       {entity.gallery.length > 0 && (

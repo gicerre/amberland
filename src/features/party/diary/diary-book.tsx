@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/auth-provider";
+import { QUEST_EVENT_STYLE } from "@/features/entities/registry";
 import {
   isFavorite,
   useFavorites,
@@ -259,8 +260,14 @@ function DiaryPage({
   onOpen: () => void;
 }) {
   const toggleFav = useToggleFavorite();
+  const evt = note.questStatus ? QUEST_EVENT_STYLE[note.questStatus] : null;
   return (
-    <article className="parchment group relative cursor-pointer rounded-xl p-5 transition-transform hover:-translate-y-0.5">
+    <article
+      className={cn(
+        "parchment group relative cursor-pointer rounded-xl p-5 transition-transform hover:-translate-y-0.5",
+        evt && cn("border-l-4", evt.stripe)
+      )}
+    >
       {canBookmark && (
         <button
           type="button"
@@ -276,7 +283,18 @@ function DiaryPage({
       )}
 
       <div onClick={onOpen}>
-        <h3 className="font-heading text-lg font-bold text-[#3a2d12]">
+        <h3 className="font-heading flex items-center gap-2 text-lg font-bold text-[#3a2d12]">
+          {evt && (
+            <span
+              className={cn(
+                "flex size-6 shrink-0 items-center justify-center rounded-md",
+                evt.iconWrap
+              )}
+              title={`Missione: ${evt.label}`}
+            >
+              <evt.icon className="size-3.5" />
+            </span>
+          )}
           {note.title}
         </h3>
         <p className="mt-0.5 text-xs text-[#5d4a23]/80">

@@ -25,6 +25,11 @@ interface EntityListPageProps {
   filter?: (entity: Entity) => boolean;
   /** Chiave di un campo select del registro da usare come filtro a chip. */
   chipFieldKey?: string;
+  /**
+   * Chiave di un campo select del registro su cui RAGGRUPPARE l'elenco in
+   * sezioni (es. lo stato delle quest). Sostituisce i filtri a chip.
+   */
+  groupByFieldKey?: string;
   emptyTitle?: string;
   emptyDescription?: string;
   /** Nasconde il pulsante di creazione (es. pagina Party). */
@@ -41,6 +46,7 @@ export function EntityListPage({
   subtitle,
   filter,
   chipFieldKey,
+  groupByFieldKey,
   emptyTitle,
   emptyDescription,
   hideCreate = false,
@@ -59,6 +65,12 @@ export function EntityListPage({
       )
     : undefined;
 
+  const groupDef = groupByFieldKey
+    ? config.fields.find(
+        (field) => field.key === groupByFieldKey && field.kind === "select"
+      )
+    : undefined;
+
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
     return (entities ?? [])
@@ -73,6 +85,27 @@ export function EntityListPage({
           entity.tags.some((tag) => tag.toLowerCase().includes(term))
       );
   }, [entities, filter, chip, chipDef, search]);
+
+  // Raggruppamento per stato (es. quest): sezioni in ordine di opzione.
+  const groups = useMemo(() => {
+    if (!groupDef) return null;
+    const options = groupDef.options ?? [];
+    const firstValue = options[0]?.value ?? "";
+    const valueOf = (entity: Entity) =>
+      String(entity.fields[groupDef.key] ?? "") || firstValue;
+    const known = options.map((option) => ({
+      label: option.label,
+      value: option.value,
+      items: filtered.filter((entity) => valueOf(entity) === option.value),
+    }));
+    const others = filtered.filter(
+      (entity) => !options.some((option) => option.value === valueOf(entity))
+    );
+    if (others.length > 0) {
+      known.push({ label: "Altro", value: "__other__", items: others });
+    }
+    return known.filter((group) => group.items.length > 0);
+  }, [groupDef, filtered]);
 
   return (
     <div>
@@ -100,7 +133,7 @@ export function EntityListPage({
           />
         </div>
 
-        {chipDef && (
+        {chipDef && !groupDef && (
           <div className="flex flex-wrap gap-1.5">
             <FilterChip
               active={chip === null}
@@ -144,6 +177,24 @@ export function EntityListPage({
             ) : undefined
           }
         />
+      ) : groups ? (
+        <div className="space-y-8">
+          {groups.map((group) => (
+            <section key={group.value}>
+              <h2 className="font-heading mb-3 flex items-center gap-2 text-lg font-semibold tracking-wider">
+                {group.label}
+                <span className="text-sm font-normal text-muted-foreground">
+                  ({group.items.length})
+                </span>
+              </h2>
+              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                {group.items.map((entity) => (
+                  <EntityCard key={entity.id} entity={entity} showType={false} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
       ) : (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((entity) => (

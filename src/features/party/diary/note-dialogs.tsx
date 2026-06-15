@@ -39,9 +39,11 @@ import { useAuth } from "@/features/auth/auth-provider";
 import { useAllEntities } from "@/features/entities/data";
 import {
   ENTITY_REGISTRY,
+  QUEST_EVENT_STYLE,
   VISIBILITY_BADGES,
   VISIBILITY_LABELS,
 } from "@/features/entities/registry";
+import { cn } from "@/lib/utils";
 import {
   VISIBILITIES,
   type Entity,
@@ -220,7 +222,20 @@ export function NoteDetailDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl">
+            <DialogTitle className="font-heading flex items-center gap-2 text-xl">
+              {note.questStatus && QUEST_EVENT_STYLE[note.questStatus] && (
+                <span
+                  className={cn(
+                    "flex size-7 shrink-0 items-center justify-center rounded-md",
+                    QUEST_EVENT_STYLE[note.questStatus].iconWrap
+                  )}
+                >
+                  {(() => {
+                    const Icon = QUEST_EVENT_STYLE[note.questStatus].icon;
+                    return <Icon className="size-4" />;
+                  })()}
+                </span>
+              )}
               {note.title}
             </DialogTitle>
             <DialogDescription>

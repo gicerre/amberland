@@ -14,7 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/features/auth/auth-provider";
-import { VISIBILITY_BADGES, VISIBILITY_LABELS } from "@/features/entities/registry";
+import {
+  QUEST_EVENT_STYLE,
+  VISIBILITY_BADGES,
+  VISIBILITY_LABELS,
+} from "@/features/entities/registry";
 import { cn } from "@/lib/utils";
 import type { Entity } from "@/types/entities";
 import type { Note } from "@/types/notes";
@@ -72,6 +76,9 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
             // Le note personali (OWNER_ONLY) hanno un look distinto da quelle
             // condivise del party: le vede comunque solo l'autore.
             const isPersonal = note.visibility === "OWNER_ONLY";
+            const evt = note.questStatus
+              ? QUEST_EVENT_STYLE[note.questStatus]
+              : null;
             return (
               <li
                 key={note.id}
@@ -82,7 +89,17 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
                     : "border-transparent hover:border-gold/25 hover:bg-gold/5"
                 )}
               >
-                {isPersonal ? (
+                {evt ? (
+                  <span
+                    className={cn(
+                      "flex size-5 shrink-0 items-center justify-center rounded",
+                      evt.iconWrap
+                    )}
+                    title={`Missione: ${evt.label}`}
+                  >
+                    <evt.icon className="size-3" />
+                  </span>
+                ) : isPersonal ? (
                   <Lock className="size-4 shrink-0 text-sky-300/80" />
                 ) : (
                   <BookText className="size-4 shrink-0 text-gold/70" />

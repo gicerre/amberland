@@ -11,6 +11,7 @@ import {
   Shield,
   Sparkles,
   Swords,
+  Trash2,
   User,
 } from "lucide-react";
 import Image from "next/image";
@@ -33,8 +34,7 @@ import {
 import { useAuth } from "@/features/auth/auth-provider";
 import { useEntityMutations } from "@/features/entities/data";
 import { cn } from "@/lib/utils";
-import { ABILITIES, type Ability } from "@/types/entities";
-import type { ClassEntry } from "@/types/entities";
+import { ABILITIES, type Ability, type ClassEntry } from "@/types/entities";
 
 import {
   ABILITY_LABELS,
@@ -62,6 +62,8 @@ const STEP_IMAGES = [
   "/img/step_4.webp",
 ];
 
+const MAX_CLASSES = 3;
+
 type Abilities = Record<Ability, number>;
 const DEFAULT_ABILITIES: Abilities = {
   str: 10,
@@ -72,22 +74,26 @@ const DEFAULT_ABILITIES: Abilities = {
   cha: 10,
 };
 
+interface WizClass {
+  className: string;
+  subclass: string;
+  level: number;
+}
+
 interface DraftState {
   step: number;
   name: string;
   imageUrl: string;
   race: string;
-  primaryClass: string;
-  primarySubclass: string;
-  primaryLevel: number;
-  multiclass: string;
-  multiclassLevel: number;
+  /** 1-3 classi (multiclasse), ciascuna con la propria sottoclasse. */
+  classes: WizClass[];
   alignment: string;
   gender: string;
   height: string;
   age: string;
   weight: string;
   abilities: Abilities;
+  joinParty: boolean;
 }
 
 const EMPTY: DraftState = {
@@ -95,23 +101,19 @@ const EMPTY: DraftState = {
   name: "",
   imageUrl: "",
   race: "",
-  primaryClass: "",
-  primarySubclass: "",
-  primaryLevel: 1,
-  multiclass: "",
-  multiclassLevel: 1,
+  classes: [{ className: "", subclass: "", level: 1 }],
   alignment: "",
   gender: "",
   height: "",
   age: "",
   weight: "",
   abilities: DEFAULT_ABILITIES,
+  joinParty: true,
 };
 
 /**
  * Wizard di prima creazione del PC: esperienza guidata, immersiva e a
- * step, salvata con lo stesso modello dati dei PC esistenti (vedi
- * buildPcInput). Usato dal gate del primo accesso.
+ * step, salvata con lo stesso modello dati dei PC esistenti (buildPcInput).
  */
 export function PcCreationWizard({
   onCreated,
@@ -132,7 +134,15 @@ export function PcCreationWizard({
       const raw = localStorage.getItem(storageKey);
       if (raw) {
         const saved = JSON.parse(raw) as Partial<DraftState>;
-        setDraft({ ...EMPTY, ...saved, abilities: { ...DEFAULT_ABILITIES, ...saved.abilities } });
+        setDraft({
+          ...EMPTY,
+          ...saved,
+          classes:
+            Array.isArray(saved.classes) && saved.classes.length > 0
+              ? saved.classes
+              : EMPTY.classes,
+          abilities: { ...DEFAULT_ABILITIES, ...saved.abilities },
+        });
       }
     } catch {
       /* bozza non valida: si riparte puliti */
@@ -163,9 +173,10 @@ export function PcCreationWizard({
     }));
 
   const step = draft.step;
-  const totalLevel =
-    Math.max(1, draft.primaryLevel) +
-    (draft.multiclass.trim() ? Math.max(1, draft.multiclassLevel) : 0);
+  const totalLevel = draft.classes.reduce(
+    (sum, entry) => sum + (entry.level || 0),
+    0
+  );
 
   const stepValid = useMemo(() => {
     switch (step) {
@@ -173,9 +184,9 @@ export function PcCreationWizard({
         return draft.name.trim().length >= 2;
       case 1:
         return (
-          draft.primaryClass.trim().length >= 2 &&
           draft.race.trim().length >= 2 &&
-          draft.primaryLevel >= 1
+          (draft.classes[0]?.className.trim().length ?? 0) >= 2 &&
+          (draft.classes[0]?.level ?? 0) >= 1
         );
       default:
         return true;
@@ -190,22 +201,14 @@ export function PcCreationWizard({
 
   const confirm = () => {
     if (!user || create.isPending) return;
-    const classes: ClassEntry[] = [
-      {
+    const classes: ClassEntry[] = draft.classes
+      .filter((entry) => entry.className.trim())
+      .map((entry) => ({
         id: crypto.randomUUID(),
-        className: draft.primaryClass.trim(),
-        subclass: draft.primarySubclass.trim(),
-        level: Math.max(1, draft.primaryLevel),
-      },
-    ];
-    if (draft.multiclass.trim()) {
-      classes.push({
-        id: crypto.randomUUID(),
-        className: draft.multiclass.trim(),
-        subclass: "",
-        level: Math.max(1, draft.multiclassLevel),
-      });
-    }
+        className: entry.className.trim(),
+        subclass: entry.subclass.trim(),
+        level: Math.max(1, entry.level),
+      }));
     const abilities = Object.fromEntries(
       ABILITIES.map((a) => [a, { score: draft.abilities[a], tempBonus: 0 }])
     ) as PcWizardDraft["abilities"];
@@ -222,6 +225,8 @@ export function PcCreationWizard({
         age: draft.age,
         weight: draft.weight,
         abilities,
+        companions: [],
+        partyMember: draft.joinParty,
       },
       { id: user.uid, name: profile?.username ?? "" }
     );
@@ -248,7 +253,6 @@ export function PcCreationWizard({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.1),transparent_55%)]" />
 
       <div className="relative z-10 mx-auto w-full max-w-5xl">
-        {/* Titolo */}
         <div className="mb-6 text-center">
           <h1 className="text-gold-gradient font-heading text-3xl font-bold tracking-wider sm:text-4xl">
             Crea il tuo eroe
@@ -259,37 +263,32 @@ export function PcCreationWizard({
           </p>
         </div>
 
-        {/* Stepper */}
         <Stepper current={step} onJump={(s) => s <= step && set("step", s)} />
 
-        {/* Card a due colonne */}
         <div className="mt-6 flex flex-col-reverse overflow-hidden rounded-2xl border border-gold/30 bg-card/80 shadow-[0_0_50px_rgba(0,0,0,0.35)] lg:grid lg:grid-cols-[44%_56%]">
-          {/* Colonna sinistra — contenuto step */}
           <div className="relative p-6 sm:p-8">
             <CornerOrnaments className="size-4 border-gold/40" />
             <div
               key={step}
               className="animate-in fade-in-50 slide-in-from-bottom-2 space-y-5 duration-300"
             >
-              {step === 0 && (
-                <StepIdentity draft={draft} set={set} />
-              )}
+              {step === 0 && <StepIdentity draft={draft} set={set} />}
               {step === 1 && (
-                <StepOrigins
-                  draft={draft}
-                  set={set}
-                  totalLevel={totalLevel}
-                />
+                <StepOrigins draft={draft} set={set} totalLevel={totalLevel} />
               )}
               {step === 2 && <StepAppearance draft={draft} set={set} />}
               {step === 3 && (
-                <StepAbilities abilities={draft.abilities} setAbility={setAbility} />
+                <StepAbilities
+                  abilities={draft.abilities}
+                  setAbility={setAbility}
+                />
               )}
-              {step === 4 && <StepSummary draft={draft} totalLevel={totalLevel} />}
+              {step === 4 && (
+                <StepSummary draft={draft} set={set} totalLevel={totalLevel} />
+              )}
             </div>
           </div>
 
-          {/* Colonna destra — illustrazione + preview live */}
           <div className="relative h-52 lg:h-auto">
             <Image
               src={STEP_IMAGES[step]}
@@ -304,7 +303,6 @@ export function PcCreationWizard({
           </div>
         </div>
 
-        {/* Navigazione */}
         <div className="mt-6 flex items-center justify-center gap-3">
           <Button
             variant="outline"
@@ -414,7 +412,8 @@ function CharacterPreview({
   draft: DraftState;
   totalLevel: number;
 }) {
-  const sub = [draft.race, draft.primaryClass].filter(Boolean).join(" · ");
+  const primary = draft.classes[0]?.className ?? "";
+  const sub = [draft.race, primary].filter(Boolean).join(" · ");
   return (
     <div className="absolute inset-x-3 bottom-3 flex items-center gap-3 rounded-xl border border-gold/30 bg-background/80 p-3 backdrop-blur-sm">
       <span className="size-14 shrink-0 overflow-hidden rounded-lg border border-gold/40">
@@ -431,7 +430,7 @@ function CharacterPreview({
           {draft.name || "Senza nome"}
         </p>
         <p className="truncate text-xs text-muted-foreground">{sub || "—"}</p>
-        {(draft.primaryClass || totalLevel > 1) && (
+        {(primary || totalLevel > 1) && (
           <Badge
             variant="outline"
             className="mt-1 border-gold/40 text-[10px] text-gold-bright"
@@ -510,12 +509,29 @@ function StepOrigins({
   set: SetFn;
   totalLevel: number;
 }) {
+  const updateClass = (index: number, patch: Partial<WizClass>) =>
+    set(
+      "classes",
+      draft.classes.map((entry, i) =>
+        i === index ? { ...entry, ...patch } : entry
+      )
+    );
+  const addClass = () => {
+    if (draft.classes.length >= MAX_CLASSES) return;
+    set("classes", [...draft.classes, { className: "", subclass: "", level: 1 }]);
+  };
+  const removeClass = (index: number) =>
+    set(
+      "classes",
+      draft.classes.filter((_, i) => i !== index)
+    );
+
   return (
     <>
       <StepHeading
         icon={Swords}
         title="Origini e Classe"
-        subtitle="Stirpe, arte e cammino del tuo eroe."
+        subtitle="Stirpe, arte e cammino del tuo eroe. Multiclasse fino a 3 classi."
       />
       <div className="space-y-2">
         <Label>Razza</Label>
@@ -525,63 +541,79 @@ function StepOrigins({
           placeholder="Umano, elfo, nano…"
         />
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="space-y-2">
-          <Label>Classe</Label>
-          <Input
-            value={draft.primaryClass}
-            onChange={(event) => set("primaryClass", event.target.value)}
-            placeholder="Guerriero…"
-            list="wizard-classes"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>Livello iniziale</Label>
-          <Input
-            type="number"
-            min={1}
-            value={draft.primaryLevel}
-            onChange={(event) =>
-              set("primaryLevel", Math.max(1, Number(event.target.value) || 1))
-            }
-          />
-        </div>
-      </div>
-      <div className="space-y-2">
-        <Label>Sottoclasse (opzionale)</Label>
-        <Input
-          value={draft.primarySubclass}
-          onChange={(event) => set("primarySubclass", event.target.value)}
-          placeholder="Campione, Evocatore…"
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3 rounded-lg border border-gold/15 bg-night/30 p-3">
-        <div className="space-y-2">
-          <Label className="text-xs">Multiclasse (opzionale)</Label>
-          <Input
-            value={draft.multiclass}
-            onChange={(event) => set("multiclass", event.target.value)}
-            placeholder="Es. Ladro"
-            list="wizard-classes"
-          />
-        </div>
-        {draft.multiclass.trim() && (
+
+      {draft.classes.map((entry, index) => (
+        <div
+          key={index}
+          className="space-y-3 rounded-lg border border-gold/15 bg-night/30 p-3"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold tracking-[0.15em] text-gold/70 uppercase">
+              {index === 0 ? "Classe principale" : `Classe ${index + 1}`}
+            </span>
+            {index > 0 && (
+              <button
+                type="button"
+                aria-label="Rimuovi classe"
+                onClick={() => removeClass(index)}
+                className="text-muted-foreground transition-colors hover:text-destructive"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label className="text-xs">Classe</Label>
+              <Input
+                value={entry.className}
+                onChange={(event) =>
+                  updateClass(index, { className: event.target.value })
+                }
+                placeholder="Guerriero…"
+                list="wizard-classes"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-xs">Livello</Label>
+              <Input
+                type="number"
+                min={1}
+                value={entry.level}
+                onChange={(event) =>
+                  updateClass(index, {
+                    level: Math.max(1, Number(event.target.value) || 1),
+                  })
+                }
+              />
+            </div>
+          </div>
           <div className="space-y-2">
-            <Label className="text-xs">Livello multiclasse</Label>
+            <Label className="text-xs">Sottoclasse (opzionale)</Label>
             <Input
-              type="number"
-              min={1}
-              value={draft.multiclassLevel}
+              value={entry.subclass}
               onChange={(event) =>
-                set(
-                  "multiclassLevel",
-                  Math.max(1, Number(event.target.value) || 1)
-                )
+                updateClass(index, { subclass: event.target.value })
               }
+              placeholder="Campione, Evocatore…"
             />
           </div>
-        )}
-      </div>
+        </div>
+      ))}
+
+      {draft.classes.length < MAX_CLASSES && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addClass}
+          className="border-gold/30"
+        >
+          <Plus className="size-3.5" />
+          Aggiungi classe (multiclasse)
+        </Button>
+      )}
+
       <datalist id="wizard-classes">
         {DND_CLASSES.map((option) => (
           <option key={option} value={option} />
@@ -721,26 +753,21 @@ function StepAbilities({
 
 function StepSummary({
   draft,
+  set,
   totalLevel,
 }: {
   draft: DraftState;
+  set: SetFn;
   totalLevel: number;
 }) {
+  const classLine = (entry: WizClass) =>
+    [entry.className, entry.subclass && `(${entry.subclass})`, `liv. ${entry.level}`]
+      .filter(Boolean)
+      .join(" ");
+
   const rows: [string, string][] = [
     ["Razza", draft.race || "—"],
-    [
-      "Classe",
-      [draft.primaryClass, draft.primarySubclass && `(${draft.primarySubclass})`]
-        .filter(Boolean)
-        .join(" ") || "—",
-    ],
-    ...(draft.multiclass.trim()
-      ? ([["Multiclasse", `${draft.multiclass} (liv. ${draft.multiclassLevel})`]] as [
-          string,
-          string,
-        ][])
-      : []),
-    ["Livello", String(totalLevel)],
+    ["Livello totale", String(totalLevel)],
     ["Allineamento", draft.alignment || "—"],
     ["Genere", draft.gender || "—"],
     ["Età", draft.age || "—"],
@@ -755,6 +782,56 @@ function StepSummary({
         title="Riepilogo finale"
         subtitle="Controlla i dettagli prima di dare vita al tuo eroe."
       />
+
+      {/* Switch epico: ingresso nel Party */}
+      <button
+        type="button"
+        onClick={() => set("joinParty", !draft.joinParty)}
+        className={cn(
+          "relative flex w-full items-center gap-4 overflow-hidden rounded-xl border-2 p-4 text-left transition-all",
+          draft.joinParty
+            ? "border-gold/60 bg-gradient-to-r from-gold/20 via-gold/5 to-transparent shadow-[0_0_26px_rgba(212,175,55,0.22)]"
+            : "border-gold/20 bg-night/30"
+        )}
+      >
+        <CornerOrnaments className="size-3.5 border-gold/50" />
+        <span
+          className={cn(
+            "flex size-12 shrink-0 items-center justify-center rounded-xl border transition-colors",
+            draft.joinParty
+              ? "border-gold/50 bg-gold/20 text-gold"
+              : "border-gold/20 bg-night/50 text-muted-foreground"
+          )}
+        >
+          <Swords className="size-6" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="font-heading block text-base font-bold tracking-wide text-gold-bright">
+            Unisciti al Party
+          </span>
+          <span className="block text-xs text-muted-foreground">
+            {draft.joinParty
+              ? "Il tuo eroe entrerà subito nella compagnia."
+              : "Resterà fuori dal party (il Master potrà aggiungerlo dopo)."}
+          </span>
+        </span>
+        <span
+          className={cn(
+            "relative h-7 w-12 shrink-0 rounded-full border transition-colors",
+            draft.joinParty
+              ? "border-gold/60 bg-gold/40"
+              : "border-gold/25 bg-night/60"
+          )}
+        >
+          <span
+            className={cn(
+              "absolute top-0.5 size-5 rounded-full bg-background transition-all",
+              draft.joinParty ? "left-[1.55rem] bg-gold" : "left-0.5"
+            )}
+          />
+        </span>
+      </button>
+
       <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-gold/15 bg-night/30 p-4 text-sm">
         {rows.map(([label, value]) => (
           <div key={label} className="contents">
@@ -763,6 +840,20 @@ function StepSummary({
           </div>
         ))}
       </dl>
+
+      <div className="space-y-1.5 rounded-lg border border-gold/15 bg-night/30 p-4 text-sm">
+        <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
+          Classi
+        </p>
+        {draft.classes
+          .filter((entry) => entry.className.trim())
+          .map((entry, index) => (
+            <p key={index} className="text-foreground">
+              • {classLine(entry)}
+            </p>
+          ))}
+      </div>
+
       <div className="grid grid-cols-3 gap-2">
         {ABILITIES.map((ability) => (
           <div
@@ -781,10 +872,6 @@ function StepSummary({
           </div>
         ))}
       </div>
-      <p className="text-xs text-muted-foreground">
-        Puoi tornare indietro per modificare qualsiasi dato. Alla conferma il
-        personaggio verrà creato e legato al tuo account.
-      </p>
     </>
   );
 }

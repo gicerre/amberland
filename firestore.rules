@@ -107,8 +107,17 @@ service cloud.firestore {
 
       // Aggiornamento: Master sempre; il proprietario solo sul proprio PC e
       // senza toccare tipo/proprietario/visibilità/gerarchia/sblocco.
+      // I membri del party possono aggiornare i campi (es. stato/avanzamento)
+      // delle QUEST party/pubbliche, senza toccare nome/visibilità/tipo.
       allow update: if isMaster()
-        || (isCharacterOwner() && ownerKeepsProtected());
+        || (isCharacterOwner() && ownerKeepsProtected())
+        || (
+          isContributor()
+          && resource.data.type == 'quest'
+          && resource.data.visibility in ['PUBLIC', 'PARTY_ONLY']
+          && request.resource.data.diff(resource.data).affectedKeys()
+               .hasOnly(['fields', 'updatedAt'])
+        );
 
       allow delete: if isMaster();
 
@@ -195,8 +204,13 @@ service cloud.firestore {
         || (isSignedIn() && resource.data.authorId == request.auth.uid);
       allow create: if isContributor()
         && request.resource.data.authorId == request.auth.uid;
-      allow update, delete: if isMaster()
+      allow update: if isMaster()
         || (isContributor() && resource.data.authorId == request.auth.uid);
+      // Le note-evento di una quest (campo questStatus) sono di sistema:
+      // qualunque membro del party può rimuoverle gestendo le missioni.
+      allow delete: if isMaster()
+        || (isContributor() && resource.data.authorId == request.auth.uid)
+        || (isContributor() && 'questStatus' in resource.data);
     }
 
     // Collegamenti nota ↔ entità (bidirezionali, dinamici).

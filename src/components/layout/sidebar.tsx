@@ -183,7 +183,7 @@ export function SidebarContent({
         </div>
       )}
 
-      <ScrollArea className="flex-1 px-3 py-4">
+      <ScrollArea className="min-h-0 flex-1 overflow-hidden px-3 py-4">
         <nav aria-label="Navigazione principale">
           <ul className="space-y-0.5">
             {MAIN_NAV.map((entry) => (

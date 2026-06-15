@@ -280,6 +280,20 @@ function PartyCharacterCard({
           <Star className={cn("size-3.5", fav && "fill-gold text-gold")} />
         </button>
       )}
+      {card.companion?.imageUrl && (
+        <span
+          className="absolute top-[9.5rem] right-3 z-10 flex size-12 items-center justify-center overflow-hidden rounded-full border-2 border-gold/60 bg-background shadow-lg"
+          title={`Compagno: ${card.companion.name}`}
+        >
+          <FantasyImage
+            src={card.companion.imageUrl}
+            alt={card.companion.name}
+            fallbackIcon={Users}
+            className="size-12"
+            sizes="48px"
+          />
+        </span>
+      )}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-heading font-semibold text-foreground group-hover:text-gold-bright">
