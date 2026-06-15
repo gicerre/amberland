@@ -141,3 +141,4 @@ In entrambi i casi in Firestore viene salvato solo l'URL dell'immagine.
 Per lavorare senza toccare il progetto reale: imposta
 `NEXT_PUBLIC_USE_EMULATORS=true` in `.env.local`, poi `npm run emulators` e, in
 un altro terminale, `npm run dev`.
+   
