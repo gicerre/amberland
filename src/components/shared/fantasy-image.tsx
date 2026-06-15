@@ -1,6 +1,7 @@
 import { Sparkles, type LucideIcon } from "lucide-react";
 import Image from "next/image";
 
+import { optimizeCloudinary } from "@/lib/upload/image-service";
 import { cn } from "@/lib/utils";
 
 interface FantasyImageProps {
@@ -16,6 +17,8 @@ interface FantasyImageProps {
    * mostrano sempre la parte ALTA dell'immagine invece di tagliarla.
    */
   position?: "top" | "center" | "bottom";
+  /** Larghezza massima richiesta a Cloudinary in consegna (cap, no upscaling). */
+  maxWidth?: number;
 }
 
 const POSITION_CLASS = {
@@ -37,6 +40,7 @@ export function FantasyImage({
   priority,
   fallbackIcon: FallbackIcon = Sparkles,
   position = "top",
+  maxWidth = 1600,
 }: FantasyImageProps) {
   if (!src) {
     return (
@@ -55,7 +59,7 @@ export function FantasyImage({
   return (
     <div className={cn("relative overflow-hidden", className)}>
       <Image
-        src={src}
+        src={optimizeCloudinary(src, maxWidth)}
         alt={alt}
         fill
         priority={priority}

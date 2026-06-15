@@ -20,6 +20,7 @@ import {
 
 import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
+import { optimizeCloudinary } from "@/lib/upload/image-service";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
@@ -170,7 +171,7 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
                   }}
                 >
                   <Image
-                    src={images[index]}
+                    src={optimizeCloudinary(images[index], 2000)}
                     alt={label ? `${label} (${index + 1})` : ""}
                     fill
                     sizes="97vw"

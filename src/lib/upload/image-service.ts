@@ -26,6 +26,74 @@ const UPLOAD_PRESET = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
 export const isUploadConfigured = Boolean(CLOUD_NAME && UPLOAD_PRESET);
 
 /**
+ * Comprime un'immagine lato browser PRIMA dell'upload: ridimensiona al lato
+ * massimo indicato e riconverte in WebP. Riduce sia lo storage su Cloudinary
+ * sia la banda di caricamento (utile soprattutto da mobile). In caso di
+ * problemi (formato non decodificabile, niente guadagno…) ritorna l'originale.
+ * Salta i formati che non vanno rasterizzati (SVG, GIF animate).
+ */
+export async function compressImage(
+  file: File,
+  maxSize = 2000,
+  quality = 0.82
+): Promise<File> {
+  if (
+    typeof document === "undefined" ||
+    !file.type.startsWith("image/") ||
+    file.type === "image/gif" ||
+    file.type === "image/svg+xml"
+  ) {
+    return file;
+  }
+  try {
+    const bitmap = await createImageBitmap(file, {
+      imageOrientation: "from-image",
+    });
+    const scale = Math.min(1, maxSize / Math.max(bitmap.width, bitmap.height));
+    const width = Math.round(bitmap.width * scale);
+    const height = Math.round(bitmap.height * scale);
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+    bitmap.close?.();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/webp", quality)
+    );
+    // Nessun guadagno reale: meglio tenere l'originale.
+    if (!blob || blob.size >= file.size) return file;
+    const name = file.name.replace(/\.[^.]+$/, "") + ".webp";
+    return new File([blob], name, { type: "image/webp" });
+  } catch {
+    return file;
+  }
+}
+
+/**
+ * Inietta le trasformazioni di consegna negli URL Cloudinary: `f_auto`
+ * (WebP/AVIF in base al browser), `q_auto` (compressione) e `c_limit,w_`
+ * (cap di larghezza). Idempotente; gli URL non‑Cloudinary tornano invariati.
+ */
+export function optimizeCloudinary(
+  url: string | null | undefined,
+  width = 1600
+): string {
+  if (!url) return "";
+  const marker = "/image/upload/";
+  const idx = url.indexOf(marker);
+  if (!url.includes("res.cloudinary.com") || idx === -1) return url;
+  const rest = url.slice(idx + marker.length);
+  // Già trasformato (es. applicato due volte): non duplicare.
+  const firstSegment = rest.split("/")[0] ?? "";
+  if (firstSegment.includes("f_auto") || firstSegment.includes("q_auto")) {
+    return url;
+  }
+  return `${url.slice(0, idx + marker.length)}f_auto,q_auto,c_limit,w_${width}/${rest}`;
+}
+
+/**
  * Carica un'immagine su Cloudinary e restituisce l'URL sicuro (https).
  * Lancia un errore leggibile se l'upload non è configurato o fallisce.
  */
@@ -39,8 +107,11 @@ export async function uploadImage(
     );
   }
 
+  // Leva 2: ottimizzazione in upload (ridimensiona + WebP) prima dell'invio.
+  const optimized = await compressImage(file);
+
   const form = new FormData();
-  form.append("file", file);
+  form.append("file", optimized);
   form.append("upload_preset", UPLOAD_PRESET as string);
   form.append("folder", `amberland/${folder}`);
 
