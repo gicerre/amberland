@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { useCelebration } from "@/components/shared/celebration";
 import { GalleryManager } from "@/features/entities/components/gallery-manager";
 import { ImageUpload } from "@/components/shared/image-upload";
 import { RichTextEditor } from "@/components/shared/rich-text-lazy";
@@ -85,6 +86,7 @@ export function CharacterFormSheet({
   entity: Entity;
 }) {
   const { isMaster } = useAuth();
+  const { trigger: triggerCelebration } = useCelebration();
   const { update } = useEntityMutations();
   const { data: privateData } = useEntityPrivate(
     isMaster && open ? entity.id : undefined
@@ -212,7 +214,8 @@ export function CharacterFormSheet({
 
     // Auto-evento: passaggio di livello.
     const previousLevel = Number(entity.fields.level ?? 0);
-    if (derivedLevel > previousLevel) {
+    const isLevelUp = derivedLevel > previousLevel;
+    if (isLevelUp) {
       data.history = [
         ...(entity.history ?? []),
         makeHistoryEntry("LEVEL_UP", `Salito a livello ${derivedLevel}`),
@@ -258,6 +261,9 @@ export function CharacterFormSheet({
               fields,
               sheet: hasSheet ? sheet : undefined,
             });
+          }
+          if (isLevelUp) {
+            triggerCelebration({ type: "level-up", characterName: name.trim(), level: derivedLevel });
           }
           onOpenChange(false);
         },

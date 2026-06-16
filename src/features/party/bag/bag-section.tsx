@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
+import { useCelebration } from "@/components/shared/celebration";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { ImageUpload } from "@/components/shared/image-upload";
@@ -165,9 +166,9 @@ export function BagSection() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-40 rounded-xl bg-muted/60" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="aspect-[3/4] rounded-xl bg-muted/60" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -185,7 +186,7 @@ export function BagSection() {
           }
         />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((entry) => (
             <BagCard
               key={entry.id}
@@ -226,93 +227,116 @@ function BagCard({
   onEdit: () => void;
 }) {
   const { removeEntry, approveItem } = useBagMutations();
+  const { trigger: triggerCelebration } = useCelebration();
+
+  const catBadge = entry.itemCategory ? (ITEM_CATEGORY_BADGES[entry.itemCategory] ?? "border-gold/20") : "";
+  const catLabel = entry.itemCategory ? categoryLabel(entry.itemCategory) : null;
+
   return (
-    <div className="overflow-hidden rounded-xl border border-gold/20 bg-card">
-      <div className="flex gap-3 p-3">
-        <div className="size-20 shrink-0 overflow-hidden rounded-lg border border-gold/15">
-          <FantasyImage
-            src={entry.itemImage}
-            alt={entry.itemName}
-            fallbackIcon={Package}
-            className="size-20"
-            sizes="80px"
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="font-heading font-semibold text-foreground">
-              {entry.itemName}
-            </h3>
-            <Badge
-              variant="outline"
-              className="shrink-0 border-gold/40 text-gold-bright"
-            >
-              ×{entry.quantity}
-            </Badge>
-          </div>
-          <div className="mt-1 flex flex-wrap gap-1.5">
-            {entry.itemCategory && (
-              <Badge
-                variant="outline"
-                className={cn(
-                  "text-[10px]",
-                  ITEM_CATEGORY_BADGES[entry.itemCategory] ?? "border-gold/20"
-                )}
-              >
-                {categoryLabel(entry.itemCategory)}
-              </Badge>
-            )}
-            {pending && (
-              <Badge
-                variant="outline"
-                className="text-[10px] border-amber-500/50 bg-amber-500/10 text-amber-300"
-              >
-                In approvazione
-              </Badge>
-            )}
-          </div>
-          {entry.notes && (
-            <p className="mt-1.5 text-sm text-muted-foreground">{entry.notes}</p>
-          )}
-          <p className="mt-1 text-xs text-muted-foreground/80">
-            Inserito da {entry.insertedByName || "—"}
-          </p>
+    <div className={cn(
+      "group relative overflow-hidden rounded-xl border bg-gradient-to-b from-stone-surface to-stone-mid/80",
+      "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
+      pending ? "border-amber-500/40" : "border-gold/18"
+    )}>
+      {/* Striscia superiore */}
+      <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+
+      {/* Immagine quadrata con badge sovrapposti */}
+      <div className="relative aspect-square overflow-hidden">
+        <FantasyImage
+          src={entry.itemImage}
+          alt={entry.itemName}
+          fallbackIcon={Package}
+          className="size-full"
+          sizes="(max-width: 640px) 50vw, 33vw"
+          position="center"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-mid via-stone-mid/15 to-transparent" />
+
+        {/* Badge categoria — top-right */}
+        {catLabel && (
+          <span className={cn(
+            "absolute right-2 top-2 z-10 rounded border px-1.5 py-0.5 font-heading text-[9px] font-bold uppercase",
+            catBadge
+          )}>
+            {catLabel}
+          </span>
+        )}
+
+        {/* Badge in attesa — top-left */}
+        {pending && (
+          <span className="absolute left-2 top-2 z-10 rounded border border-amber-500/50 bg-amber-500/10 px-1.5 py-0.5 font-heading text-[9px] font-bold text-amber-300 uppercase">
+            Approvazione
+          </span>
+        )}
+
+        {/* Quantità — angolo in basso a destra */}
+        <span className="absolute bottom-2 right-2 z-10 flex size-7 items-center justify-center rounded-full border border-gold/50 bg-stone-mid/90 font-heading text-[11px] font-bold text-gold-bright">
+          ×{entry.quantity}
+        </span>
+
+        {/* Nome in overlay sul fondo */}
+        <div className="absolute inset-x-0 bottom-0 z-10 p-3 pb-10">
+          <h3 className="font-heading text-[14px] font-semibold leading-tight text-foreground transition-colors group-hover:text-gold-bright line-clamp-2">
+            {entry.itemName}
+          </h3>
         </div>
       </div>
 
-      {(canManage || (isMaster && pending)) && (
-        <div className="flex items-center justify-end gap-1 border-t border-gold/10 px-2 py-1.5">
-          {isMaster && pending && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-emerald-300 hover:text-emerald-200"
-              onClick={() => approveItem.mutate(entry)}
-              disabled={approveItem.isPending}
-            >
-              <Check className="size-3.5" />
-              Approva
-            </Button>
-          )}
-          {canManage && (
-            <>
-              <Button size="sm" variant="ghost" onClick={onEdit}>
-                <Pencil className="size-3.5" />
-                Modifica
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-destructive hover:text-destructive"
-                onClick={() => removeEntry.mutate(entry)}
-                disabled={removeEntry.isPending}
-              >
-                <Trash2 className="size-3.5" />
-              </Button>
-            </>
+      {/* Footer */}
+      <div className="px-3 pb-2 pt-2">
+        {entry.notes && (
+          <p className="mb-1.5 text-[11px] italic text-muted-foreground line-clamp-1">
+            {entry.notes}
+          </p>
+        )}
+        <div className="flex items-center justify-between gap-1">
+          <p className="text-[10px] text-muted-foreground/70 truncate">
+            da {entry.insertedByName || "—"}
+          </p>
+          {(canManage || (isMaster && pending)) && (
+            <div className="flex shrink-0 items-center gap-0.5">
+              {isMaster && pending && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 px-2 text-[11px] text-emerald-300 hover:text-emerald-200"
+                  onClick={() =>
+                    approveItem.mutate(entry, {
+                      onSuccess: () =>
+                        triggerCelebration({
+                          type: "item-acquired",
+                          itemName: entry.itemName,
+                          rarity: entry.itemCategory,
+                        }),
+                    })
+                  }
+                  disabled={approveItem.isPending}
+                >
+                  <Check className="size-3" />
+                  Approva
+                </Button>
+              )}
+              {canManage && (
+                <>
+                  <Button size="sm" variant="ghost" className="size-7 p-0" onClick={onEdit}>
+                    <Pencil className="size-3.5" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="size-7 p-0 text-destructive hover:text-destructive"
+                    onClick={() => removeEntry.mutate(entry)}
+                    disabled={removeEntry.isPending}
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </>
+              )}
+            </div>
           )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

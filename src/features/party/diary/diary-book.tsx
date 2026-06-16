@@ -7,9 +7,11 @@ import {
   ChevronRight,
   Feather,
   Search,
+  ArrowRight,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { RichTextRenderer } from "@/components/shared/rich-text-lazy";
 import {
@@ -261,54 +263,80 @@ function DiaryPage({
 }) {
   const toggleFav = useToggleFavorite();
   const evt = note.questStatus ? QUEST_EVENT_STYLE[note.questStatus] : null;
+
   return (
     <article
+      onClick={onOpen}
       className={cn(
-        "parchment group relative cursor-pointer rounded-xl p-5 transition-transform hover:-translate-y-0.5",
-        evt && cn("border-l-4", evt.stripe)
+        "group relative cursor-pointer overflow-hidden rounded-xl border bg-gradient-to-b from-stone-surface to-stone-mid/80",
+        "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
+        "transition-all duration-200 hover:-translate-y-1.5 hover:border-gold/40 hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8),0_0_20px_rgba(212,175,55,0.06)]",
+        evt
+          ? cn("border-l-[3px] border-t border-r border-b border-gold/15", evt.stripe)
+          : "border-gold/15"
       )}
     >
-      {canBookmark && (
-        <button
-          type="button"
-          aria-label={bookmarked ? "Rimuovi segnalibro" : "Aggiungi segnalibro"}
-          onClick={(event) => {
-            event.stopPropagation();
-            toggleFav.mutate({ kind: "note", id: note.id, label: note.title });
-          }}
-          className="absolute top-3 right-3 text-[#7a5c1e] transition-colors hover:text-[#b8860b]"
-        >
-          <Bookmark className={cn("size-5", bookmarked && "fill-[#b8860b]")} />
-        </button>
-      )}
+      {/* Striscia ornamentale superiore */}
+      <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
 
-      <div onClick={onOpen}>
-        <h3 className="font-heading flex items-center gap-2 text-lg font-bold text-[#3a2d12]">
-          {evt && (
-            <span
-              className={cn(
-                "flex size-6 shrink-0 items-center justify-center rounded-md",
-                evt.iconWrap
-              )}
-              title={`Missione: ${evt.label}`}
+      <CornerOrnaments size="xs" className="border-gold/20" />
+
+      <div className="p-5">
+        {/* Header: evento badge + titolo */}
+        <div className="mb-2 flex items-start justify-between gap-2">
+          <div className="flex min-w-0 items-start gap-2">
+            {evt && (
+              <span
+                className={cn(
+                  "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md",
+                  evt.iconWrap
+                )}
+                title={`Quest: ${evt.label}`}
+              >
+                <evt.icon className="size-3.5" />
+              </span>
+            )}
+            <h3 className="font-heading text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-gold-bright">
+              {note.title}
+            </h3>
+          </div>
+
+          {/* Segnalibro */}
+          {canBookmark && (
+            <button
+              type="button"
+              aria-label={bookmarked ? "Rimuovi segnalibro" : "Aggiungi segnalibro"}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleFav.mutate({ kind: "note", id: note.id, label: note.title });
+              }}
+              className="shrink-0 text-gold/40 transition-colors hover:text-gold"
             >
-              <evt.icon className="size-3.5" />
-            </span>
+              <Bookmark className={cn("size-4.5", bookmarked && "fill-gold text-gold")} />
+            </button>
           )}
-          {note.title}
-        </h3>
-        <p className="mt-0.5 text-xs text-[#5d4a23]/80">
-          {formatDate(note.createdAt)} · di{" "}
-          <span className="font-semibold">{note.authorName}</span>
+        </div>
+
+        {/* Meta: data e autore */}
+        <p className="mb-3 font-heading text-[10px] tracking-[0.15em] text-muted-foreground/70 uppercase">
+          {formatDate(note.createdAt)}
+          {note.authorName && (
+            <> · <span className="text-gold/60">{note.authorName}</span></>
+          )}
         </p>
+
+        {/* Preview testo */}
         {!isEmptyRichText(note.content as RichTextValue) && (
-          <div className="mt-2 line-clamp-4 text-[15px] leading-relaxed text-[#4a3a1c]">
+          <div className="line-clamp-3 text-[13px] leading-relaxed text-foreground/75">
             <RichTextRenderer content={note.content as RichTextValue} />
           </div>
         )}
-        <span className="mt-3 inline-block text-xs font-medium text-[#7a5c1e] group-hover:underline">
-          Apri la pagina →
-        </span>
+
+        {/* "Leggi" link */}
+        <div className="mt-3 flex items-center gap-1 text-[11px] font-medium text-gold/50 transition-colors group-hover:text-gold">
+          <span>Leggi la pagina</span>
+          <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+        </div>
       </div>
     </article>
   );

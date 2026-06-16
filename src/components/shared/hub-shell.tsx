@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useRef } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { CornerOrnaments } from "@/components/shared/fantasy-card";
@@ -8,8 +9,10 @@ import { cn } from "@/lib/utils";
 /* ============================================================
  * HubShell — impianto condiviso da Area Personale e Area Party:
  * banner del titolo + pannello header (PC o Party) in alto a destra,
- * tre grandi card di navigazione, contenuto della sezione attiva.
- * Garantisce lo stesso linguaggio visivo tra le due macro-aree.
+ * navigazione sezioni, contenuto della sezione attiva.
+ *
+ * Mobile: pill-tab compatto (3 col) + swipe left/right + dot indicator.
+ * Desktop: grandi card di navigazione (invariate).
  * ============================================================ */
 
 export interface HubSection {
@@ -18,6 +21,8 @@ export interface HubSection {
   description: string;
   icon: LucideIcon;
 }
+
+const SWIPE_THRESHOLD = 55;
 
 export function HubShell({
   title,
@@ -38,8 +43,36 @@ export function HubShell({
   onSelect: (value: string) => void;
   children: React.ReactNode;
 }) {
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  }, []);
+
+  const handleTouchEnd = useCallback(
+    (e: React.TouchEvent) => {
+      if (touchStartX.current === null || touchStartY.current === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = e.changedTouches[0].clientY - touchStartY.current;
+      touchStartX.current = null;
+      touchStartY.current = null;
+      // Ignora se il gesto è prevalentemente verticale (scroll)
+      if (Math.abs(dy) > Math.abs(dx)) return;
+      if (Math.abs(dx) < SWIPE_THRESHOLD) return;
+      const idx = sections.findIndex((s) => s.value === active);
+      if (dx < 0 && idx < sections.length - 1) {
+        onSelect(sections[idx + 1].value);
+      } else if (dx > 0 && idx > 0) {
+        onSelect(sections[idx - 1].value);
+      }
+    },
+    [sections, active, onSelect]
+  );
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Banner + pannello header */}
       <div className="grid gap-5 lg:grid-cols-[1fr_20rem] lg:items-stretch">
         <div className="relative flex flex-col justify-center overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/12 via-card to-night/60 p-6 sm:p-8">
@@ -63,8 +96,49 @@ export function HubShell({
         {headerPanel}
       </div>
 
-      {/* Navigazione: tre grandi card */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      {/* Nav mobile: pill-tab orizzontale compatto */}
+      <div className="sm:hidden">
+        <div className="grid grid-cols-3 gap-1 rounded-xl border border-gold/20 bg-card/50 p-1 backdrop-blur-sm">
+          {sections.map((section) => {
+            const SectionIcon = section.icon;
+            const isActive = section.value === active;
+            return (
+              <button
+                key={section.value}
+                type="button"
+                onClick={() => onSelect(section.value)}
+                className={cn(
+                  "relative flex flex-col items-center gap-1 rounded-lg px-2 py-2.5 transition-all duration-200",
+                  isActive
+                    ? "bg-gold/18 text-gold-bright shadow-[0_0_12px_rgba(212,175,55,0.12)]"
+                    : "text-muted-foreground"
+                )}
+              >
+                {isActive && (
+                  <span className="absolute inset-x-3 top-0 h-px rounded-full bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+                )}
+                <SectionIcon
+                  className={cn(
+                    "size-5 transition-colors",
+                    isActive ? "text-gold" : "text-muted-foreground/70"
+                  )}
+                />
+                <span
+                  className={cn(
+                    "font-heading text-[10px] font-bold tracking-wide leading-none",
+                    isActive ? "text-gold-bright" : "text-muted-foreground"
+                  )}
+                >
+                  {section.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Nav desktop: grandi card */}
+      <div className="hidden grid-cols-1 gap-4 sm:grid sm:grid-cols-3">
         {sections.map((section) => {
           const SectionIcon = section.icon;
           const isActive = section.value === active;
@@ -109,8 +183,32 @@ export function HubShell({
         })}
       </div>
 
-      {/* Sezione attiva */}
-      <div>{children}</div>
+      {/* Sezione attiva — swipe gesture su mobile */}
+      <div
+        className="touch-pan-y"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {children}
+
+        {/* Dot indicator (mobile) */}
+        {sections.length > 1 && (
+          <div className="mt-6 flex justify-center gap-2 sm:hidden">
+            {sections.map((s) => (
+              <button
+                key={s.value}
+                type="button"
+                aria-label={s.label}
+                onClick={() => onSelect(s.value)}
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-300",
+                  s.value === active ? "w-6 bg-gold" : "w-1.5 bg-gold/30"
+                )}
+              />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

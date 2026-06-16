@@ -24,8 +24,8 @@ import type { Entity, EntityType } from "@/types/entities";
 
 import { useEntitiesByType } from "../data";
 import { ENTITY_REGISTRY } from "../registry";
-import { EntityCard } from "./entity-card";
 import { QuickCreateDialog } from "./quick-create-dialog";
+import { SpecializedEntityCard } from "./specialized-cards";
 
 interface EntityListPageProps {
   type: EntityType;
@@ -248,7 +248,7 @@ export function EntityListPage({
               {view === "card" ? (
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {group.items.map((entity) => (
-                    <EntityCard
+                    <SpecializedEntityCard
                       key={entity.id}
                       entity={entity}
                       showType={false}
@@ -264,7 +264,7 @@ export function EntityListPage({
       ) : view === "card" ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((entity) => (
-            <EntityCard key={entity.id} entity={entity} showType={false} />
+            <SpecializedEntityCard key={entity.id} entity={entity} showType={false} />
           ))}
         </div>
       ) : (

@@ -33,7 +33,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAuth } from "@/features/auth/auth-provider";
-import { EntityCard } from "@/features/entities/components/entity-card";
+import { SpecializedEntityCard } from "@/features/entities/components/specialized-cards";
 import { useAllRelations } from "@/features/entities/data";
 import { cn } from "@/lib/utils";
 import {
@@ -378,7 +378,7 @@ export function CharacterDashboard({
       ) : view === "card" ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((character) => (
-            <EntityCard key={character.id} entity={character} showType={false} />
+            <SpecializedEntityCard key={character.id} entity={character} showType={false} />
           ))}
         </div>
       ) : (

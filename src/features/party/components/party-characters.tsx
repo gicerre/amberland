@@ -120,9 +120,9 @@ export function PartyCharacters() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-56 rounded-xl bg-muted/60" />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <Skeleton key={index} className="aspect-[3/4] rounded-xl bg-muted/60" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -132,7 +132,7 @@ export function PartyCharacters() {
           description="Quando i giocatori creeranno i loro personaggi, compariranno qui."
         />
       ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((entry) => (
             <PartyCharacterCard
               key={entry.id}
@@ -244,87 +244,118 @@ function PartyCharacterCard({
   const { data: favorites } = useFavorites();
   const toggleFav = useToggleFavorite();
   const fav = isFavorite(favorites, "character", entry.id);
+  const hasCompanion = Boolean(card.companion?.imageUrl);
+
   return (
     <Link
       href={`/entita/${entry.id}`}
-      className="group relative block overflow-hidden rounded-xl border border-gold/20 bg-card transition-all hover:-translate-y-1 hover:border-gold/50 hover:shadow-[0_0_35px_rgba(212,175,55,0.12)]"
+      className={cn(
+        "group relative block overflow-hidden rounded-xl border",
+        "bg-gradient-to-b from-stone-surface to-stone-mid/80",
+        "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
+        "transition-all duration-200 hover:-translate-y-1.5",
+        "border-gold/40 hover:border-gold/65 hover:shadow-[0_0_30px_rgba(212,175,55,0.18),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
+      )}
     >
-      <FantasyImage
-        src={portrait}
-        alt={card.name}
-        fallbackIcon={Users}
-        className={cn("h-44", card.isDead && "grayscale")}
-        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-      />
-      <CornerOrnaments className="z-10" />
-      {card.isDead && (
-        <span className="absolute top-2.5 left-2.5 z-10 flex size-7 items-center justify-center rounded-full border border-red-500/50 bg-background/85 backdrop-blur-sm">
-          <Skull className="size-3.5 text-red-400" />
-        </span>
-      )}
-      {canContribute && (
-        <button
-          type="button"
-          aria-label={fav ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            toggleFav.mutate({
-              kind: "character",
-              id: entry.id,
-              label: card.name,
-            });
-          }}
-          className="absolute top-2.5 right-2.5 z-10 flex size-7 items-center justify-center rounded-full border border-gold/40 bg-background/85 text-gold/80 backdrop-blur-sm transition-colors hover:text-gold"
-        >
-          <Star className={cn("size-3.5", fav && "fill-gold text-gold")} />
-        </button>
-      )}
-      {card.companion?.imageUrl && (
-        <span
-          className="absolute top-[9.5rem] right-3 z-10 flex size-12 items-center justify-center overflow-hidden rounded-full border-2 border-gold/60 bg-background shadow-lg"
-          title={`Compagno: ${card.companion.name}`}
-        >
-          <FantasyImage
-            src={card.companion.imageUrl}
-            alt={card.companion.name}
-            fallbackIcon={Users}
-            className="size-12"
-            sizes="48px"
-          />
-        </span>
-      )}
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2">
-          <h3 className="font-heading font-semibold text-foreground group-hover:text-gold-bright">
+      {/* Striscia dorata superiore */}
+      <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" />
+      <span className="pointer-events-none absolute inset-0 rounded-xl bg-gold/[0.03]" />
+
+      {/* Portrait 3:4 */}
+      <div className="relative aspect-[3/4] overflow-hidden">
+        <FantasyImage
+          src={portrait}
+          alt={card.name}
+          fallbackIcon={Users}
+          className={cn("size-full", card.isDead && "grayscale")}
+          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          position="top"
+        />
+
+        {/* Gradiente bottom-up */}
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-mid via-stone-mid/30 to-transparent" />
+
+        {/* Dead skull o status badge — top-left */}
+        {card.isDead ? (
+          <span className="absolute left-2 top-2 z-10 flex size-6 items-center justify-center rounded-full border border-red-500/50 bg-background/85 backdrop-blur-sm">
+            <Skull className="size-3.5 text-red-400" />
+          </span>
+        ) : card.status !== "ALIVE" ? (
+          <span className={cn(
+            "absolute left-2 top-2 z-10 rounded border px-1.5 py-0.5 font-heading text-[9px] font-bold uppercase",
+            CHARACTER_STATUS_BADGES[card.status]
+          )}>
+            {CHARACTER_STATUS_LABELS[card.status]}
+          </span>
+        ) : null}
+
+        {/* Stella preferiti — top-right */}
+        {canContribute && (
+          <button
+            type="button"
+            aria-label={fav ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              toggleFav.mutate({ kind: "character", id: entry.id, label: card.name });
+            }}
+            className="absolute right-2 top-2 z-10 flex size-6 items-center justify-center rounded-full border border-gold/40 bg-background/85 text-gold/80 backdrop-blur-sm transition-colors hover:text-gold"
+          >
+            <Star className={cn("size-3.5", fav && "fill-gold text-gold")} />
+          </button>
+        )}
+
+        {/* Famiglio — cerchio dorato sovrapposto in basso a destra */}
+        {hasCompanion && (
+          <span
+            className="absolute bottom-9 right-2.5 z-20 flex size-11 items-center justify-center overflow-hidden rounded-full border-2 border-gold/65 bg-background shadow-[0_2px_12px_rgba(0,0,0,0.6)]"
+            title={`Famiglio: ${card.companion!.name}`}
+          >
+            <FantasyImage
+              src={card.companion!.imageUrl}
+              alt={card.companion!.name}
+              fallbackIcon={Users}
+              className="size-11"
+              sizes="44px"
+            />
+          </span>
+        )}
+
+        {/* Nome + race/class in overlay sul fondo */}
+        <div className="absolute inset-x-0 bottom-0 z-10 p-3">
+          <p className="font-heading text-[9px] tracking-[0.15em] text-gold/70 uppercase">
+            {[card.race, card.classesSummary].filter(Boolean).join(" · ") || "—"}
+          </p>
+          <h3 className="font-heading text-[15px] font-semibold leading-tight text-foreground transition-colors group-hover:text-gold-bright">
             {card.name}
             {isMine && (
-              <Badge
-                variant="outline"
-                className="ml-2 border-gold/50 text-[10px] text-gold-bright"
-              >
+              <Badge variant="outline" className="ml-2 border-gold/50 text-[10px] text-gold-bright">
                 Tu
               </Badge>
             )}
           </h3>
-          {card.status !== "ALIVE" && (
-            <Badge
-              variant="outline"
-              className={cn("shrink-0 text-[10px]", CHARACTER_STATUS_BADGES[card.status])}
-            >
-              {CHARACTER_STATUS_LABELS[card.status]}
-            </Badge>
+        </div>
+      </div>
+
+      {/* Footer: giocatore + famiglio */}
+      <div className="flex items-center justify-between gap-2 px-3 py-2.5">
+        <div className="min-w-0">
+          {card.ownerName ? (
+            <p className="truncate font-heading text-[11px] text-muted-foreground">
+              {card.ownerName}
+            </p>
+          ) : (
+            <span className="text-[11px] text-muted-foreground/40">—</span>
+          )}
+          {card.companion?.name && (
+            <p className="truncate text-[10px] text-gold/55">
+              Famiglio: {card.companion.name}
+            </p>
           )}
         </div>
-        <p className="mt-0.5 text-sm text-muted-foreground">
-          {[card.race, card.classesSummary].filter(Boolean).join(" • ") || "—"}
-        </p>
-        {card.ownerName && (
-          <p className="mt-1 text-xs text-muted-foreground/80">
-            Giocatore: {card.ownerName}
-          </p>
-        )}
       </div>
+
+      <CornerOrnaments size="xs" className="border-gold/25" />
     </Link>
   );
 }

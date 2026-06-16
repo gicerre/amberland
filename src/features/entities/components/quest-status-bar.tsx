@@ -2,6 +2,7 @@
 
 import { CalendarCheck, CalendarClock, Flag, Loader2, Target } from "lucide-react";
 
+import { useCelebration } from "@/components/shared/celebration";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useNoteMutations } from "@/features/party/diary/data";
 import { cn } from "@/lib/utils";
@@ -37,6 +38,7 @@ function formatDate(value: unknown): string | null {
  */
 export function QuestStatusBar({ entity }: { entity: Entity }) {
   const { canContribute } = useAuth();
+  const { trigger: triggerCelebration } = useCelebration();
   const { update } = useEntityMutations();
   const { syncQuestEvent } = useNoteMutations();
 
@@ -64,8 +66,12 @@ export function QuestStatusBar({ entity }: { entity: Entity }) {
     update.mutate(
       { entity, data: { fields } },
       {
-        onSuccess: () =>
-          syncQuestEvent.mutate({ entity: { ...entity, fields }, status }),
+        onSuccess: () => {
+          syncQuestEvent.mutate({ entity: { ...entity, fields }, status });
+          if (status === "COMPLETED") {
+            triggerCelebration({ type: "quest-complete", questName: entity.name });
+          }
+        },
       }
     );
   };

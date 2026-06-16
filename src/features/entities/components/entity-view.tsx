@@ -49,6 +49,7 @@ import { NoteLinksPanel } from "@/features/party/diary/note-links-panel";
 import { cn } from "@/lib/utils";
 
 import { CreatureStatusBar } from "./creature-status-bar";
+import { EntityDetailBody } from "./entity-detail-body";
 import { EntityTypeBanner } from "./entity-type-banner";
 import { GeoTrail } from "./geo-trail";
 import { QuestStatusBar } from "./quest-status-bar";
@@ -67,10 +68,10 @@ import {
   VISIBILITY_LABELS,
   isLockedEntity,
 } from "../registry";
-import { EntityCard } from "./entity-card";
 import { EntityFormSheet } from "./entity-form-sheet";
 import { QuickCreateDialog } from "./quick-create-dialog";
 import { RelationPanel } from "./relation-panel";
+import { SpecializedEntityCard } from "./specialized-cards";
 
 /** Pagina di dettaglio universale di un'entità. */
 export function EntityView({ id }: { id: string }) {
@@ -147,7 +148,7 @@ export function EntityView({ id }: { id: string }) {
   const galleryOffset = entity.imageUrl ? 1 : 0;
 
   type ShortField = { def: (typeof config.fields)[number]; display: string };
-  type LongField = { def: (typeof config.fields)[number]; rich: RichText };
+  type LongField  = { def: (typeof config.fields)[number]; rich: RichText };
 
   const shortFields: ShortField[] = [];
   const longFields: LongField[] = [];
@@ -360,68 +361,15 @@ export function EntityView({ id }: { id: string }) {
       {/* Collegamenti rapidi */}
       <QuickLinks entity={entity} />
 
-      {/* Dettagli sintetici */}
-      {shortFields.length > 0 && (
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {shortFields.map(({ def, display }) => (
-            <div
-              key={def.key}
-              className="rounded-lg border border-gold/15 bg-card/60 px-4 py-3"
-            >
-              <dt className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
-                {def.label}
-              </dt>
-              <dd className="mt-1 font-heading font-semibold text-gold-bright">
-                {display}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
-
-      {/* Descrizione */}
-      {!isEmptyRichText(entity.description as RichTextValue) ? (
-        <div className="parchment rounded-xl p-6 sm:p-8">
-          <RichTextRenderer
-            content={entity.description as RichTextValue}
-            className="text-base leading-relaxed sm:text-lg"
-          />
-        </div>
-      ) : (
-        <EmptyState
-          icon={ScrollText}
-          title="Cronache non ancora scritte"
-          description={config.flavor}
-          action={
-            isMaster ? (
-              <Button variant="outline" onClick={() => setEditOpen(true)}>
-                <Pencil className="size-4" />
-                Scrivi le cronache
-              </Button>
-            ) : undefined
-          }
-        />
-      )}
-
-      {/* Campi narrativi lunghi */}
-      {longFields.length > 0 && (
-        <div className="grid gap-4 lg:grid-cols-2">
-          {longFields.map(({ def, rich }) => (
-            <section
-              key={def.key}
-              className="rounded-xl border border-gold/15 bg-card/60 p-5"
-            >
-              <h3 className="font-heading mb-2 text-sm font-bold tracking-[0.2em] text-gold uppercase">
-                {def.label}
-              </h3>
-              <RichTextRenderer
-                content={rich as RichTextValue}
-                className="text-[15px] leading-relaxed text-foreground/90"
-              />
-            </section>
-          ))}
-        </div>
-      )}
+      {/* Contenuti specifici per tipo di entità */}
+      <EntityDetailBody
+        entity={entity}
+        config={config}
+        shortFields={shortFields}
+        longFields={longFields}
+        isMaster={isMaster}
+        onEdit={() => setEditOpen(true)}
+      />
 
       {/* Galleria */}
       {entity.gallery.length > 0 && (
@@ -477,7 +425,7 @@ export function EntityView({ id }: { id: string }) {
           ) : (
             <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {(children ?? []).map((child) => (
-                <EntityCard key={child.id} entity={child} showType={false} />
+                <SpecializedEntityCard key={child.id} entity={child} showType={false} />
               ))}
             </div>
           )}

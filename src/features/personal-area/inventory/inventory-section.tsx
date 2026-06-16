@@ -156,9 +156,9 @@ export function InventorySection() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-40 rounded-xl bg-muted/60" />
+            <Skeleton key={index} className="aspect-square rounded-xl bg-muted/60" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -183,7 +183,7 @@ export function InventorySection() {
                 {categoryLabel(cat)}
                 <span className="text-muted-foreground">({list.length})</span>
               </h3>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {list.map((item) => (
                   <InventoryCard
                     key={item.id}
@@ -196,7 +196,7 @@ export function InventorySection() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((item) => (
             <InventoryCard
               key={item.id}

@@ -41,12 +41,29 @@
   --color-card: var(--card);
   --color-gold: var(--gold);
   --color-gold-bright: var(--gold-bright);
+  --color-gold-light: var(--gold-light);
   --color-gold-dark: var(--gold-dark);
+  --color-gold-dim: var(--gold-dim);
   --color-crimson: var(--crimson);
   --color-crimson-bright: var(--crimson-bright);
   --color-night: var(--night);
   --color-parchment: var(--parchment);
   --color-parchment-dark: var(--parchment-dark);
+  --color-stone-deep: var(--stone-deep);
+  --color-stone-mid: var(--stone-mid);
+  --color-stone-surface: var(--stone-surface);
+  --color-stone-highlight: var(--stone-highlight);
+  --color-iron-dark: var(--iron-dark);
+  --color-iron-mid: var(--iron-mid);
+  --color-brass: var(--brass);
+  --color-arcane-blue: var(--arcane-blue);
+  --color-arcane-bright: var(--arcane-bright);
+  --color-emerald-deep: var(--emerald-deep);
+  --color-emerald: var(--emerald);
+  --color-emerald-bright: var(--emerald-bright);
+  --color-amber-deep: var(--amber-deep);
+  --color-amber: var(--amber);
+  --color-amber-bright: var(--amber-bright);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -57,6 +74,10 @@
   --animate-glow-pulse: glow-pulse 3.2s ease-in-out infinite;
   --animate-fade-up: fade-up 0.6s ease-out both;
   --animate-flicker: flicker 4s ease-in-out infinite;
+  --animate-shimmer-gold: shimmer-gold 2.2s ease-in-out infinite;
+  --animate-float: float 4s ease-in-out infinite;
+  --animate-scale-in: scale-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+  --animate-slide-up: slide-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 /*
@@ -66,9 +87,9 @@
  * le varianti dark: dei componenti, i valori vivono in :root.
  */
 :root {
-  --background: #0a0c12;
+  --background: #080b13;
   --foreground: #e8dcc0;
-  --card: #10131d;
+  --card: #0f1220;
   --card-foreground: #e8dcc0;
   --popover: #131724;
   --popover-foreground: #e8dcc0;
@@ -76,13 +97,13 @@
   --primary-foreground: #181102;
   --secondary: #182032;
   --secondary-foreground: #c9d4ea;
-  --muted: #151a27;
+  --muted: #141828;
   --muted-foreground: #a2937a;
-  --accent: #1c2336;
+  --accent: #1c2438;
   --accent-foreground: #e6c869;
   --destructive: #c43146;
-  --border: rgba(201, 162, 39, 0.16);
-  --input: rgba(201, 162, 39, 0.24);
+  --border: rgba(201, 162, 39, 0.15);
+  --input: rgba(201, 162, 39, 0.22);
   --ring: rgba(201, 162, 39, 0.55);
   --chart-1: #c9a227;
   --chart-2: #8b1e2d;
@@ -90,22 +111,52 @@
   --chart-4: #7a6a45;
   --chart-5: #4d3a52;
   --radius: 0.625rem;
-  --sidebar: #0c0f17;
+  --sidebar: #080b13;
   --sidebar-foreground: #e8dcc0;
   --sidebar-primary: #c9a227;
   --sidebar-primary-foreground: #181102;
-  --sidebar-accent: #1c2336;
+  --sidebar-accent: #1c2438;
   --sidebar-accent-foreground: #e6c869;
-  --sidebar-border: rgba(201, 162, 39, 0.14);
+  --sidebar-border: rgba(201, 162, 39, 0.12);
   --sidebar-ring: rgba(201, 162, 39, 0.55);
+
+  /* Palette estesa — materiali fantasy */
   --gold: #c9a227;
   --gold-bright: #f0d075;
+  --gold-light: #f7e8a0;
   --gold-dark: #8a6d1c;
+  --gold-dim: #6b5420;
   --crimson: #8b1e2d;
   --crimson-bright: #c43146;
   --night: #131c31;
   --parchment: #e8dcc0;
   --parchment-dark: #cdbd97;
+
+  /* Superfici pietra */
+  --stone-deep: #080b13;
+  --stone-mid: #0f1220;
+  --stone-surface: #141828;
+  --stone-highlight: #1c2438;
+
+  /* Metalli */
+  --iron-dark: #252830;
+  --iron-mid: #3a3d48;
+  --brass: #7a6020;
+
+  /* Arcano */
+  --arcane-blue: #2e4a8a;
+  --arcane-bright: #4d72c9;
+  --arcane-glow: rgba(77, 114, 201, 0.35);
+
+  /* Smeraldo */
+  --emerald-deep: #1a4a2e;
+  --emerald: #2d7a50;
+  --emerald-bright: #4caf7d;
+
+  /* Ambra */
+  --amber-deep: #5c3800;
+  --amber: #b87333;
+  --amber-bright: #e8943a;
 }
 
 @keyframes glow-pulse {
@@ -139,6 +190,76 @@
   }
 }
 
+@keyframes shimmer-gold {
+  from {
+    background-position: -200% center;
+  }
+  to {
+    background-position: 200% center;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.93);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes ornament-reveal {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes seal-burn {
+  0% {
+    opacity: 0;
+    transform: scale(0.5) rotate(-20deg);
+    filter: blur(8px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.05) rotate(2deg);
+    filter: blur(0px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+    filter: blur(0px);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -152,9 +273,10 @@
   body {
     @apply bg-background text-foreground;
     background-image:
-      radial-gradient(1100px 700px at 50% -10%, rgba(19, 28, 49, 0.85), transparent 60%),
-      radial-gradient(900px 600px at 88% 108%, rgba(139, 30, 45, 0.1), transparent 55%),
-      radial-gradient(700px 500px at 8% 95%, rgba(201, 162, 39, 0.05), transparent 55%);
+      radial-gradient(1400px 900px at 50% -5%, rgba(14, 22, 44, 0.95), transparent 65%),
+      radial-gradient(900px 700px at 90% 110%, rgba(139, 30, 45, 0.12), transparent 55%),
+      radial-gradient(700px 600px at 5% 90%, rgba(201, 162, 39, 0.06), transparent 55%),
+      radial-gradient(600px 400px at 70% 50%, rgba(46, 74, 138, 0.04), transparent 60%);
     background-attachment: fixed;
   }
 
@@ -171,8 +293,8 @@
   }
 
   ::-webkit-scrollbar {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
@@ -180,13 +302,20 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(201, 162, 39, 0.22);
+    background: rgba(201, 162, 39, 0.18);
     border-radius: 999px;
     border: 2px solid var(--background);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(201, 162, 39, 0.4);
+    background: rgba(201, 162, 39, 0.38);
+  }
+
+  /* Focus visible globale con ring dorato */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgba(201, 162, 39, 0.6);
+    border-radius: var(--radius);
   }
 }
 
@@ -203,13 +332,14 @@
   .parchment {
     background-color: #e8dcc0;
     background-image:
-      radial-gradient(ellipse at 18% 12%, rgba(141, 110, 50, 0.1), transparent 45%),
-      radial-gradient(ellipse at 85% 90%, rgba(141, 110, 50, 0.12), transparent 45%),
-      linear-gradient(180deg, rgba(255, 250, 235, 0.45), transparent 30%);
+      radial-gradient(ellipse at 18% 12%, rgba(141, 110, 50, 0.12), transparent 45%),
+      radial-gradient(ellipse at 85% 90%, rgba(141, 110, 50, 0.14), transparent 45%),
+      linear-gradient(180deg, rgba(255, 250, 235, 0.5), transparent 30%),
+      linear-gradient(135deg, rgba(180, 140, 60, 0.05) 0%, transparent 50%);
     color: #2a2114;
     box-shadow:
-      inset 0 0 28px rgba(120, 90, 40, 0.22),
-      0 2px 12px rgba(0, 0, 0, 0.45);
+      inset 0 0 36px rgba(120, 90, 40, 0.25),
+      0 2px 16px rgba(0, 0, 0, 0.5);
   }
 
   .parchment h1,
@@ -217,6 +347,192 @@
   .parchment h3,
   .parchment h4 {
     color: #3b2c12;
+  }
+
+  /* ── Glows ─────────────────────────────────────── */
+
+  .glow-gold {
+    box-shadow:
+      0 0 20px rgba(201, 162, 39, 0.4),
+      0 0 60px rgba(201, 162, 39, 0.12);
+  }
+
+  .glow-gold-sm {
+    box-shadow: 0 0 12px rgba(201, 162, 39, 0.35);
+  }
+
+  .glow-arcane {
+    box-shadow:
+      0 0 20px rgba(77, 114, 201, 0.45),
+      0 0 60px rgba(77, 114, 201, 0.15);
+  }
+
+  .glow-crimson {
+    box-shadow:
+      0 0 20px rgba(196, 49, 70, 0.45),
+      0 0 60px rgba(196, 49, 70, 0.15);
+  }
+
+  .glow-emerald {
+    box-shadow: 0 0 20px rgba(76, 175, 125, 0.4);
+  }
+
+  /* ── Angoli tagliati (clip-path fantasy) ────────── */
+
+  .clip-angled-sm {
+    clip-path: polygon(6px 0%, 100% 0%, calc(100% - 6px) 100%, 0% 100%);
+  }
+
+  .clip-angled-md {
+    clip-path: polygon(10px 0%, 100% 0%, calc(100% - 10px) 100%, 0% 100%);
+  }
+
+  .clip-angled-lg {
+    clip-path: polygon(16px 0%, 100% 0%, calc(100% - 16px) 100%, 0% 100%);
+  }
+
+  .clip-octagon-sm {
+    clip-path: polygon(
+      6px 0%, calc(100% - 6px) 0%,
+      100% 6px, 100% calc(100% - 6px),
+      calc(100% - 6px) 100%, 6px 100%,
+      0% calc(100% - 6px), 0% 6px
+    );
+  }
+
+  .clip-octagon-md {
+    clip-path: polygon(
+      10px 0%, calc(100% - 10px) 0%,
+      100% 10px, 100% calc(100% - 10px),
+      calc(100% - 10px) 100%, 10px 100%,
+      0% calc(100% - 10px), 0% 10px
+    );
+  }
+
+  .clip-octagon-lg {
+    clip-path: polygon(
+      16px 0%, calc(100% - 16px) 0%,
+      100% 16px, 100% calc(100% - 16px),
+      calc(100% - 16px) 100%, 16px 100%,
+      0% calc(100% - 16px), 0% 16px
+    );
+  }
+
+  /* ── Shimmer skeleton dorato ─────────────────────── */
+
+  .shimmer-gold {
+    background: linear-gradient(
+      90deg,
+      rgba(201, 162, 39, 0.04) 0%,
+      rgba(201, 162, 39, 0.1) 50%,
+      rgba(201, 162, 39, 0.04) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer-gold 2.2s ease-in-out infinite;
+  }
+
+  /* ── Nav group label ─────────────────────────────── */
+
+  .nav-group-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0 12px;
+    margin-top: 20px;
+    margin-bottom: 6px;
+    font-family: var(--font-heading);
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: rgba(201, 162, 39, 0.45);
+  }
+
+  .nav-group-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, rgba(201, 162, 39, 0.25), transparent);
+  }
+
+  /* ── Rarità oggetti (bordo + glow) ──────────────── */
+
+  .rarity-common    { --rarity-color: rgba(160, 160, 160, 0.5); }
+  .rarity-rare      { --rarity-color: rgba(77, 114, 201, 0.7); }
+  .rarity-magic     { --rarity-color: rgba(155, 89, 182, 0.7); }
+  .rarity-legendary {
+    --rarity-color: rgba(201, 162, 39, 0.8);
+    animation: glow-pulse 3s ease-in-out infinite;
+  }
+  .rarity-artifact  {
+    --rarity-color: rgba(196, 49, 70, 0.8);
+  }
+
+  /* ── Card hover standard ─────────────────────────── */
+
+  .card-hover {
+    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 200ms ease-out,
+                border-color 200ms ease-out;
+  }
+
+  .card-hover:hover {
+    transform: translateY(-3px) scale(1.005);
+    box-shadow: 0 8px 40px rgba(201, 162, 39, 0.14);
+  }
+
+  /* ── Striscia ornamentale superiore ─────────────── */
+
+  .fantasy-stripe-top {
+    position: relative;
+  }
+
+  .fantasy-stripe-top::before {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    top: 0;
+    height: 2px;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(201, 162, 39, 0.6) 20%,
+      rgba(240, 208, 117, 0.9) 50%,
+      rgba(201, 162, 39, 0.6) 80%,
+      transparent 100%
+    );
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  /* ── Bottoni fantasy ─────────────────────────────── */
+
+  .btn-fantasy-primary {
+    position: relative;
+    background: linear-gradient(135deg, #7a6020 0%, #c9a227 50%, #8a6d1c 100%);
+    border: 1px solid rgba(240, 208, 117, 0.45);
+    color: #181102;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    transition:
+      box-shadow 180ms ease-out,
+      transform 120ms ease-out,
+      border-color 180ms ease-out;
+  }
+
+  .btn-fantasy-primary:hover {
+    box-shadow:
+      0 0 18px rgba(201, 162, 39, 0.45),
+      0 0 50px rgba(201, 162, 39, 0.12);
+    border-color: rgba(240, 208, 117, 0.7);
+    transform: translateY(-1px);
+  }
+
+  .btn-fantasy-primary:active {
+    transform: translateY(1px) scale(0.98);
+    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.35);
   }
 }
 

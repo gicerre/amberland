@@ -15,7 +15,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
-import { FantasyCard, SectionDivider } from "@/components/shared/fantasy-card";
+import { FantasyCard, FantasyPanel, SectionDivider } from "@/components/shared/fantasy-card";
 import { richTextToPlainText } from "@/components/shared/rich-text-utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -88,9 +88,12 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       {/* Benvenuto */}
-      <FantasyCard className="bg-[radial-gradient(ellipse_at_top_left,rgba(201,162,39,0.08),transparent_55%)] p-8 sm:p-10">
-        <p className="font-heading text-xs tracking-[0.35em] text-gold/70 uppercase">
-          Le cronache continuano
+      <FantasyPanel
+        glow
+        className="bg-[radial-gradient(ellipse_at_top_left,rgba(201,162,39,0.1),transparent_60%)] p-8 sm:p-10"
+      >
+        <p className="font-heading text-[10px] tracking-[0.4em] text-gold/60 uppercase">
+          ◆ Le cronache continuano ◆
         </p>
         <h1 className="text-gold-gradient mt-2 font-heading text-3xl font-bold tracking-wide sm:text-4xl">
           Bentornato, {profile?.username ?? "viandante"}
@@ -98,7 +101,7 @@ export default function HomePage() {
         <p className="mt-3 max-w-2xl text-lg text-muted-foreground italic">
           {role ? ROLE_GREETINGS[role] : ""}
         </p>
-      </FantasyCard>
+      </FantasyPanel>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Quest attive */}
@@ -218,10 +221,12 @@ export default function HomePage() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="group relative overflow-hidden rounded-xl border border-gold/15 bg-card p-5 transition-all hover:-translate-y-0.5 hover:border-gold/45 hover:shadow-[0_0_30px_rgba(212,175,55,0.1)]"
+                className="group relative overflow-hidden rounded-xl border border-gold/12 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-5 transition-all duration-200 hover:-translate-y-1 hover:border-gold/40 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.7),0_0_24px_rgba(212,175,55,0.08)]"
               >
-                <Icon className="size-6 text-gold/70 transition-colors group-hover:text-gold" />
-                <p className="mt-3 font-heading font-semibold text-foreground">
+                {/* Striscia superiore */}
+                <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
+                <Icon className="size-6 text-gold/60 transition-all group-hover:text-gold group-hover:drop-shadow-[0_0_6px_rgba(212,175,55,0.5)]" />
+                <p className="mt-3 font-heading text-[13px] font-semibold text-foreground transition-colors group-hover:text-gold-bright">
                   {link.label}
                 </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
