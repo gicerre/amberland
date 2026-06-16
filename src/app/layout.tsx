@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
-import { Cinzel, Crimson_Pro } from "next/font/google";
+import { Caudex, Cinzel } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AppProviders } from "@/providers/app-providers";
+import { Analytics } from "@vercel/analytics/next"
+
 
 const cinzel = Cinzel({
   subsets: ["latin"],
@@ -10,9 +12,10 @@ const cinzel = Cinzel({
   display: "swap",
 });
 
-const crimsonPro = Crimson_Pro({
+const caudex = Caudex({
   subsets: ["latin"],
-  variable: "--font-crimson-pro",
+  variable: "--font-caudex",
+  weight: ["400", "700"],
   style: ["normal", "italic"],
   display: "swap",
 });
@@ -28,7 +31,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0c12",
+  themeColor: "#060608",
 };
 
 export default function RootLayout({
@@ -37,10 +40,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it" className="dark" suppressHydrationWarning>
-      <body className={`${cinzel.variable} ${crimsonPro.variable} antialiased`}>
+    <html lang="it" className={`dark ${cinzel.variable} ${caudex.variable}`} suppressHydrationWarning>
+      <body className="antialiased">
         <AppProviders>{children}</AppProviders>
         <Toaster position="bottom-right" />
+        <Analytics />
       </body>
     </html>
   );
