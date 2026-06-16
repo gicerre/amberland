@@ -10,6 +10,7 @@ import { DiaryBook } from "../diary/diary-book";
 import { ActiveQuestsReminder } from "./active-quests-reminder";
 import { PartyCharacters } from "./party-characters";
 import { PartyHeaderPanel } from "./party-header-panel";
+import { QuestOverviewBox } from "./quest-overview-box";
 
 /* ============================================================
  * Area Party — il registro ufficiale della compagnia. Stesso pattern
@@ -52,6 +53,7 @@ export function PartyHub() {
       onSelect={setActive}
     >
       <div className="space-y-6">
+        <QuestOverviewBox />
         <ActiveQuestsReminder />
         {active === "personaggi" && <PartyCharacters />}
         {active === "borsa" && <BagSection />}

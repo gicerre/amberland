@@ -151,6 +151,21 @@ export const QUEST_STATUS_BADGES: Record<string, string> = {
   SECRET: "border-purple-500/50 bg-purple-500/10 text-purple-300",
 };
 
+/** Stato di una creatura nel Bestiario. */
+export const CREATURE_STATUS_OPTIONS = [
+  { value: "UNKNOWN", label: "Sconosciuta" },
+  { value: "SIGHTED", label: "Avvistata" },
+  { value: "ALIVE", label: "Viva" },
+  { value: "DEAD", label: "Sconfitta" },
+];
+
+export const CREATURE_STATUS_BADGES: Record<string, string> = {
+  UNKNOWN: "border-zinc-500/50 bg-zinc-500/10 text-zinc-300",
+  SIGHTED: "border-sky-500/50 bg-sky-500/10 text-sky-300",
+  ALIVE: "border-emerald-600/50 bg-emerald-900/25 text-emerald-300",
+  DEAD: "border-red-500/50 bg-red-500/10 text-red-300",
+};
+
 export const ITEM_CATEGORY_OPTIONS = [
   { value: "COMMON", label: "Comune" },
   { value: "RARE", label: "Raro" },
@@ -418,6 +433,12 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     flavor: "Mostri e bestie che popolano le terre selvagge del regno.",
     fields: [
       {
+        key: "status",
+        label: "Stato",
+        kind: "select",
+        options: CREATURE_STATUS_OPTIONS,
+      },
+      {
         key: "creatureType",
         label: "Tipo",
         kind: "select",
@@ -444,11 +465,24 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     ],
     cardMeta: (entity) => {
       const cr = entity.fields.cr;
+      const status = String(entity.fields.status ?? "");
+      const subtitle =
+        [
+          typeof entity.fields.creatureType === "string"
+            ? entity.fields.creatureType
+            : null,
+          cr ? `CR ${cr}` : null,
+        ]
+          .filter(Boolean)
+          .join(" • ") || undefined;
+      const statusLabel = optionLabel(CREATURE_STATUS_OPTIONS, status);
       return {
-        subtitle: typeof entity.fields.creatureType === "string" ? entity.fields.creatureType : undefined,
-        badge: cr
-          ? { label: `CR ${cr}`, className: "border-rose-500/50 bg-rose-500/10 text-rose-300" }
-          : undefined,
+        subtitle,
+        badge: statusLabel
+          ? { label: statusLabel, className: CREATURE_STATUS_BADGES[status] ?? "" }
+          : cr
+            ? { label: `CR ${cr}`, className: "border-rose-500/50 bg-rose-500/10 text-rose-300" }
+            : undefined,
       };
     },
   },

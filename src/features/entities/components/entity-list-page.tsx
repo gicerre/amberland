@@ -1,13 +1,23 @@
 "use client";
 
-import { Plus, Search } from "lucide-react";
-import { useMemo, useState } from "react";
+import { LayoutGrid, Plus, Search, Table as TableIcon } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { useAuth } from "@/features/auth/auth-provider";
 import { cn } from "@/lib/utils";
 import type { Entity, EntityType } from "@/types/entities";
@@ -30,6 +40,12 @@ interface EntityListPageProps {
    * sezioni (es. lo stato delle quest). Sostituisce i filtri a chip.
    */
   groupByFieldKey?: string;
+  /**
+   * Sezioni personalizzate (ordine + accorpamenti) sul campo di raggruppamento:
+   * ogni voce ha un'etichetta e i valori che vi confluiscono. Le sezioni vuote
+   * sono nascoste (es. "Segrete" sparisce per i giocatori).
+   */
+  customGroups?: { label: string; values: string[] }[];
   emptyTitle?: string;
   emptyDescription?: string;
   /** Nasconde il pulsante di creazione (es. pagina Party). */
@@ -47,6 +63,7 @@ export function EntityListPage({
   filter,
   chipFieldKey,
   groupByFieldKey,
+  customGroups,
   emptyTitle,
   emptyDescription,
   hideCreate = false,
@@ -58,6 +75,20 @@ export function EntityListPage({
   const [search, setSearch] = useState("");
   const [chip, setChip] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  // Vista card/tabella, ricordata tra le liste.
+  const [view, setView] = useState<"card" | "table">("card");
+  useEffect(() => {
+    const saved = localStorage.getItem("amberland:list-view");
+    if (saved === "table" || saved === "card") setView(saved);
+  }, []);
+  const changeView = (next: "card" | "table") => {
+    setView(next);
+    try {
+      localStorage.setItem("amberland:list-view", next);
+    } catch {
+      /* ignora */
+    }
+  };
 
   const chipDef = chipFieldKey
     ? config.fields.find(
@@ -93,6 +124,18 @@ export function EntityListPage({
     const firstValue = options[0]?.value ?? "";
     const valueOf = (entity: Entity) =>
       String(entity.fields[groupDef.key] ?? "") || firstValue;
+    // Sezioni personalizzate (ordine + accorpamenti) se richieste.
+    if (customGroups) {
+      return customGroups
+        .map((group) => ({
+          label: group.label,
+          value: group.label,
+          items: filtered.filter((entity) =>
+            group.values.includes(valueOf(entity))
+          ),
+        }))
+        .filter((group) => group.items.length > 0);
+    }
     const known = options.map((option) => ({
       label: option.label,
       value: option.value,
@@ -105,7 +148,7 @@ export function EntityListPage({
       known.push({ label: "Altro", value: "__other__", items: others });
     }
     return known.filter((group) => group.items.length > 0);
-  }, [groupDef, filtered]);
+  }, [groupDef, filtered, customGroups]);
 
   return (
     <div>
@@ -133,7 +176,7 @@ export function EntityListPage({
           />
         </div>
 
-        {chipDef && !groupDef && (
+        {chipDef && (
           <div className="flex flex-wrap gap-1.5">
             <FilterChip
               active={chip === null}
@@ -152,6 +195,21 @@ export function EntityListPage({
             ))}
           </div>
         )}
+
+        <div className="ml-auto inline-flex rounded-lg border border-gold/20 bg-night/30 p-1">
+          <ViewToggle
+            active={view === "card"}
+            onClick={() => changeView("card")}
+            label="Card"
+            icon={<LayoutGrid className="size-4" />}
+          />
+          <ViewToggle
+            active={view === "table"}
+            onClick={() => changeView("table")}
+            label="Tabella"
+            icon={<TableIcon className="size-4" />}
+          />
+        </div>
       </div>
 
       {isLoading ? (
@@ -187,20 +245,30 @@ export function EntityListPage({
                   ({group.items.length})
                 </span>
               </h2>
-              <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-                {group.items.map((entity) => (
-                  <EntityCard key={entity.id} entity={entity} showType={false} />
-                ))}
-              </div>
+              {view === "card" ? (
+                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {group.items.map((entity) => (
+                    <EntityCard
+                      key={entity.id}
+                      entity={entity}
+                      showType={false}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <EntityTable entities={group.items} />
+              )}
             </section>
           ))}
         </div>
-      ) : (
+      ) : view === "card" ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((entity) => (
             <EntityCard key={entity.id} entity={entity} showType={false} />
           ))}
         </div>
+      ) : (
+        <EntityTable entities={filtered} />
       )}
 
       {isMaster && (
@@ -211,6 +279,94 @@ export function EntityListPage({
         />
       )}
     </div>
+  );
+}
+
+/** Vista a tabella/lista di entità (alternativa alle card). */
+function EntityTable({ entities }: { entities: Entity[] }) {
+  return (
+    <div className="overflow-x-auto rounded-xl border border-gold/15">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Nome</TableHead>
+            <TableHead>Dettagli</TableHead>
+            <TableHead>Stato</TableHead>
+            <TableHead>Tag</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {entities.map((entity) => {
+            const config = ENTITY_REGISTRY[entity.type];
+            const meta = config.cardMeta?.(entity) ?? {};
+            return (
+              <TableRow key={entity.id}>
+                <TableCell className="font-medium">
+                  <Link
+                    href={`/entita/${entity.id}`}
+                    className="flex items-center gap-2 hover:text-gold-bright"
+                  >
+                    <span
+                      className="size-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: config.accent }}
+                    />
+                    <span className="truncate">{entity.name}</span>
+                  </Link>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {meta.subtitle ?? "—"}
+                </TableCell>
+                <TableCell>
+                  {meta.badge ? (
+                    <Badge
+                      variant="outline"
+                      className={cn("text-[10px]", meta.badge.className)}
+                    >
+                      {meta.badge.label}
+                    </Badge>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {entity.tags.slice(0, 3).join(", ") || "—"}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
+function ViewToggle({
+  active,
+  onClick,
+  label,
+  icon,
+}: {
+  active: boolean;
+  onClick: () => void;
+  label: string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      title={label}
+      className={cn(
+        "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors",
+        active
+          ? "bg-gold/20 text-gold-bright"
+          : "text-muted-foreground hover:text-foreground"
+      )}
+    >
+      {icon}
+      <span className="hidden sm:inline">{label}</span>
+    </button>
   );
 }
 

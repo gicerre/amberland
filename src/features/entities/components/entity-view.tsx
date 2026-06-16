@@ -48,6 +48,7 @@ import { useEntityPublicCard } from "@/features/characters/data";
 import { NoteLinksPanel } from "@/features/party/diary/note-links-panel";
 import { cn } from "@/lib/utils";
 
+import { CreatureStatusBar } from "./creature-status-bar";
 import { EntityTypeBanner } from "./entity-type-banner";
 import { GeoTrail } from "./geo-trail";
 import { QuestStatusBar } from "./quest-status-bar";
@@ -352,6 +353,9 @@ export function EntityView({ id }: { id: string }) {
 
       {/* Presa in carico (solo quest) */}
       {entity.type === "quest" && <QuestStatusBar entity={entity} />}
+
+      {/* Stato rapido (solo creature) */}
+      {entity.type === "creature" && <CreatureStatusBar entity={entity} />}
 
       {/* Collegamenti rapidi */}
       <QuickLinks entity={entity} />
