@@ -145,3 +145,4 @@ un altro terminale, `npm run dev`.
 --- Changelog
 add familiars
 add list tabel cards and quests on party view
+restyle
