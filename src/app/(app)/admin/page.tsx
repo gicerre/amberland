@@ -3,9 +3,9 @@
 import { Ban, Crown, UserPlus, Users } from "lucide-react";
 import { useState } from "react";
 
-import { FantasyCard } from "@/components/shared/fantasy-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
+import { FrameCard } from "@/design-system";
 import { useAdminUsers } from "@/features/users/data";
 import { CreateUserDialog } from "@/features/users/components/user-dialogs";
 import { UsersTable } from "@/features/users/components/users-table";
@@ -44,7 +44,7 @@ export default function AdminPage() {
         {stats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <FantasyCard key={stat.label} className="p-5">
+            <FrameCard key={stat.label} contentClassName="p-5">
               <div className="flex items-center justify-between">
                 <Icon className="size-5 text-gold/70" />
                 <span className="font-heading text-3xl font-bold text-gold">
@@ -52,7 +52,7 @@ export default function AdminPage() {
                 </span>
               </div>
               <p className="mt-2 text-sm text-muted-foreground">{stat.label}</p>
-            </FantasyCard>
+            </FrameCard>
           );
         })}
       </div>

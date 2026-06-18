@@ -3,9 +3,9 @@
 import { ChevronRight, Lock, Skull, Swords, Users } from "lucide-react";
 import Link from "next/link";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { Badge } from "@/components/ui/badge";
+import { frameImageStyle, getAsset } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { EntityPublicCard } from "@/types/entities";
 
@@ -32,7 +32,10 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
 
       <header>
         {portrait && (
-          <div className="relative mb-6 overflow-hidden rounded-xl border border-gold/25">
+          <div
+            className="relative mb-6"
+            style={frameImageStyle(getAsset("window_08"), "primary", "1.5rem")}
+          >
             <FantasyImage
               src={portrait}
               alt={card.name}
@@ -42,7 +45,6 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
               priority
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-            <CornerOrnaments className="z-10 size-4 border-gold/60" />
           </div>
         )}
 

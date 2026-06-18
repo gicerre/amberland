@@ -41,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { CharacterView } from "@/features/characters/components/character-view";
 import { PublicCharacterView } from "@/features/characters/components/public-character-view";
@@ -424,7 +425,7 @@ export function EntityView({ id }: { id: string }) {
       {isMaster &&
         (!isEmptyRichText(privateData?.masterNotes as RichTextValue) ||
           !isEmptyRichText(privateData?.secrets as RichTextValue)) && (
-          <section className="rounded-xl border border-crimson-bright/30 bg-crimson/10 p-5">
+          <FrameCard color="danger" className="bg-crimson/10" contentClassName="p-5">
             <h2 className="font-heading mb-3 flex items-center gap-2 text-lg font-semibold tracking-wider text-red-200">
               <EyeOff className="size-4.5" />
               Area riservata al Master
@@ -451,7 +452,7 @@ export function EntityView({ id }: { id: string }) {
                 />
               </div>
             )}
-          </section>
+          </FrameCard>
         )}
 
       {/* Dialoghi e drawer */}

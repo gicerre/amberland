@@ -18,10 +18,7 @@ import {
   Trophy,
 } from "lucide-react";
 
-import {
-  CornerOrnaments,
-  SectionDivider,
-} from "@/components/shared/fantasy-card";
+import { SectionDivider } from "@/components/shared/fantasy-card";
 import { RichTextRenderer } from "@/components/shared/rich-text-lazy";
 import {
   isEmptyRichText,
@@ -29,6 +26,7 @@ import {
 } from "@/components/shared/rich-text-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FrameCard } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { Entity, RichText } from "@/types/entities";
 
@@ -85,16 +83,6 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
   const hasObjectives  = objectives && !isEmptyRichText(objectives as RichTextValue);
   const hasRewards     = rewards    && !isEmptyRichText(rewards    as RichTextValue);
 
-  /* Colore ribbon in base allo stato */
-  const RIBBON: Record<string, string> = {
-    ACTIVE:    "bg-gold",
-    NEXT:      "bg-amber",
-    COMPLETED: "bg-emerald",
-    FAILED:    "bg-crimson-bright",
-    SECRET:    "bg-arcane-bright",
-    AVAILABLE: "bg-iron-mid",
-  };
-
   return (
     <div className="grid gap-5 sm:grid-cols-[1fr_minmax(0,14rem)] sm:gap-6 lg:grid-cols-3">
 
@@ -103,19 +91,18 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
 
         {/* Descrizione: sfondo pergamena */}
         {hasDescription ? (
-          <div className="relative overflow-hidden rounded-xl border border-gold/20 bg-gradient-to-b from-[#1a150c] to-[#140f09]">
-            {/* Ribbon status */}
-            <span className={cn("absolute left-0 top-0 bottom-0 w-1 rounded-l-xl", RIBBON[status])} />
-            <div className="p-6 pl-8 sm:p-8 sm:pl-10">
-              <p className="mb-3 font-heading text-[9px] font-bold tracking-[0.3em] text-gold/50 uppercase">
-                ◆ Cronache dell&rsquo;incarico
-              </p>
-              <RichTextRenderer
-                content={entity.description as RichTextValue}
-                className="parchment-text text-base leading-relaxed text-[#d4c5a0] sm:text-lg"
-              />
-            </div>
-          </div>
+          <FrameCard
+            className="bg-gradient-to-b from-[#1a150c] to-[#140f09]"
+            contentClassName="p-6 sm:p-8"
+          >
+            <p className="mb-3 font-heading text-[9px] font-bold tracking-[0.3em] text-gold/50 uppercase">
+              ◆ Cronache dell&rsquo;incarico
+            </p>
+            <RichTextRenderer
+              content={entity.description as RichTextValue}
+              className="parchment-text text-base leading-relaxed text-[#d4c5a0] sm:text-lg"
+            />
+          </FrameCard>
         ) : (
           isMaster && (
             <div className="rounded-xl border border-dashed border-gold/20 p-6 text-center">
@@ -133,8 +120,10 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
 
         {/* Obiettivi */}
         {hasObjectives && (
-          <div className="relative overflow-hidden rounded-xl border border-gold/18 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-5">
-            <CornerOrnaments size="xs" className="border-gold/20" />
+          <FrameCard
+            className="bg-gradient-to-b from-stone-surface to-stone-mid/80"
+            contentClassName="p-5"
+          >
             <div className="mb-3 flex items-center gap-2">
               <Target className="size-4 text-gold" />
               <h3 className="font-heading text-sm font-bold tracking-[0.2em] text-gold uppercase">
@@ -146,7 +135,7 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
               content={objectives as RichTextValue}
               className="text-[15px] leading-relaxed text-foreground/90"
             />
-          </div>
+          </FrameCard>
         )}
       </div>
 
@@ -154,20 +143,24 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
       <div className="space-y-4">
 
         {/* Status sigillo */}
-        <div className="relative flex flex-col items-center gap-3 overflow-hidden rounded-xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-6">
-          <CornerOrnaments size="xs" className="border-gold/20" />
+        <FrameCard
+          className="bg-gradient-to-b from-stone-surface to-stone-mid/80"
+          contentClassName="flex flex-col items-center gap-3 p-6"
+        >
           <p className="font-heading text-[9px] font-bold tracking-[0.3em] text-muted-foreground uppercase">
             Stato dell&rsquo;incarico
           </p>
           <Badge variant="outline" className={cn("px-5 py-2 font-heading text-sm font-bold uppercase tracking-wider", statusBadge)}>
             {statusLabel}
           </Badge>
-        </div>
+        </FrameCard>
 
         {/* Ricompense */}
         {hasRewards && (
-          <div className="relative overflow-hidden rounded-xl border border-gold/18 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-5">
-            <CornerOrnaments size="xs" className="border-gold/20" />
+          <FrameCard
+            className="bg-gradient-to-b from-stone-surface to-stone-mid/80"
+            contentClassName="p-5"
+          >
             <div className="mb-3 flex items-center gap-2">
               <Trophy className="size-4 text-gold" />
               <h3 className="font-heading text-sm font-bold tracking-[0.2em] text-gold uppercase">
@@ -179,7 +172,7 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
               content={rewards as RichTextValue}
               className="text-[15px] leading-relaxed text-foreground/90"
             />
-          </div>
+          </FrameCard>
         )}
 
         {/* Empty rewards (master only) */}
@@ -226,9 +219,11 @@ function CreatureBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
       <div className="min-w-0 flex-1 space-y-5">
 
         {hasDescription ? (
-          <div className="relative overflow-hidden rounded-xl border border-gold/18 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-6 sm:p-8">
-            {/* Striscia crimson in alto */}
-            <span className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-crimson/80" />
+          <FrameCard
+            color="danger"
+            className="bg-gradient-to-b from-stone-surface to-stone-mid/80"
+            contentClassName="p-6 sm:p-8"
+          >
             <p className="mb-3 font-heading text-[9px] font-bold tracking-[0.3em] text-crimson-bright/60 uppercase">
               ◆ Dal Bestiario
             </p>
@@ -236,7 +231,7 @@ function CreatureBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
               content={entity.description as RichTextValue}
               className="text-base leading-relaxed text-foreground/90 sm:text-lg"
             />
-          </div>
+          </FrameCard>
         ) : (
           isMaster && (
             <div className="rounded-xl border border-dashed border-crimson/30 p-6 text-center">
@@ -253,8 +248,10 @@ function CreatureBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
         )}
 
         {hasLoot && (
-          <div className="relative overflow-hidden rounded-xl border border-gold/18 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-5">
-            <CornerOrnaments size="xs" className="border-gold/20" />
+          <FrameCard
+            className="bg-gradient-to-b from-stone-surface to-stone-mid/80"
+            contentClassName="p-5"
+          >
             <div className="mb-3 flex items-center gap-2">
               <Sparkles className="size-4 text-gold" />
               <h3 className="font-heading text-sm font-bold tracking-[0.2em] text-gold uppercase">
@@ -266,18 +263,17 @@ function CreatureBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
               content={loot as RichTextValue}
               className="text-[15px] leading-relaxed text-foreground/90"
             />
-          </div>
+          </FrameCard>
         )}
       </div>
 
       {/* ── Sidebar: Stat block ── */}
       <aside className="w-full shrink-0 space-y-3 sm:w-auto lg:w-64 xl:w-72">
-        <div className="relative overflow-hidden rounded-xl border border-crimson/40 bg-gradient-to-b from-[#180a0a] to-stone-mid/80 p-5">
-          {/* Striscia crimson */}
-          <span className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-crimson-bright" />
-          <span className="pointer-events-none absolute inset-x-0 top-0.5 h-px bg-gradient-to-r from-transparent via-crimson-bright/30 to-transparent" />
-          <CornerOrnaments size="xs" className="border-crimson/30" />
-
+        <FrameCard
+          color="danger"
+          className="bg-gradient-to-b from-[#180a0a] to-stone-mid/80"
+          contentClassName="p-5"
+        >
           <p className="mb-4 font-heading text-[9px] font-bold tracking-[0.3em] text-crimson-bright/60 uppercase">
             Scheda Creatura
           </p>
@@ -318,8 +314,7 @@ function CreatureBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
               }
             />
           </div>
-        </div>
-
+        </FrameCard>
       </aside>
     </div>
   );
@@ -398,10 +393,7 @@ function DefaultBody({ entity, config, shortFields, longFields, isMaster, onEdit
       {longFields.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2">
           {longFields.map(({ def, rich }) => (
-            <section
-              key={def.key}
-              className="rounded-xl border border-gold/15 bg-card/60 p-5"
-            >
+            <FrameCard key={def.key} className="bg-card/60" contentClassName="p-5">
               <h3 className="font-heading mb-2 text-sm font-bold tracking-[0.2em] text-gold uppercase">
                 {def.label}
               </h3>
@@ -410,7 +402,7 @@ function DefaultBody({ entity, config, shortFields, longFields, isMaster, onEdit
                 content={rich as RichTextValue}
                 className="text-[15px] leading-relaxed text-foreground/90"
               />
-            </section>
+            </FrameCard>
           ))}
         </div>
       )}

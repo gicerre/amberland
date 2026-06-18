@@ -4,6 +4,7 @@ import { useCallback, useRef } from "react";
 import type { LucideIcon } from "lucide-react";
 
 import { CornerOrnaments } from "@/components/shared/fantasy-card";
+import { WindowPanel } from "@/design-system";
 import { cn } from "@/lib/utils";
 
 /* ============================================================
@@ -75,8 +76,11 @@ export function HubShell({
     <div className="space-y-5">
       {/* Banner + pannello header */}
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1fr_minmax(0,20rem)] lg:items-stretch">
-        <div className="relative flex min-w-0 flex-col justify-center overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/12 via-card to-night/60 p-5 sm:p-8">
-          <CornerOrnaments className="size-5 border-gold/50" />
+        <WindowPanel
+          variant="03"
+          className="min-w-0 bg-gradient-to-br from-gold/12 via-card to-night/60"
+          contentClassName="flex flex-col justify-center p-5 sm:p-8"
+        >
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.14),transparent_60%)]" />
           <div className="relative flex items-center gap-4">
             <span className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-gold/15 text-gold shadow-[0_0_30px_rgba(212,175,55,0.2)]">
@@ -91,7 +95,7 @@ export function HubShell({
               </p>
             </div>
           </div>
-        </div>
+        </WindowPanel>
 
         {headerPanel}
       </div>

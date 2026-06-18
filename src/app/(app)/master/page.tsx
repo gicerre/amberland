@@ -4,10 +4,10 @@ import { Eye, EyeOff, Lock, Network, Plus } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { FantasyCard } from "@/components/shared/fantasy-card";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { FrameCard } from "@/design-system";
 import { QuickCreateDialog } from "@/features/entities/components/quick-create-dialog";
 import { useAllEntities, useEntityMutations } from "@/features/entities/data";
 import {
@@ -138,7 +138,7 @@ export default function MasterPage() {
             const config = ENTITY_REGISTRY[type];
             const Icon = config.icon;
             return (
-              <FantasyCard key={type} className="p-5">
+              <FrameCard key={type} contentClassName="p-5">
                 <div className="flex items-start justify-between gap-2">
                   <Icon className="size-5 text-gold/70" />
                   <span className="font-heading text-3xl font-bold text-gold">
@@ -155,7 +155,7 @@ export default function MasterPage() {
                   <Plus className="size-3.5" />
                   Aggiungi
                 </Button>
-              </FantasyCard>
+              </FrameCard>
             );
           })}
         </div>

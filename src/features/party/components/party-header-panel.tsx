@@ -3,7 +3,6 @@
 import { Clock, Loader2, Pencil, Shield, Users } from "lucide-react";
 import { useState } from "react";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { ImageUpload } from "@/components/shared/image-upload";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { WindowPanel } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { usePartyPublicCards } from "@/features/characters/data";
 import { useBagLog } from "@/features/party/bag/data";
@@ -52,8 +52,11 @@ export function PartyHeaderPanel() {
   );
 
   return (
-    <div className="relative flex h-full flex-col items-center gap-3 overflow-hidden rounded-2xl border border-gold/35 bg-gradient-to-b from-gold/10 to-night/60 p-5 text-center">
-      <CornerOrnaments className="size-5 border-gold/55" />
+    <WindowPanel
+      variant="03"
+      className="h-full bg-gradient-to-b from-gold/10 to-night/60"
+      contentClassName="flex flex-col items-center gap-3 text-center"
+    >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.16),transparent_65%)]" />
 
       <span className="relative z-10 mt-1 flex size-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-gold/50 bg-night/40 shadow-[0_0_30px_rgba(212,175,55,0.25)]">
@@ -109,7 +112,7 @@ export function PartyHeaderPanel() {
       )}
 
       <PartyConfigDialog open={editOpen} onOpenChange={setEditOpen} />
-    </div>
+    </WindowPanel>
   );
 }
 

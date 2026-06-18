@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { cn } from "@/lib/utils";
 import type { Entity, Relation } from "@/types/entities";
@@ -85,7 +86,7 @@ export function RelationPanel({ entity }: { entity: Entity }) {
   if (!isMaster && (resolved ?? []).length === 0) return null;
 
   return (
-    <section className="rounded-xl border border-gold/15 bg-card/60 p-5">
+    <FrameCard className="bg-card/60" contentClassName="p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
           <Link2 className="size-4.5 text-gold" />
@@ -162,7 +163,7 @@ export function RelationPanel({ entity }: { entity: Entity }) {
           from={entity}
         />
       )}
-    </section>
+    </FrameCard>
   );
 }
 

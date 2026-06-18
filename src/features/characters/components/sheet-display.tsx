@@ -11,6 +11,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { SectionDivider } from "@/components/shared/fantasy-card";
+import { FrameCard } from "@/design-system";
 import { cn } from "@/lib/utils";
 
 import { CompanionsGrid } from "./companion-sheet";
@@ -435,17 +436,14 @@ function SheetNarrative({ sheet }: { sheet: CharacterSheet }) {
       {narrative.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-2">
           {narrative.map(([label, value]) => (
-            <div
-              key={label}
-              className="rounded-xl border border-gold/15 bg-card/60 p-5"
-            >
+            <FrameCard key={label} className="bg-card/60" contentClassName="p-5">
               <h3 className="font-heading mb-2 text-sm font-bold tracking-[0.2em] text-gold uppercase">
                 {label}
               </h3>
               <p className="text-[15px] leading-relaxed whitespace-pre-line text-foreground/90">
                 {value}
               </p>
-            </div>
+            </FrameCard>
           ))}
         </div>
       )}
@@ -494,12 +492,12 @@ function Block({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-gold/15 bg-card/60 p-4">
+    <FrameCard className="bg-card/60" contentClassName="p-4">
       <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
         {label}
       </p>
       {children}
-    </div>
+    </FrameCard>
   );
 }
 

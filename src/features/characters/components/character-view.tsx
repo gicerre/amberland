@@ -21,10 +21,7 @@ import { useState } from "react";
 
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FantasyBreadcrumb } from "@/components/shared/fantasy-breadcrumb";
-import {
-  CornerOrnaments,
-  SectionDivider,
-} from "@/components/shared/fantasy-card";
+import { SectionDivider } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { useLightbox } from "@/components/shared/lightbox";
 import { RichTextRenderer } from "@/components/shared/rich-text-lazy";
@@ -51,6 +48,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { FrameCard, frameImageStyle, getAsset } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { EntityTypeBanner } from "@/features/entities/components/entity-type-banner";
 import { QuickLinks } from "@/features/entities/components/quick-links";
@@ -180,7 +178,8 @@ export function CharacterView({ entity }: { entity: Entity }) {
             type="button"
             onClick={() => openLightbox(allImages, 0, entity.name)}
             aria-label={`Apri ${entity.name} a schermo intero`}
-            className="group relative mb-6 block w-full cursor-zoom-in overflow-hidden rounded-xl border border-gold/25"
+            className="group relative mb-6 block w-full cursor-zoom-in"
+            style={frameImageStyle(getAsset("window_08"), "primary", "1.5rem")}
           >
             <FantasyImage
               src={entity.imageUrl}
@@ -190,7 +189,6 @@ export function CharacterView({ entity }: { entity: Entity }) {
               priority
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-            <CornerOrnaments className="z-10 size-4 border-gold/60" />
             <span className="pointer-events-none absolute right-3 bottom-3 z-10 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
               <ZoomIn className="size-4.5" />
             </span>
@@ -471,7 +469,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
       {isMaster &&
         (!isEmptyRichText(privateData?.masterNotes as RichTextValue) ||
           !isEmptyRichText(privateData?.secrets as RichTextValue)) && (
-          <section className="rounded-xl border border-crimson-bright/30 bg-crimson/10 p-5">
+          <FrameCard color="danger" className="bg-crimson/10" contentClassName="p-5">
             <h2 className="font-heading mb-3 flex items-center gap-2 text-lg font-semibold tracking-wider text-red-200">
               <UserCog className="size-4.5" />
               Area riservata al Master
@@ -498,7 +496,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
                 />
               </div>
             )}
-          </section>
+          </FrameCard>
         )}
 
       {/* Editor + conferma eliminazione */}

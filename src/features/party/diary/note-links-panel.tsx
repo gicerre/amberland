@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   QUEST_EVENT_STYLE,
@@ -44,7 +45,7 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
   const linkOf = (noteId: string) => links.find((l) => l.noteId === noteId);
 
   return (
-    <section className="rounded-xl border border-gold/15 bg-card/60 p-5">
+    <FrameCard variant="03" color="primary" className="bg-card/60" contentClassName="p-5">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
           <BookText className="size-4.5 text-gold" />
@@ -163,7 +164,7 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
           onOpenChange={(open) => !open && setActive(null)}
         />
       )}
-    </section>
+    </FrameCard>
   );
 }
 

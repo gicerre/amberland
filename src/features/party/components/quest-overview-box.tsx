@@ -3,7 +3,7 @@
 import { ScrollText } from "lucide-react";
 import { useMemo } from "react";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
+import { WindowPanel } from "@/design-system";
 import { useEntitiesByType } from "@/features/entities/data";
 import { QUEST_EVENT_STYLE } from "@/features/entities/registry";
 import { cn } from "@/lib/utils";
@@ -45,8 +45,11 @@ export function QuestOverviewBox() {
   if (total === 0) return null;
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-gold/35 bg-gradient-to-br from-gold/15 via-card to-night/70 p-5 sm:p-6">
-      <CornerOrnaments className="size-5 border-gold/55" />
+    <WindowPanel
+      variant="03"
+      className="bg-gradient-to-br from-gold/15 via-card to-night/70"
+      contentClassName="p-5 sm:p-6"
+    >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.16),transparent_60%)]" />
 
       <div className="relative">
@@ -114,6 +117,6 @@ export function QuestOverviewBox() {
           })}
         </div>
       </div>
-    </div>
+    </WindowPanel>
   );
 }

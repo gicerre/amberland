@@ -15,10 +15,11 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
-import { FantasyCard, FantasyPanel, SectionDivider } from "@/components/shared/fantasy-card";
+import { SectionDivider } from "@/components/shared/fantasy-card";
 import { richTextToPlainText } from "@/components/shared/rich-text-utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useAllEntities } from "@/features/entities/data";
 import {
@@ -88,9 +89,10 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       {/* Benvenuto */}
-      <FantasyPanel
+      <FrameCard
         glow
-        className="bg-[radial-gradient(ellipse_at_top_left,rgba(201,162,39,0.1),transparent_60%)] p-8 sm:p-10"
+        className="bg-[radial-gradient(ellipse_at_top_left,rgba(201,162,39,0.1),transparent_60%)]"
+        contentClassName="p-8 sm:p-10"
       >
         <p className="font-heading text-[10px] tracking-[0.4em] text-gold/60 uppercase">
           ◆ Le cronache continuano ◆
@@ -101,11 +103,11 @@ export default function HomePage() {
         <p className="mt-3 max-w-2xl text-lg text-muted-foreground italic">
           {role ? ROLE_GREETINGS[role] : ""}
         </p>
-      </FantasyPanel>
+      </FrameCard>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Quest attive */}
-        <FantasyCard className="lg:col-span-2">
+        <FrameCard className="lg:col-span-2">
           <WidgetTitle icon={Swords} title="Quest attive" />
           {isLoading ? (
             <WidgetSkeleton rows={3} />
@@ -150,10 +152,10 @@ export default function HomePage() {
               Tutte le quest →
             </Link>
           </div>
-        </FantasyCard>
+        </FrameCard>
 
         {/* Ultime cronache */}
-        <FantasyCard>
+        <FrameCard>
           <WidgetTitle icon={Flame} title="Ultime cronache" />
           {isLoading ? (
             <WidgetSkeleton rows={4} />
@@ -203,7 +205,7 @@ export default function HomePage() {
               })}
             </ul>
           )}
-        </FantasyCard>
+        </FrameCard>
       </div>
 
       {/* Collegamenti rapidi */}

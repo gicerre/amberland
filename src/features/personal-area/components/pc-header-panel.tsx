@@ -3,10 +3,10 @@
 import { Heart, Shield, Skull, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { WindowPanel } from "@/design-system";
 import {
   CHARACTER_STATUS_BADGES,
   CHARACTER_STATUS_LABELS,
@@ -48,8 +48,11 @@ export function PcHeaderPanel() {
   const isDead = pc.fields.isDead === true || status === "DEAD";
 
   return (
-    <div className="relative flex h-full flex-col items-center gap-3 overflow-hidden rounded-2xl border border-gold/35 bg-gradient-to-b from-gold/10 to-night/60 p-5 text-center">
-      <CornerOrnaments className="size-5 border-gold/55" />
+    <WindowPanel
+      variant="01"
+      className="h-full min-h-72"
+      contentClassName="flex flex-col items-center gap-3 text-center"
+    >
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.16),transparent_65%)]" />
 
       {/* Token — elemento dominante */}
@@ -114,6 +117,6 @@ export function PcHeaderPanel() {
           Apri la scheda
         </Link>
       </Button>
-    </div>
+    </WindowPanel>
   );
 }

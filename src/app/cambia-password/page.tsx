@@ -5,10 +5,10 @@ import { KeyRound, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { LoadingScreen } from "@/components/shared/loading-screen";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { ChangePasswordForm } from "@/features/auth/components/change-password-form";
 
@@ -41,9 +41,10 @@ export default function ChangePasswordPage() {
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="w-full max-w-md"
       >
-        <div className="relative rounded-2xl border border-gold/25 bg-card/90 p-8 shadow-[0_25px_70px_-20px_rgba(0,0,0,0.9)] sm:p-10">
-          <CornerOrnaments className="size-4 border-gold/50" />
-
+        <FrameCard
+          className="bg-card/90 shadow-[0_25px_70px_-20px_rgba(0,0,0,0.9)]"
+          contentClassName="p-8 sm:p-10"
+        >
           <div className="mb-6 flex flex-col items-center text-center">
             <span className="mb-4 flex size-14 items-center justify-center rounded-full border border-gold/50 bg-gold/10">
               <KeyRound className="size-6 text-gold" />
@@ -80,7 +81,7 @@ export default function ChangePasswordPage() {
               Non sei tu? Esci
             </Button>
           </div>
-        </div>
+        </FrameCard>
       </motion.div>
     </main>
   );

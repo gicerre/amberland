@@ -2,6 +2,7 @@
 
 import { BookText, History, Package, Target } from "lucide-react";
 
+import { FrameCard } from "@/design-system";
 import { cn } from "@/lib/utils";
 
 import { useTimeline, type TimelineKind } from "./data";
@@ -34,7 +35,7 @@ export function TimelinePanel({ limit = 12 }: { limit?: number }) {
   if (isLoading || events.length === 0) return null;
 
   return (
-    <section className="mt-8 rounded-2xl border border-gold/15 bg-card/50 p-5 sm:p-6">
+    <FrameCard variant="01" className="mt-8 bg-card/50" contentClassName="p-5 sm:p-6">
       <h2 className="font-heading mb-4 flex items-center gap-2 text-lg font-semibold tracking-wider">
         <History className="size-5 text-gold" />
         Le tue gesta recenti
@@ -56,6 +57,6 @@ export function TimelinePanel({ limit = 12 }: { limit?: number }) {
           );
         })}
       </ol>
-    </section>
+    </FrameCard>
   );
 }
