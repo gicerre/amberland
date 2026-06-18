@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ChevronRight,
   Eye,
   EyeOff,
   Heart,
@@ -17,11 +16,11 @@ import {
   ZoomIn,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { FantasyBreadcrumb } from "@/components/shared/fantasy-breadcrumb";
 import {
   CornerOrnaments,
   SectionDivider,
@@ -163,23 +162,16 @@ export function CharacterView({ entity }: { entity: Entity }) {
       <EntityTypeBanner entity={entity} />
 
       {/* Breadcrumb */}
-      <nav
-        aria-label="Percorso"
-        className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground"
-      >
-        <Link href="/mondo" className="transition-colors hover:text-gold">
-          Mondo
-        </Link>
-        <ChevronRight className="size-3.5 text-gold/40" />
-        <Link
-          href={kind === "PC" ? "/party" : "/personaggi"}
-          className="transition-colors hover:text-gold"
-        >
-          {kind === "PC" ? "Party" : "Personaggi"}
-        </Link>
-        <ChevronRight className="size-3.5 text-gold/40" />
-        <span className="font-medium text-foreground">{entity.name}</span>
-      </nav>
+      <FantasyBreadcrumb
+        steps={[
+          { label: "Mondo", href: "/mondo" },
+          {
+            label: kind === "PC" ? "Party" : "Personaggi",
+            href: kind === "PC" ? "/party" : "/personaggi",
+          },
+          { label: entity.name, current: true },
+        ]}
+      />
 
       {/* Hero */}
       <header>
@@ -244,15 +236,6 @@ export function CharacterView({ entity }: { entity: Entity }) {
                   {VISIBILITY_LABELS[entity.visibility]}
                 </Badge>
               )}
-              {entity.tags.map((tag) => (
-                <Badge
-                  key={tag}
-                  variant="outline"
-                  className="border-gold/25 text-xs text-muted-foreground"
-                >
-                  {tag}
-                </Badge>
-              ))}
             </div>
           </div>
 

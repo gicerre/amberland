@@ -92,8 +92,8 @@ export function RelationPanel({ entity }: { entity: Entity }) {
           Entità correlate
         </h2>
         {isMaster && (
-          <Button size="sm" variant="outline" onClick={() => setAddOpen(true)}>
-            <Plus className="size-3.5" />
+          <Button size="sm" variant="default" onClick={() => setAddOpen(true)}>
+            <Link2 className="size-3.5" />
             Collega
           </Button>
         )}

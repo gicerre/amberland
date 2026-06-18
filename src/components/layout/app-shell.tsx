@@ -124,7 +124,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <AppSidebar onSearch={() => setSearchOpen(true)} />
 
         {/* Topbar mobile */}
-        <header className="sticky top-0 z-40 flex h-13 items-center justify-between border-b border-gold/12 bg-background/92 px-3 backdrop-blur-sm lg:hidden">
+        <header className="sticky top-0 z-40 flex h-12 items-center justify-between border-b border-gold/12 bg-background/92 px-2 sm:h-13 sm:px-3 backdrop-blur-sm lg:hidden">
           {/* Striscia ornamentale inferiore */}
           <span
             aria-hidden
@@ -180,7 +180,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
         {/* Contenuto principale */}
         <main className="lg:pl-72">
-          <div className="mx-auto w-full max-w-6xl px-4 py-6 pb-24 sm:px-6 lg:px-10 lg:py-10 lg:pb-10">
+          <div className="mx-auto w-full max-w-6xl px-3 py-4 pb-20 sm:px-5 sm:py-6 sm:pb-24 lg:px-10 lg:py-10 lg:pb-10">
             <PageTransition key={pathname}>{children}</PageTransition>
           </div>
         </main>

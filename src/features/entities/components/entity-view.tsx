@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ChevronRight,
   Eye,
   EyeOff,
   Lock,
@@ -18,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { FantasyBreadcrumb } from "@/components/shared/fantasy-breadcrumb";
 import { EmptyState } from "@/components/shared/empty-state";
 import {
   CornerOrnaments,
@@ -196,18 +196,13 @@ export function EntityView({ id }: { id: string }) {
       {isGeographic ? (
         <GeoTrail chain={chain ?? []} current={entity} />
       ) : (
-        <nav
-          aria-label="Percorso"
-          className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground"
-        >
-          <Link href="/mondo" className="transition-colors hover:text-gold">
-            Mondo
-          </Link>
-          <ChevronRight className="size-3.5 text-gold/40" />
-          <span>{config.plural}</span>
-          <ChevronRight className="size-3.5 text-gold/40" />
-          <span className="font-medium text-foreground">{entity.name}</span>
-        </nav>
+        <FantasyBreadcrumb
+          steps={[
+            { label: "Mondo", href: "/mondo" },
+            { label: config.plural },
+            { label: entity.name, current: true },
+          ]}
+        />
       )}
 
       {/* Banner "bloccata" per il Master */}
@@ -284,19 +279,6 @@ export function EntityView({ id }: { id: string }) {
                 </Badge>
               )}
             </div>
-            {entity.tags.length > 0 && (
-              <div className="mt-2.5 flex flex-wrap gap-1.5">
-                {entity.tags.map((tag) => (
-                  <Badge
-                    key={tag}
-                    variant="outline"
-                    className="border-gold/25 text-xs text-muted-foreground"
-                  >
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            )}
           </div>
 
           {isMaster && (

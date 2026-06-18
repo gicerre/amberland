@@ -98,7 +98,7 @@ export function PartyHeaderPanel() {
 
       {isMaster && (
         <Button
-          variant="outline"
+          variant="default"
           size="sm"
           className="relative z-10 mt-auto w-full border-gold/30"
           onClick={() => setEditOpen(true)}

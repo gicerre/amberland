@@ -52,7 +52,7 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
         </h2>
         {canContribute && (
           <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" onClick={() => setLinkOpen(true)}>
+            <Button size="sm" variant="default" onClick={() => setLinkOpen(true)}>
               <Link2 className="size-3.5" />
               Collega
             </Button>

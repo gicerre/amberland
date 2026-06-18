@@ -1,18 +1,17 @@
 "use client";
 
-import { ChevronRight, Globe } from "lucide-react";
+import { Globe } from "lucide-react";
 import Link from "next/link";
 
+import {
+  BreadcrumbTab,
+  BreadcrumbSeparator,
+} from "@/components/shared/fantasy-breadcrumb";
 import { cn } from "@/lib/utils";
 import type { Entity } from "@/types/entities";
 
 import { ENTITY_REGISTRY } from "../registry";
 
-/**
- * Percorso geografico prominente: Mondo → Regione → Città → Luogo.
- * Ogni livello mostra icona, colore del tipo e nome; il nodo corrente è
- * evidenziato. Permette di capire a colpo d'occhio "dove siamo" nel mondo.
- */
 export function GeoTrail({
   chain,
   current,
@@ -25,50 +24,41 @@ export function GeoTrail({
   return (
     <nav
       aria-label="Posizione nel mondo"
-      className="flex flex-wrap items-center gap-x-1 gap-y-2 rounded-2xl border border-gold/25 bg-gradient-to-r from-gold/10 via-card/60 to-card/40 px-3 py-2.5 sm:px-4"
+      className="flex flex-wrap items-center gap-y-1"
     >
-      <Link
-        href="/mondo"
-        className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-muted-foreground transition-colors hover:text-gold"
-        title="Atlante"
-      >
-        <Globe className="size-4 text-gold/70" />
-      </Link>
-      <ChevronRight className="size-4 shrink-0 text-gold/30" />
+      {/* Step "Mondo" — solo icona globo */}
+      <span className="inline-flex items-center">
+        <BreadcrumbTab isCurrent={false} py="py-2" className="text-gold/55 hover:text-gold/90">
+          <Link href="/mondo" title="Atlante" className="transition-colors">
+            <Globe className="size-3.5" />
+          </Link>
+        </BreadcrumbTab>
+        <BreadcrumbSeparator />
+      </span>
 
+      {/* Step geografici — icona entità + tipo + nome */}
       {steps.map((step, index) => {
         const config = ENTITY_REGISTRY[step.type];
         const Icon = config.icon;
         const isCurrent = index === steps.length - 1;
+
         const content = (
-          <span
-            className={cn(
-              "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 transition-colors",
-              isCurrent
-                ? "bg-gold/15"
-                : "border-transparent hover:bg-gold/5"
-            )}
-            style={
-              isCurrent ? { borderColor: `${config.accent}80` } : undefined
-            }
-          >
+          <span className="flex items-center gap-2">
             <Icon
-              className="size-4 shrink-0"
+              className="size-3.5 shrink-0"
               style={{ color: config.accent }}
             />
             <span className="flex flex-col leading-tight">
               <span
-                className="text-[9px] font-bold tracking-[0.18em] uppercase"
+                className="text-[8px] font-bold tracking-[0.18em] uppercase"
                 style={{ color: config.accent }}
               >
                 {config.label}
               </span>
               <span
                 className={cn(
-                  "max-w-[10rem] truncate text-sm",
-                  isCurrent
-                    ? "font-heading font-semibold text-foreground"
-                    : "text-foreground/85"
+                  "max-w-[5rem] truncate text-[0.65rem] font-semibold sm:max-w-[9rem] sm:text-xs",
+                  isCurrent ? "text-gold" : "text-foreground/70"
                 )}
               >
                 {step.name}
@@ -78,15 +68,20 @@ export function GeoTrail({
         );
 
         return (
-          <span key={step.id} className="flex items-center">
-            {isCurrent ? (
-              content
-            ) : (
-              <Link href={`/entita/${step.id}`}>{content}</Link>
-            )}
-            {!isCurrent && (
-              <ChevronRight className="mx-0.5 size-4 shrink-0 text-gold/30" />
-            )}
+          <span key={step.id} className="inline-flex items-center">
+            <BreadcrumbTab isCurrent={isCurrent} py="py-2">
+              {isCurrent ? (
+                content
+              ) : (
+                <Link
+                  href={`/entita/${step.id}`}
+                  className="transition-colors hover:opacity-90"
+                >
+                  {content}
+                </Link>
+              )}
+            </BreadcrumbTab>
+            {!isCurrent && <BreadcrumbSeparator />}
           </span>
         );
       })}

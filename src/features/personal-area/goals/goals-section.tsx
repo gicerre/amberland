@@ -213,11 +213,6 @@ function GoalCard({ goal, onEdit }: { goal: Goal; onEdit: () => void }) {
             >
               {GOAL_PRIORITY_LABELS[goal.priority]}
             </Badge>
-            {goal.tags.map((tag) => (
-              <Badge key={tag} variant="outline" className="border-gold/20">
-                {tag}
-              </Badge>
-            ))}
           </div>
 
           {!isEmptyRichText(goal.description as RichTextValue) && (

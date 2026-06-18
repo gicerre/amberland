@@ -74,8 +74,8 @@ export function HubShell({
   return (
     <div className="space-y-5">
       {/* Banner + pannello header */}
-      <div className="grid gap-5 lg:grid-cols-[1fr_20rem] lg:items-stretch">
-        <div className="relative flex flex-col justify-center overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/12 via-card to-night/60 p-6 sm:p-8">
+      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1fr_minmax(0,20rem)] lg:items-stretch">
+        <div className="relative flex min-w-0 flex-col justify-center overflow-hidden rounded-2xl border border-gold/30 bg-gradient-to-br from-gold/12 via-card to-night/60 p-5 sm:p-8">
           <CornerOrnaments className="size-5 border-gold/50" />
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.14),transparent_60%)]" />
           <div className="relative flex items-center gap-4">
@@ -83,7 +83,7 @@ export function HubShell({
               <Icon className="size-7" />
             </span>
             <div>
-              <h1 className="text-gold-gradient font-heading text-3xl font-bold tracking-wider sm:text-4xl">
+              <h1 className="text-gold-gradient font-heading text-2xl font-bold tracking-wider sm:text-4xl">
                 {title}
               </h1>
               <p className="mt-1 text-sm text-muted-foreground sm:text-base">
@@ -98,7 +98,7 @@ export function HubShell({
 
       {/* Nav mobile: pill-tab orizzontale compatto */}
       <div className="sm:hidden">
-        <div className="grid grid-cols-3 gap-1 rounded-xl border border-gold/20 bg-card/50 p-1 backdrop-blur-sm">
+        <div className="grid grid-cols-3 gap-0.5 rounded-xl border border-gold/20 bg-card/50 p-0.5 backdrop-blur-sm sm:gap-1 sm:p-1">
           {sections.map((section) => {
             const SectionIcon = section.icon;
             const isActive = section.value === active;

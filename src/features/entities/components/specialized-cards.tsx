@@ -580,7 +580,6 @@ export function ItemCard({ entity }: { entity: Entity }) {
       </div>
 
       <div className="p-3.5">
-        <CornerOrnaments size="xs" className={cn("border-opacity-30", rarityConfig.border)} />
 
         {/* Rarity label */}
         <p className={cn("mb-1 font-heading text-[9px] font-bold tracking-[0.22em] uppercase", rarityConfig.labelColor)}>

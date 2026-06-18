@@ -96,10 +96,10 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
   };
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3">
+    <div className="grid gap-5 sm:grid-cols-[1fr_minmax(0,14rem)] sm:gap-6 lg:grid-cols-3">
 
       {/* ── Colonna sinistra: narrativa ── */}
-      <div className="space-y-5 lg:col-span-2">
+      <div className="min-w-0 space-y-5 lg:col-span-2">
 
         {/* Descrizione: sfondo pergamena */}
         {hasDescription ? (
@@ -162,15 +162,6 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
           <Badge variant="outline" className={cn("px-5 py-2 font-heading text-sm font-bold uppercase tracking-wider", statusBadge)}>
             {statusLabel}
           </Badge>
-          {entity.tags.length > 0 && (
-            <div className="mt-1 flex flex-wrap justify-center gap-1.5">
-              {entity.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="border-gold/20 text-[10px] text-muted-foreground">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Ricompense */}
@@ -280,7 +271,7 @@ function CreatureBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
       </div>
 
       {/* ── Sidebar: Stat block ── */}
-      <aside className="shrink-0 space-y-3 lg:w-64 xl:w-72">
+      <aside className="w-full shrink-0 space-y-3 sm:w-auto lg:w-64 xl:w-72">
         <div className="relative overflow-hidden rounded-xl border border-crimson/40 bg-gradient-to-b from-[#180a0a] to-stone-mid/80 p-5">
           {/* Striscia crimson */}
           <span className="pointer-events-none absolute inset-x-0 top-0 h-0.5 bg-crimson-bright" />
@@ -329,21 +320,6 @@ function CreatureBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
           </div>
         </div>
 
-        {/* Tags */}
-        {entity.tags.length > 0 && (
-          <div className="rounded-xl border border-gold/12 bg-card/40 p-3">
-            <p className="mb-2 font-heading text-[9px] font-bold tracking-[0.25em] text-muted-foreground uppercase">
-              Tag
-            </p>
-            <div className="flex flex-wrap gap-1.5">
-              {entity.tags.map((tag) => (
-                <Badge key={tag} variant="outline" className="border-gold/20 text-[10px] text-muted-foreground">
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          </div>
-        )}
       </aside>
     </div>
   );

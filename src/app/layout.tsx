@@ -41,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="it" className={`dark ${cinzel.variable} ${caudex.variable}`} suppressHydrationWarning>
-      <body className="antialiased">
+      <body className="antialiased" suppressHydrationWarning>
         <AppProviders>{children}</AppProviders>
         <Toaster position="bottom-right" />
         <Analytics />

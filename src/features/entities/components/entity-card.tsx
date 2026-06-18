@@ -117,19 +117,6 @@ export function EntityCard({
           <p className="mt-0.5 text-xs text-muted-foreground">{meta.subtitle}</p>
         )}
 
-        {entity.tags.length > 0 && (
-          <div className="mt-2 flex flex-wrap items-center gap-1">
-            {entity.tags.slice(0, 3).map((tag) => (
-              <Badge
-                key={tag}
-                variant="outline"
-                className="border-gold/18 text-[9px] text-muted-foreground"
-              >
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        )}
       </div>
     </Link>
   );

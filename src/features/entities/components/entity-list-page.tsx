@@ -165,8 +165,8 @@ export function EntityListPage({
         }
       />
 
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <div className="relative min-w-56 flex-1 sm:max-w-xs">
+      <div className="mb-6 flex flex-wrap items-center gap-2 sm:gap-3">
+        <div className="relative w-full min-w-0 flex-1 sm:min-w-48 sm:max-w-xs">
           <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-gold/60" />
           <Input
             value={search}
@@ -196,7 +196,7 @@ export function EntityListPage({
           </div>
         )}
 
-        <div className="ml-auto inline-flex rounded-lg border border-gold/20 bg-night/30 p-1">
+        <div className="ml-auto shrink-0 inline-flex rounded-lg border border-gold/20 bg-night/30 p-1">
           <ViewToggle
             active={view === "card"}
             onClick={() => changeView("card")}
@@ -246,6 +246,7 @@ export function EntityListPage({
                 </span>
               </h2>
               {view === "card" ? (
+                
                 <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
                   {group.items.map((entity) => (
                     <SpecializedEntityCard
@@ -290,9 +291,8 @@ function EntityTable({ entities }: { entities: Entity[] }) {
         <TableHeader>
           <TableRow>
             <TableHead>Nome</TableHead>
-            <TableHead>Dettagli</TableHead>
+            <TableHead className="hidden sm:table-cell">Dettagli</TableHead>
             <TableHead>Stato</TableHead>
-            <TableHead>Tag</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -313,7 +313,7 @@ function EntityTable({ entities }: { entities: Entity[] }) {
                     <span className="truncate">{entity.name}</span>
                   </Link>
                 </TableCell>
-                <TableCell className="text-muted-foreground">
+                <TableCell className="hidden max-w-[10rem] truncate text-muted-foreground sm:table-cell">
                   {meta.subtitle ?? "—"}
                 </TableCell>
                 <TableCell>
@@ -327,9 +327,6 @@ function EntityTable({ entities }: { entities: Entity[] }) {
                   ) : (
                     "—"
                   )}
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {entity.tags.slice(0, 3).join(", ") || "—"}
                 </TableCell>
               </TableRow>
             );

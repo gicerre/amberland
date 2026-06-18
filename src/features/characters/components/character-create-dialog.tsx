@@ -337,7 +337,7 @@ export function CharacterCreateDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="destructive" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
           <Button onClick={handleSubmit} disabled={!canSubmit}>
