@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FrameCard } from "@/design-system";
+import { frameImageStyle, getAsset } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   QUEST_EVENT_STYLE,
@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 import type { Entity } from "@/types/entities";
 import type { Note } from "@/types/notes";
 
-import { useEntityNotes, useNotes, useNoteMutations } from "./data";
+import { useEntityNotes, useNoteMutations, useNotes } from "./data";
 import { NoteDetailDialog, NoteEditorDialog } from "./note-dialogs";
 
 /**
@@ -45,8 +45,14 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
   const linkOf = (noteId: string) => links.find((l) => l.noteId === noteId);
 
   return (
-    <FrameCard variant="03" color="primary" className="bg-card/60" contentClassName="p-5">
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <button
+      type="button"
+      color="transparent"
+      onClick={() => null}
+      aria-label={`Apri ${entity.name} a schermo intero`}
+      className="w-full cursor-default overflow-hidden rounded-xl border p-5 text-left"
+      style={frameImageStyle(getAsset("window_06"), "primary", "1.5rem")}
+    >      <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
           <BookText className="size-4.5 text-gold" />
           Note collegate
@@ -55,11 +61,11 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
           <div className="flex items-center gap-2">
             <Button size="sm" variant="default" onClick={() => setLinkOpen(true)}>
               <Link2 className="size-3.5" />
-              Collega
+              <span className="sm:inline hidden">Collega</span>
             </Button>
             <Button size="sm" onClick={() => setCreateOpen(true)}>
               <Plus className="size-3.5" />
-              Nuova
+              <span className="sm:inline hidden">Nuova</span>
             </Button>
           </div>
         )}
@@ -164,7 +170,7 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
           onOpenChange={(open) => !open && setActive(null)}
         />
       )}
-    </FrameCard>
+    </button>
   );
 }
 

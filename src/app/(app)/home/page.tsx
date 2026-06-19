@@ -19,7 +19,7 @@ import { SectionDivider } from "@/components/shared/fantasy-card";
 import { richTextToPlainText } from "@/components/shared/rich-text-utils";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FrameCard } from "@/design-system";
+import { frameImageStyle, getAsset } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useAllEntities } from "@/features/entities/data";
 import {
@@ -89,11 +89,20 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       {/* Benvenuto */}
-      <FrameCard
+      <button
+        type="button"
+        onClick={() => null}
+        aria-label={`Apri ${profile?.username ?? "viandante"} a schermo intero`}
+        // testo allienato a destra responsive
+        className="relative block w-full overflow-hidden rounded-xl border border-gold/20 px-6 py-10 text-left text-gold/90 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.7),0_0_24px_rgba(212,175,55,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-gold/40 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.7),0_0_24px_rgba(212,175,55,0.15)] sm:px-10"
+        style={frameImageStyle(getAsset("window_04"), "primary", "1.5rem")}
+      >
+        {/* <FrameCard
         glow
         className="bg-[radial-gradient(ellipse_at_top_left,rgba(201,162,39,0.1),transparent_60%)]"
         contentClassName="p-8 sm:p-10"
-      >
+      > */}
+
         <p className="font-heading text-[10px] tracking-[0.4em] text-gold/60 uppercase">
           ◆ Le cronache continuano ◆
         </p>
@@ -103,11 +112,17 @@ export default function HomePage() {
         <p className="mt-3 max-w-2xl text-lg text-muted-foreground italic">
           {role ? ROLE_GREETINGS[role] : ""}
         </p>
-      </FrameCard>
+      </button>
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Quest attive */}
-        <FrameCard className="lg:col-span-2">
+        {/* <FrameCard className="lg:col-span-2"> */}
+        <button
+          type="button"
+          onClick={() => null}
+          aria-label={`Apri ${profile?.username ?? "viandante"} a schermo intero`}
+          className="lg:col-span-2 relative block w-full overflow-hidden rounded-xl border border-gold/20 px-6 py-10 text-left text-gold/90 shadow-[0_8px_32px_-8px_rgba(0,0,0,0.7),0_0_24px_rgba(212,175,55,0.08)] transition-all duration-200 hover:-translate-y-1 hover:border-gold/40 hover:shadow-[0_8px_32px_-8px_rgba(0,0,0,0.7),0_0_24px_rgba(212,175,55,0.15)] sm:px-10"
+          style={frameImageStyle(getAsset("window_04"), "primary", "1.5rem")} >
           <WidgetTitle icon={Swords} title="Quest attive" />
           {isLoading ? (
             <WidgetSkeleton rows={3} />
@@ -152,10 +167,15 @@ export default function HomePage() {
               Tutte le quest →
             </Link>
           </div>
-        </FrameCard>
+        </button>
 
         {/* Ultime cronache */}
-        <FrameCard>
+        <button
+          type="button"
+          onClick={() => null}
+          aria-label={`Apri ${profile?.username ?? "viandante"} a schermo intero`}
+          className=""
+          style={frameImageStyle(getAsset("window_04"), "primary", "1.5rem")} >
           <WidgetTitle icon={Flame} title="Ultime cronache" />
           {isLoading ? (
             <WidgetSkeleton rows={4} />
@@ -186,11 +206,10 @@ export default function HomePage() {
                         </p>
                         <Badge
                           variant="outline"
-                          className={`shrink-0 text-[10px] ${
-                            statusLabel
+                          className={`shrink-0 text-[10px] ${statusLabel
                               ? QUEST_STATUS_BADGES[status ?? ""]
                               : config.badgeClass
-                          }`}
+                            }`}
                         >
                           {statusLabel ?? config.label}
                         </Badge>
@@ -205,7 +224,7 @@ export default function HomePage() {
               })}
             </ul>
           )}
-        </FrameCard>
+        </button>
       </div>
 
       {/* Collegamenti rapidi */}

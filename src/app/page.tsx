@@ -60,7 +60,7 @@ export default function LandingPage() {
 
         <motion.h1
           variants={item}
-          className="text-gold-gradient font-heading text-6xl font-black tracking-[0.1em] drop-shadow-[0_0_40px_rgba(212,175,55,0.35)] sm:text-7xl md:text-8xl"
+          className="text-gold-gradient font-heading text-[clamp(2.25rem,10vw,8rem)] font-black tracking-[0.1em] drop-shadow-[0_0_40px_rgba(212,175,55,0.35)]"
         >
           AMBERLAND
         </motion.h1>
@@ -83,13 +83,9 @@ export default function LandingPage() {
         </motion.p>
 
         <motion.div variants={item} className="mt-12">
-          <Button
-            asChild
-            size="lg"
-            className="animate-glow-pulse h-13 rounded-md border border-gold-bright/60 bg-gradient-to-b from-gold-bright via-gold to-gold-dark px-10 font-heading text-base font-bold tracking-[0.2em] text-[#1a1206] uppercase transition-transform hover:scale-[1.03] hover:brightness-110"
-          >
-            <Link href={destination}>Entra in Amberland</Link>
-          </Button>
+          <Link href={destination}><Button className="h-20 w-full font-heading text-base font-bold tracking-[0.15em] uppercase transition-transform hover:scale-[1.03] hover:brightness-110 sm:px-10 sm:tracking-[0.2em]">
+            <span className="m-20">Entra in Amberland</span>
+          </Button></Link>
         </motion.div>
       </motion.div>
     </main>

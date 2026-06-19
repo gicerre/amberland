@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Link2, Loader2, Plus, X } from "lucide-react";
+import { Link2, Loader2, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
@@ -18,7 +18,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FrameCard } from "@/design-system";
+import { frameImageStyle, getAsset } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { cn } from "@/lib/utils";
 import type { Entity, Relation } from "@/types/entities";
@@ -86,7 +86,14 @@ export function RelationPanel({ entity }: { entity: Entity }) {
   if (!isMaster && (resolved ?? []).length === 0) return null;
 
   return (
-    <FrameCard className="bg-card/60" contentClassName="p-5">
+    // <FrameCard variant="03" className="bg-card/60" contentClassName="p-5">
+    <button
+      type="button"
+      onClick={() => null}
+      aria-label={`Apri ${entity.name} a schermo intero`}
+      className="w-full cursor-default overflow-hidden rounded-xl border border-gold/25 p-5 text-left"
+      style={frameImageStyle(getAsset("window_04"), "primary", "1.5rem")}
+    >
       <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
           <Link2 className="size-4.5 text-gold" />
@@ -95,7 +102,7 @@ export function RelationPanel({ entity }: { entity: Entity }) {
         {isMaster && (
           <Button size="sm" variant="default" onClick={() => setAddOpen(true)}>
             <Link2 className="size-3.5" />
-            Collega
+            <span className="sm:inline hidden">Collega</span>
           </Button>
         )}
       </div>
@@ -163,7 +170,7 @@ export function RelationPanel({ entity }: { entity: Entity }) {
           from={entity}
         />
       )}
-    </FrameCard>
+    </button>
   );
 }
 

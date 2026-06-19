@@ -107,7 +107,7 @@ export function PartyHeaderPanel() {
           onClick={() => setEditOpen(true)}
         >
           <Pencil className="size-3.5" />
-          Modifica identità
+          <span className="sm:inline hidden">Modifica identità</span>
         </Button>
       )}
 

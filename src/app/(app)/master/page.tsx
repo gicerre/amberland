@@ -7,7 +7,7 @@ import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FrameCard } from "@/design-system";
+import { frameImageStyle, getAsset } from "@/design-system";
 import { QuickCreateDialog } from "@/features/entities/components/quick-create-dialog";
 import { useAllEntities, useEntityMutations } from "@/features/entities/data";
 import {
@@ -138,24 +138,36 @@ export default function MasterPage() {
             const config = ENTITY_REGISTRY[type];
             const Icon = config.icon;
             return (
-              <FrameCard key={type} contentClassName="p-5">
-                <div className="flex items-start justify-between gap-2">
-                  <Icon className="size-5 text-gold/70" />
-                  <span className="font-heading text-3xl font-bold text-gold">
-                    {counts.get(type) ?? 0}
-                  </span>
+              // <FrameCard key={type} contentClassName="p-5">
+              <button
+                type="button"
+                onClick={() => null}
+                key={type}
+                aria-label={`Apri ${config.plural} a schermo intero`}
+                className="block w-full overflow-hidden rounded-xl border border-gold/20"
+                style={frameImageStyle(getAsset("window_03"), "primary", "1.5rem")}
+              >
+                <div className="flex flex-col items-center gap-2 rounded-tl-lg rounded-tr-lg bg-night/30 py-3">
+                  <p className="mt-2 font-heading font-semibold">{config.plural}</p>
+                  <div className="flex items-center justify-center gap-1.5 rounded-md bg-night/20 px-2 py-1">
+                    <Icon className="size-5 text-gold/70" />
+                    <span className="font-heading text-3xl font-bold text-gold">
+                      {counts.get(type) ?? 0}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCreateType(type)}
+                    key={type}
+                    aria-label={`Crea nuova ${config.plural} a schermo intero`}
+                    className="h-10 justify-center flex items-center gap-1.5 rounded-md border border-gold/15 bg-night/30 px-2 py-1.5 text-sm text-center text-gold/80 w-full"
+                    style={frameImageStyle(getAsset("window_04"), "primary", "1.5rem")}
+                  >
+                    <Plus className="size-3.5" />
+                    Aggiungi
+                  </button>
                 </div>
-                <p className="mt-2 font-heading font-semibold">{config.plural}</p>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setCreateType(type)}
-                  className="mt-2 -ml-2 text-gold hover:text-gold-bright"
-                >
-                  <Plus className="size-3.5" />
-                  Aggiungi
-                </Button>
-              </FrameCard>
+              </button>
             );
           })}
         </div>

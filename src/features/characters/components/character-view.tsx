@@ -37,6 +37,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -154,6 +157,64 @@ export function CharacterView({ entity }: { entity: Entity }) {
       },
     });
 
+  // Voci azione condivise tra barra desktop e menu overflow mobile: definite
+  // una sola volta per garantire che i permessi (RBAC) restino identici nelle
+  // due viste responsive.
+  const statusItems = CHARACTER_STATUSES.map((value) => (
+    <DropdownMenuItem
+      key={value}
+      onSelect={() => setStatus.mutate({ entity, status: value })}
+    >
+      {value === "DEAD" && <Skull className="size-4" />}
+      {CHARACTER_STATUS_LABELS[value]}
+    </DropdownMenuItem>
+  ));
+
+  const adminItems = isMaster ? (
+    <>
+      {entity.visibility === "PUBLIC" ? (
+        <DropdownMenuItem
+          onSelect={() =>
+            setVisibility.mutate({ entity, visibility: "MASTER_ONLY" })
+          }
+        >
+          <EyeOff className="size-4" />
+          Nascondi ai giocatori
+        </DropdownMenuItem>
+      ) : (
+        <DropdownMenuItem
+          onSelect={() => setVisibility.mutate({ entity, visibility: "PUBLIC" })}
+        >
+          <Eye className="size-4" />
+          Rivela ai giocatori
+        </DropdownMenuItem>
+      )}
+      {isPC && (
+        <DropdownMenuItem
+          onSelect={() =>
+            setPartyMember.mutate({
+              entity,
+              member: entity.fields.partyMember !== true,
+            })
+          }
+        >
+          <Users className="size-4" />
+          {entity.fields.partyMember === true
+            ? "Rimuovi dal party"
+            : "Aggiungi al party"}
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        variant="destructive"
+        onSelect={() => setDeleteOpen(true)}
+      >
+        <Trash2 className="size-4" />
+        Elimina
+      </DropdownMenuItem>
+    </>
+  ) : null;
+
   return (
     <div className="space-y-6">
       {/* Banner identificativo della tipologia */}
@@ -239,110 +300,98 @@ export function CharacterView({ entity }: { entity: Entity }) {
 
           {canEdit && (
             <div className="flex items-center gap-2">
-              {kind === "NPC" && !npcComplete && isMaster && (
-                <Button
-                  variant="outline"
-                  onClick={() => convertToFull.mutate(entity)}
-                  disabled={convertToFull.isPending}
-                >
-                  <Sparkles className="size-4" />
-                  Completa scheda
-                </Button>
-              )}
-
-              {/* Stato rapido */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Heart className="size-4" />
-                    Stato
+              {/* ── Desktop (≥sm): barra azioni estesa con etichette ── */}
+              <div className="hidden items-center gap-2 sm:flex">
+                {kind === "NPC" && !npcComplete && isMaster && (
+                  <Button
+                    variant="outline"
+                    onClick={() => convertToFull.mutate(entity)}
+                    disabled={convertToFull.isPending}
+                  >
+                    <Sparkles className="size-4" />
+                    Completa scheda
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuLabel>Imposta stato</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {CHARACTER_STATUSES.map((value) => (
-                    <DropdownMenuItem
-                      key={value}
-                      onSelect={() =>
-                        setStatus.mutate({ entity, status: value })
-                      }
-                    >
-                      {value === "DEAD" && <Skull className="size-4" />}
-                      {CHARACTER_STATUS_LABELS[value]}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+                )}
 
-              <Button onClick={() => setEditOpen(true)}>
-                <Pencil className="size-4" />
-                Modifica
-              </Button>
+                {/* Stato rapido */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline">
+                      <Heart className="size-4" />
+                      Stato
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuLabel>Imposta stato</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {statusItems}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              {isMaster && (
+                <Button onClick={() => setEditOpen(true)}>
+                  <Pencil className="size-4" />
+                  
+                </Button>
+
+                {adminItems && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        aria-label="Altre azioni"
+                      >
+                        <MoreHorizontal />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      {adminItems}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+
+              {/* ── Mobile (<sm): azione primaria + overflow consolidato ── */}
+              <div className="flex items-center gap-2 sm:hidden">
+                <Button onClick={() => setEditOpen(true)} className="min-h-11">
+                  <Pencil className="size-4" />
+                  <span className="sm:inline hidden">Modifica</span>
+                </Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
                       size="icon"
+                      className="size-11"
                       aria-label="Altre azioni"
                     >
                       <MoreHorizontal />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
-                    {entity.visibility === "PUBLIC" ? (
+                    {kind === "NPC" && !npcComplete && isMaster && (
                       <DropdownMenuItem
-                        onSelect={() =>
-                          setVisibility.mutate({
-                            entity,
-                            visibility: "MASTER_ONLY",
-                          })
-                        }
+                        onSelect={() => convertToFull.mutate(entity)}
+                        disabled={convertToFull.isPending}
                       >
-                        <EyeOff className="size-4" />
-                        Nascondi ai giocatori
-                      </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem
-                        onSelect={() =>
-                          setVisibility.mutate({
-                            entity,
-                            visibility: "PUBLIC",
-                          })
-                        }
-                      >
-                        <Eye className="size-4" />
-                        Rivela ai giocatori
+                        <Sparkles className="size-4" />
+                        Completa scheda
                       </DropdownMenuItem>
                     )}
-                    {isPC && (
-                      <DropdownMenuItem
-                        onSelect={() =>
-                          setPartyMember.mutate({
-                            entity,
-                            member: entity.fields.partyMember !== true,
-                          })
-                        }
-                      >
-                        <Users className="size-4" />
-                        {entity.fields.partyMember === true
-                          ? "Rimuovi dal party"
-                          : "Aggiungi al party"}
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onSelect={() => setDeleteOpen(true)}
-                    >
-                      <Trash2 className="size-4" />
-                      Elimina
-                    </DropdownMenuItem>
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger>
+                        <Heart className="size-4" />
+                        Stato
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent>
+                        {statusItems}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                    {adminItems && <DropdownMenuSeparator />}
+                    {adminItems}
                   </DropdownMenuContent>
                 </DropdownMenu>
-              )}
+              </div>
             </div>
           )}
         </div>

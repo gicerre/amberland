@@ -193,7 +193,7 @@ export function AbilitiesSection({
           return (
             <div
               key={ability}
-              className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-3 rounded-lg border border-gold/15 bg-night/30 px-3 py-2"
+              className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 rounded-lg border border-gold/15 bg-night/30 px-3 py-2"
             >
               <span className="font-heading text-sm font-semibold">
                 {ABILITY_LABELS[ability]}
@@ -220,7 +220,7 @@ export function AbilitiesSection({
             </div>
           );
         })}
-        <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 px-3 text-[10px] tracking-wider text-muted-foreground uppercase">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] gap-3 px-3 text-[10px] tracking-wider text-muted-foreground uppercase">
           <span />
           <span className="w-16 text-center">Punt.</span>
           <span className="w-16 text-center">Temp.</span>
@@ -432,7 +432,7 @@ export function ClassesSection({
           {sheet.classes.map((entry) => (
             <li
               key={entry.id}
-              className="grid grid-cols-[1fr_1fr_auto_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-3"
+              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-3"
             >
               <Field label="Classe">
                 <Input
@@ -538,7 +538,7 @@ export function EquipmentSection({
               key={item.id}
               className="space-y-2 rounded-lg border border-gold/15 bg-night/30 p-3"
             >
-              <div className="grid grid-cols-[1fr_auto_auto] items-end gap-2">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-end gap-2">
                 <Field label="Nome">
                   <Input
                     value={item.name}
@@ -731,7 +731,7 @@ export function MagicSection({
               .map((slot) => (
                 <li
                   key={slot.level}
-                  className="grid grid-cols-[auto_1fr_1fr_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-2.5"
+                  className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-2.5"
                 >
                   <span className="pb-2 text-sm font-semibold">
                     Liv. {slot.level}
@@ -779,7 +779,7 @@ export function MagicSection({
             {sheet.spells.map((spell) => (
               <li
                 key={spell.id}
-                className="grid grid-cols-[1fr_auto_auto_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-3"
+                className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-3"
               >
                 <Field label="Nome">
                   <Input

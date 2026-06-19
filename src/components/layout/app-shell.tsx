@@ -134,7 +134,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
             <SheetTrigger asChild>
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="icon"
                 aria-label="Apri il menu completo"
                 className="text-gold/70 hover:text-gold hover:bg-gold/8"

@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/dialog";
 import { ABILITIES, type Companion } from "@/types/entities";
 
+import { getAsset } from "@/design-system/assets/registry";
+import { frameImageStyle } from "@/design-system/components/svg-asset";
 import { ABILITY_SHORT, abilityModifier, formatModifier } from "../constants";
 
 /**
@@ -132,14 +134,21 @@ export function CompanionSheetDialog({
 
         <div className="space-y-4">
           {companion.imageUrl && (
-            <div className="overflow-hidden rounded-xl border border-gold/20">
+            <button
+              type="button"
+              onClick={() => null}
+              key={companion.id}
+              aria-label={`Apri ${companion.name || "Famiglio"} a schermo intero`}
+              className="block w-full overflow-hidden rounded-xl border border-gold/20"
+              style={frameImageStyle(getAsset("window_01"), "primary", "1.5rem")}
+            >
               <FantasyImage
                 src={companion.imageUrl}
                 alt={companion.name}
                 className="h-48 w-full"
                 sizes="(max-width: 640px) 100vw, 512px"
               />
-            </div>
+            </button>
           )}
 
           {companion.abilities && (
@@ -147,10 +156,18 @@ export function CompanionSheetDialog({
               {ABILITIES.map((ability) => {
                 const score = companion.abilities?.[ability] ?? 10;
                 return (
-                  <div
+                   <button
+              type="button"
+              onClick={() => null}
+              key={companion.id}
+              aria-label={`Apri ${companion.name || "Famiglio"} a schermo intero`}
+              className="flex flex-col items-center gap-0.5 rounded-md border border-gold/15 bg-night/30 px-2 py-1.5 text-center"
+              style={frameImageStyle(getAsset("banner_08"), "primary", "1.5rem")}
+            >
+                  {/* <div
                     key={ability}
                     className="rounded-md border border-gold/15 bg-night/30 py-1.5 text-center"
-                  >
+                  > */}
                     <p className="text-[9px] tracking-widest text-muted-foreground uppercase">
                       {ABILITY_SHORT[ability]}
                     </p>
@@ -158,7 +175,8 @@ export function CompanionSheetDialog({
                     <p className="text-[9px] text-gold-bright">
                       {formatModifier(abilityModifier(score))}
                     </p>
-                  </div>
+                  {/* </div> */}
+                  </button>
                 );
               })}
             </div>

@@ -9,16 +9,16 @@ import {
   Wand2,
 } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { SectionDivider } from "@/components/shared/fantasy-card";
-import { FrameCard } from "@/design-system";
+import { Badge } from "@/components/ui/badge";
+import { FrameCard, frameImageStyle, getAsset } from "@/design-system";
 import { cn } from "@/lib/utils";
 
-import { CompanionsGrid } from "./companion-sheet";
 import {
   ABILITIES,
   type CharacterSheet,
 } from "@/types/entities";
+import { CompanionsGrid } from "./companion-sheet";
 
 import {
   ABILITY_LABELS,
@@ -68,9 +68,13 @@ export function CharacterSheetDisplay({
             const total = data.score + data.tempBonus;
             const mod = abilityModifier(total);
             return (
-              <div
+              <button
+                type="button"
+                onClick={() => null}
                 key={ability}
-                className="rounded-xl border border-gold/20 bg-card/60 p-3 text-center"
+                aria-label={`Apri ${ABILITY_LABELS[ability]} a schermo intero`}
+                className="group relative rounded-lg border border-gold/25 px-3 py-2 text-center"
+                style={frameImageStyle(getAsset("banner_05"), "primary", "1.5rem")}
               >
                 <p className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
                   {ABILITY_SHORT[ability]}
@@ -87,7 +91,7 @@ export function CharacterSheetDisplay({
                     </span>
                   )}
                 </p>
-              </div>
+              </button>
             );
           })}
         </div>
@@ -100,9 +104,8 @@ export function CharacterSheetDisplay({
           <Stat icon={<Shield className="size-4" />} label="CA" value={sheet.armorClass} />
           <Stat
             label="Punti Ferita"
-            value={`${sheet.currentHp}/${sheet.maxHp}${
-              sheet.tempHp ? ` (+${sheet.tempHp})` : ""
-            }`}
+            value={`${sheet.currentHp}/${sheet.maxHp}${sheet.tempHp ? ` (+${sheet.tempHp})` : ""
+              }`}
           />
           <Stat label="Iniziativa" value={formatModifier(sheet.initiative)} />
           <Stat label="Velocità" value={sheet.speed || "—"} />
@@ -152,62 +155,62 @@ export function CharacterSheetDisplay({
         sheet.toolProficiencies ||
         sheet.armorProficiencies ||
         sheet.weaponProficiencies) && (
-        <section>
-          <SectionTitle title="Competenze" />
-          <div className="grid gap-4 lg:grid-cols-2">
-            {sheet.savingThrows.length > 0 && (
-              <Block label="Tiri salvezza">
-                <div className="flex flex-wrap gap-1.5">
-                  {sheet.savingThrows.map((ability) => (
-                    <Badge
-                      key={ability}
-                      variant="outline"
-                      className="border-gold/30 text-xs"
-                    >
-                      {ABILITY_LABELS[ability]}
-                    </Badge>
-                  ))}
-                </div>
-              </Block>
-            )}
-            {sheet.skills.length > 0 && (
-              <Block label="Abilità">
-                <div className="flex flex-wrap gap-1.5">
-                  {SKILL_KEYS.filter((key) => sheet.skills.includes(key)).map(
-                    (key) => {
-                      const expert = sheet.expertise.includes(key);
-                      return (
-                        <Badge
-                          key={key}
-                          variant="outline"
-                          className={cn(
-                            "text-xs",
-                            expert
-                              ? "border-gold/60 bg-gold/15 text-gold-bright"
-                              : "border-gold/30"
-                          )}
-                        >
-                          {SKILLS[key].label}
-                          {expert && " ★"}
-                        </Badge>
-                      );
-                    }
-                  )}
-                </div>
-              </Block>
-            )}
-            {sheet.armorProficiencies && (
-              <TextBlock label="Armature" text={sheet.armorProficiencies} />
-            )}
-            {sheet.weaponProficiencies && (
-              <TextBlock label="Armi" text={sheet.weaponProficiencies} />
-            )}
-            {sheet.toolProficiencies && (
-              <TextBlock label="Strumenti" text={sheet.toolProficiencies} />
-            )}
-          </div>
-        </section>
-      )}
+          <section>
+            <SectionTitle title="Competenze" />
+            <div className="grid gap-4 lg:grid-cols-2">
+              {sheet.savingThrows.length > 0 && (
+                <NoFrameBlock label="Tiri salvezza">
+                  <div className="flex flex-wrap gap-1.5">
+                    {sheet.savingThrows.map((ability) => (
+                      <Badge
+                        key={ability}
+                        variant="outline"
+                        className="border-gold/30 text-xs"
+                      >
+                        {ABILITY_LABELS[ability]}
+                      </Badge>
+                    ))}
+                  </div>
+                </NoFrameBlock>
+              )}
+              {sheet.skills.length > 0 && (
+                <NoFrameBlock label="Abilità">
+                  <div className="flex flex-wrap gap-1.5">
+                    {SKILL_KEYS.filter((key) => sheet.skills.includes(key)).map(
+                      (key) => {
+                        const expert = sheet.expertise.includes(key);
+                        return (
+                          <Badge
+                            key={key}
+                            variant="outline"
+                            className={cn(
+                              "text-xs",
+                              expert
+                                ? "border-gold/60 bg-gold/15 text-gold-bright"
+                                : "border-gold/30"
+                            )}
+                          >
+                            {SKILLS[key].label}
+                            {expert && " ★"}
+                          </Badge>
+                        );
+                      }
+                    )}
+                  </div>
+                </NoFrameBlock>
+              )}
+              {sheet.armorProficiencies && (
+                <NoFrameBlock label="Armature" text={sheet.armorProficiencies} />
+              )}
+              {sheet.weaponProficiencies && (
+                <NoFrameBlock label="Armi" text={sheet.weaponProficiencies} />
+              )}
+              {sheet.toolProficiencies && (
+                <NoFrameBlock label="Strumenti" text={sheet.toolProficiencies} />
+              )}
+            </div>
+          </section>
+        )}
 
       {/* Equipaggiamento */}
       {(sheet.equipment.length > 0 || hasMoney) && (
@@ -472,7 +475,14 @@ function Stat({
   value: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-gold/15 bg-card/60 px-4 py-3 text-center">
+    <button
+      type="button"
+      onClick={() => null}
+      key="armorClass"
+      aria-label={`Apri Classe Armatura a schermo intero`}
+      className="group relative rounded-lg border border-gold/25 px-2 py-2 text-center"
+      style={frameImageStyle(getAsset("window_02"), "primary", "1.5rem")}
+    >
       <p className="flex items-center justify-center gap-1 text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
         {icon}
         {label}
@@ -480,7 +490,7 @@ function Stat({
       <p className="mt-1 font-heading text-lg font-bold text-gold-bright">
         {value}
       </p>
-    </div>
+    </button>
   );
 }
 
@@ -506,5 +516,17 @@ function TextBlock({ label, text }: { label: string; text: string }) {
     <Block label={label}>
       <p className="text-sm whitespace-pre-line text-foreground/90">{text}</p>
     </Block>
+  );
+}
+
+function NoFrameBlock({ label, children, text }: { label: string; children?: React.ReactNode; text?: string }) {
+  return (
+    <div className="rounded-lg border border-gold/15 bg-card/60 px-4 py-3">
+      <p className="mb-2 text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+        {label}
+      </p>
+      {text && <p className="text-sm whitespace-pre-line text-foreground/90">{text}</p>}
+      {children}
+    </div>
   );
 }

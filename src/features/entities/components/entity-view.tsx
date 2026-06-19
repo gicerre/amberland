@@ -17,8 +17,8 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
-import { FantasyBreadcrumb } from "@/components/shared/fantasy-breadcrumb";
 import { EmptyState } from "@/components/shared/empty-state";
+import { FantasyBreadcrumb } from "@/components/shared/fantasy-breadcrumb";
 import {
   CornerOrnaments,
   SectionDivider,
@@ -30,7 +30,6 @@ import {
   isEmptyRichText,
   type RichTextValue,
 } from "@/components/shared/rich-text-utils";
-import type { RichText } from "@/types/entities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -41,13 +40,14 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FrameCard } from "@/design-system";
+import { FrameCard, frameImageStyle, getAsset } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { CharacterView } from "@/features/characters/components/character-view";
 import { PublicCharacterView } from "@/features/characters/components/public-character-view";
 import { useEntityPublicCard } from "@/features/characters/data";
 import { NoteLinksPanel } from "@/features/party/diary/note-links-panel";
 import { cn } from "@/lib/utils";
+import type { RichText } from "@/types/entities";
 
 import { CreatureStatusBar } from "./creature-status-bar";
 import { EntityDetailBody } from "./entity-detail-body";
@@ -149,7 +149,7 @@ export function EntityView({ id }: { id: string }) {
   const galleryOffset = entity.imageUrl ? 1 : 0;
 
   type ShortField = { def: (typeof config.fields)[number]; display: string };
-  type LongField  = { def: (typeof config.fields)[number]; rich: RichText };
+  type LongField = { def: (typeof config.fields)[number]; rich: RichText };
 
   const shortFields: ShortField[] = [];
   const longFields: LongField[] = [];
@@ -187,6 +187,38 @@ export function EntityView({ id }: { id: string }) {
   // Tipi con gerarchia geografica (mondo/regione/città/luogo).
   const isGeographic =
     config.parentType !== null || config.childType !== null;
+
+  // Azioni del menu overflow (solo Master): identiche tra barra desktop e
+  // menu consolidato mobile — definite una volta sola, RBAC preservato.
+  const overflowItems = (
+    <>
+      {entity.visibility === "PUBLIC" ? (
+        <DropdownMenuItem
+          onSelect={() =>
+            setVisibility.mutate({ entity, visibility: "MASTER_ONLY" })
+          }
+        >
+          <EyeOff className="size-4" />
+          Nascondi ai giocatori
+        </DropdownMenuItem>
+      ) : (
+        <DropdownMenuItem
+          onSelect={() => setVisibility.mutate({ entity, visibility: "PUBLIC" })}
+        >
+          <Eye className="size-4" />
+          Rivela ai giocatori
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        variant="destructive"
+        onSelect={() => setDeleteOpen(true)}
+      >
+        <Trash2 className="size-4" />
+        Elimina
+      </DropdownMenuItem>
+    </>
+  );
 
   return (
     <div className="space-y-6">
@@ -240,6 +272,7 @@ export function EntityView({ id }: { id: string }) {
             onClick={() => openLightbox(allImages, 0, entity.name)}
             aria-label={`Apri ${entity.name} a schermo intero`}
             className="group relative mb-6 block w-full cursor-zoom-in overflow-hidden rounded-xl border border-gold/25"
+             style={frameImageStyle(getAsset("window_04"), "primary", "1.5rem")}
           >
             <FantasyImage
               src={entity.imageUrl}
@@ -284,52 +317,59 @@ export function EntityView({ id }: { id: string }) {
 
           {isMaster && (
             <div className="flex items-center gap-2">
-              {childConfig && (
-                <Button variant="outline" onClick={() => setChildOpen(true)}>
-                  <Plus className="size-4" />
-                  {childConfig.label}
-                </Button>
-              )}
-              <Button onClick={() => setEditOpen(true)}>
-                <Pencil className="size-4" />
-                Modifica
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="icon" aria-label="Altre azioni">
-                    <MoreHorizontal />
+              {/* ── Desktop (≥sm): barra azioni estesa con etichette ── */}
+              <div className="hidden items-center gap-2 sm:flex">
+                {childConfig && (
+                  <Button variant="outline" onClick={() => setChildOpen(true)}>
+                    <Plus className="size-4" />
+                    {childConfig.label}
                   </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  {entity.visibility === "PUBLIC" ? (
-                    <DropdownMenuItem
-                      onSelect={() =>
-                        setVisibility.mutate({ entity, visibility: "MASTER_ONLY" })
-                      }
+                )}
+                <Button onClick={() => setEditOpen(true)}>
+                  <Pencil className="size-4" />
+                  <span className="sm:inline hidden">Modifica</span>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="icon" aria-label="Altre azioni">
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {overflowItems}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* ── Mobile (<sm): azione primaria + overflow consolidato ── */}
+              <div className="flex items-center gap-2 sm:hidden">
+                <Button onClick={() => setEditOpen(true)} className="min-h-11">
+                  <Pencil className="size-4" />
+                  <span className="sm:inline hidden">Modifica</span>
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="size-11"
+                      aria-label="Altre azioni"
                     >
-                      <EyeOff className="size-4" />
-                      Nascondi ai giocatori
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      onSelect={() =>
-                        setVisibility.mutate({ entity, visibility: "PUBLIC" })
-                      }
-                    >
-                      <Eye className="size-4" />
-                      Rivela ai giocatori
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onSelect={() => setDeleteOpen(true)}
-                  >
-                    <Trash2 className="size-4" />
-                    Elimina
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-56">
+                    {childConfig && (
+                      <DropdownMenuItem onSelect={() => setChildOpen(true)}>
+                        <Plus className="size-4" />
+                        {childConfig.label}
+                      </DropdownMenuItem>
+                    )}
+                    {childConfig && <DropdownMenuSeparator />}
+                    {overflowItems}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           )}
         </div>

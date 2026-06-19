@@ -230,7 +230,7 @@ export function EntityFormSheet({
         </DialogHeader>
 
         <Tabs defaultValue="scheda" className="flex min-h-0 flex-1 flex-col">
-          <TabsList className="mx-6 mt-4 w-fit">
+          <TabsList className="mx-6 mt-4 flex w-fit max-w-[calc(100%-3rem)] overflow-x-auto">
             <TabsTrigger value="scheda">Scheda</TabsTrigger>
             {config.fields.length > 0 && (
               <TabsTrigger value="dettagli">Dettagli</TabsTrigger>

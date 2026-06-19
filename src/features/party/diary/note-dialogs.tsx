@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
+import { EntityMultiPicker } from "@/components/shared/entity-multi-picker";
 import {
   RichTextEditor,
   RichTextRenderer,
@@ -34,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { EntityMultiPicker } from "@/components/shared/entity-multi-picker";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useAllEntities } from "@/features/entities/data";
 import {
@@ -255,7 +255,7 @@ export function NoteDetailDialog({
                   {note.updatedAt &&
                     note.createdAt &&
                     note.updatedAt.toMillis?.() - note.createdAt.toMillis?.() >
-                      60000 &&
+                    60000 &&
                     ` (agg. ${formatDateTime(note.updatedAt)})`}
                 </span>
               </span>
@@ -328,7 +328,7 @@ export function NoteDetailDialog({
               </Button>
               <Button onClick={() => setEditOpen(true)}>
                 <Pencil className="size-4" />
-                Modifica
+                <span className="sm:inline hidden">Modifica</span>
               </Button>
             </DialogFooter>
           )}
