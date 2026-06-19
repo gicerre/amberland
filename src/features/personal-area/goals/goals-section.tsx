@@ -512,7 +512,7 @@ function GoalLinksPicker({
                     </span>
                     <span className="flex-1 truncate">{entity.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {/* {ENTITY_REGISTRY[entity.type]?.label} */}
+                      {ENTITY_REGISTRY[entity.type]?.label}
                     </span>
                   </button>
                 </li>
