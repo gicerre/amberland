@@ -39,14 +39,11 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
   const linkOf = (noteId: string) => links.find((l) => l.noteId === noteId);
 
   return (
-    <button
-      type="button"
-      color="transparent"
-      onClick={() => null}
-      aria-label={`Apri ${entity.name} a schermo intero`}
-      className="w-full cursor-default overflow-hidden rounded-xl border p-5 text-left"
+    <div
+      className="overflow-hidden rounded-xl border p-5"
       style={frameImageStyle(getAsset("window_06"), "primary", "1.5rem")}
-    >      <div className="mb-4 flex items-center justify-between gap-3">
+    >
+      <div className="mb-4 flex items-center justify-between gap-3">
         <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
           <BookText className="size-4.5 text-gold" />
           Note collegate
@@ -164,7 +161,7 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
           onOpenChange={(open) => !open && setActive(null)}
         />
       )}
-    </button>
+    </div>
   );
 }
 

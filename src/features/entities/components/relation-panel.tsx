@@ -82,12 +82,8 @@ export function RelationPanel({ entity }: { entity: Entity }) {
   if (!isMaster && (resolved ?? []).length === 0) return null;
 
   return (
-    // <FrameCard variant="03" className="bg-card/60" contentClassName="p-5">
-    <button
-      type="button"
-      onClick={() => null}
-      aria-label={`Apri ${entity.name} a schermo intero`}
-      className="w-full cursor-default overflow-hidden rounded-xl border border-gold/25 p-5 text-left"
+    <div
+      className="overflow-hidden rounded-xl border border-gold/25 p-5"
       style={frameImageStyle(getAsset("window_04"), "primary", "1.5rem")}
     >
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -166,7 +162,7 @@ export function RelationPanel({ entity }: { entity: Entity }) {
           from={entity}
         />
       )}
-    </button>
+    </div>
   );
 }
 
