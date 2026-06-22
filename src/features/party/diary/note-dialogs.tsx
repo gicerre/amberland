@@ -1,6 +1,6 @@
 "use client";
 
-import { Link2, Loader2, Pencil, Trash2, X } from "lucide-react";
+import { BookText, Link2, Loader2, Pencil, Trash2, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -17,17 +17,9 @@ import {
 } from "@/components/shared/rich-text-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ConsoleField, ImmersiveModal } from "@/design-system";
 import {
   Select,
   SelectContent,
@@ -43,7 +35,6 @@ import {
   VISIBILITY_BADGES,
   VISIBILITY_LABELS,
 } from "@/features/entities/registry";
-import { cn } from "@/lib/utils";
 import {
   VISIBILITIES,
   type Entity,
@@ -120,82 +111,81 @@ export function NoteEditorDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="font-heading">
-            {note ? "Modifica nota" : "Nuova nota"}
-          </DialogTitle>
-          <DialogDescription>
-            {linkTo
-              ? `Collegata a «${linkTo.name}»`
-              : "Scrivi un ricordo, un indizio, una cronaca."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto">
-          <div className="space-y-2">
-            <Label>Titolo</Label>
-            <Input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Titolo della nota"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Contenuto</Label>
-            <RichTextEditor
-              value={content}
-              onChange={setContent}
-              placeholder="Scrivi qui…"
-              folder="misc"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Visibilità</Label>
-            <Select
-              value={visibility}
-              onValueChange={(value) => setVisibility(value as Visibility)}
-            >
-              <SelectTrigger className="w-full sm:w-64">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {VISIBILITIES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {VISIBILITY_LABELS[value]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          {!note && (
-            <div className="space-y-2">
-              <Label className="flex items-center gap-1.5">
-                <Link2 className="size-3.5 text-gold" />
-                Collegamenti a entità
-              </Label>
-              <EntityMultiPicker value={links} onChange={setLinks} />
-              <p className="text-xs text-muted-foreground">
-                Collega la nota a personaggi, luoghi, oggetti, eventi… (puoi
-                sceglierne più d&rsquo;una).
-              </p>
-            </div>
-          )}
-        </div>
-
-        <DialogFooter>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="lg"
+      icon={<BookText />}
+      title={note ? "Modifica nota" : "Nuova nota"}
+      description={
+        linkTo
+          ? `Collegata a «${linkTo.name}»`
+          : "Scrivi un ricordo, un indizio, una cronaca."
+      }
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
-          <Button onClick={submit} disabled={pending || isEmptyRichText(content)}>
+          <Button
+            onClick={submit}
+            disabled={pending || isEmptyRichText(content)}
+          >
             {pending && <Loader2 className="size-4 animate-spin" />}
             {note ? "Salva" : "Crea nota"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        <ConsoleField label="Titolo">
+          <Input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Titolo della nota"
+          />
+        </ConsoleField>
+        <ConsoleField label="Contenuto">
+          <RichTextEditor
+            value={content}
+            onChange={setContent}
+            placeholder="Scrivi qui…"
+            folder="misc"
+          />
+        </ConsoleField>
+        <ConsoleField label="Visibilità">
+          <Select
+            value={visibility}
+            onValueChange={(value) => setVisibility(value as Visibility)}
+          >
+            <SelectTrigger className="w-full sm:w-64">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {VISIBILITIES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {VISIBILITY_LABELS[value]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </ConsoleField>
+
+        {!note && (
+          <ConsoleField
+            label={
+              <>
+                <Link2 className="size-3.5 text-gold" />
+                Collegamenti a entità
+              </>
+            }
+            hint="Collega la nota a personaggi, luoghi, oggetti, eventi… (puoi sceglierne più d'una)."
+          >
+            <EntityMultiPicker value={links} onChange={setLinks} />
+          </ConsoleField>
+        )}
+      </div>
+    </ImmersiveModal>
   );
 }
 
@@ -217,107 +207,47 @@ export function NoteDetailDialog({
 
   const canEdit = isMaster || note.authorId === user?.uid;
 
+  const headerIcon =
+    note.questStatus && QUEST_EVENT_STYLE[note.questStatus]
+      ? (() => {
+          const Icon = QUEST_EVENT_STYLE[note.questStatus].icon;
+          return <Icon />;
+        })()
+      : undefined;
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="flex max-h-[90vh] flex-col sm:max-w-2xl">
-          <DialogHeader>
-            <DialogTitle className="font-heading flex items-center gap-2 text-xl">
-              {note.questStatus && QUEST_EVENT_STYLE[note.questStatus] && (
-                <span
-                  className={cn(
-                    "flex size-7 shrink-0 items-center justify-center rounded-md",
-                    QUEST_EVENT_STYLE[note.questStatus].iconWrap
-                  )}
-                >
-                  {(() => {
-                    const Icon = QUEST_EVENT_STYLE[note.questStatus].icon;
-                    return <Icon className="size-4" />;
-                  })()}
-                </span>
-              )}
-              {note.title}
-            </DialogTitle>
-            <DialogDescription>
-              <span className="flex flex-wrap items-center gap-2">
-                <Badge
-                  variant="outline"
-                  className={VISIBILITY_BADGES[note.visibility]}
-                >
-                  {VISIBILITY_LABELS[note.visibility]}
-                </Badge>
-                <span>
-                  di <strong className="text-foreground">{note.authorName}</strong>
-                  {note.createdAt && ` · ${formatDateTime(note.createdAt)}`}
-                  {note.lastEditedByName &&
-                    note.lastEditedByName !== note.authorName &&
-                    ` · modificata da ${note.lastEditedByName}`}
-                  {note.updatedAt &&
-                    note.createdAt &&
-                    note.updatedAt.toMillis?.() - note.createdAt.toMillis?.() >
-                    60000 &&
-                    ` (agg. ${formatDateTime(note.updatedAt)})`}
-                </span>
-              </span>
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="min-h-0 flex-1 overflow-y-auto">
-            <RichTextRenderer content={note.content as RichTextValue} />
-
-            {((links ?? []).length > 0 || canEdit) && (
-              <div className="mt-6 border-t border-gold/15 pt-4">
-                <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
-                  <Link2 className="size-3.5" />
-                  Collegata a
-                </p>
-                {(links ?? []).length > 0 && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {(links ?? []).map((entityLink) => {
-                      const config = ENTITY_REGISTRY[entityLink.entityType];
-                      return (
-                        <span
-                          key={entityLink.id}
-                          className="group flex items-center gap-1 rounded-full border border-gold/25 bg-card/60 py-0.5 pr-1 pl-2.5 text-sm"
-                        >
-                          <Link
-                            href={`/entita/${entityLink.entityId}`}
-                            className="hover:text-gold-bright"
-                            onClick={() => onOpenChange(false)}
-                          >
-                            {config?.label}: {entityLink.entityName}
-                          </Link>
-                          {canEdit && (
-                            <button
-                              type="button"
-                              aria-label="Scollega"
-                              onClick={() => unlink.mutate(entityLink)}
-                              className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
-                            >
-                              <X className="size-3" />
-                            </button>
-                          )}
-                        </span>
-                      );
-                    })}
-                  </div>
-                )}
-                {canEdit && (
-                  <div className="mt-3">
-                    <EntityLinkPicker
-                      excludeIds={
-                        new Set((links ?? []).map((l) => l.entityId))
-                      }
-                      onPick={(entity) => link.mutate({ note, entity })}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-
-          {canEdit && (
-            <DialogFooter>
+      <ImmersiveModal
+        open={open}
+        onOpenChange={onOpenChange}
+        size="lg"
+        icon={headerIcon}
+        title={note.title}
+        description={
+          <span className="flex flex-wrap items-center gap-2">
+            <Badge
+              variant="outline"
+              className={VISIBILITY_BADGES[note.visibility]}
+            >
+              {VISIBILITY_LABELS[note.visibility]}
+            </Badge>
+            <span>
+              di <strong className="text-foreground">{note.authorName}</strong>
+              {note.createdAt && ` · ${formatDateTime(note.createdAt)}`}
+              {note.lastEditedByName &&
+                note.lastEditedByName !== note.authorName &&
+                ` · modificata da ${note.lastEditedByName}`}
+              {note.updatedAt &&
+                note.createdAt &&
+                note.updatedAt.toMillis?.() - note.createdAt.toMillis?.() >
+                  60000 &&
+                ` (agg. ${formatDateTime(note.updatedAt)})`}
+            </span>
+          </span>
+        }
+        footer={
+          canEdit ? (
+            <>
               <Button
                 variant="outline"
                 className="text-destructive"
@@ -330,10 +260,60 @@ export function NoteDetailDialog({
                 <Pencil className="size-4" />
                 <span className="sm:inline hidden">Modifica</span>
               </Button>
-            </DialogFooter>
-          )}
-        </DialogContent>
-      </Dialog>
+            </>
+          ) : undefined
+        }
+      >
+        <RichTextRenderer content={note.content as RichTextValue} />
+
+        {((links ?? []).length > 0 || canEdit) && (
+          <div className="mt-6 border-t border-gold/15 pt-4">
+            <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
+              <Link2 className="size-3.5" />
+              Collegata a
+            </p>
+            {(links ?? []).length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {(links ?? []).map((entityLink) => {
+                  const config = ENTITY_REGISTRY[entityLink.entityType];
+                  return (
+                    <span
+                      key={entityLink.id}
+                      className="group flex items-center gap-1 rounded-full border border-gold/25 bg-card/60 py-0.5 pr-1 pl-2.5 text-sm"
+                    >
+                      <Link
+                        href={`/entita/${entityLink.entityId}`}
+                        className="hover:text-gold-bright"
+                        onClick={() => onOpenChange(false)}
+                      >
+                        {config?.label}: {entityLink.entityName}
+                      </Link>
+                      {canEdit && (
+                        <button
+                          type="button"
+                          aria-label="Scollega"
+                          onClick={() => unlink.mutate(entityLink)}
+                          className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
+                        >
+                          <X className="size-3" />
+                        </button>
+                      )}
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+            {canEdit && (
+              <div className="mt-3">
+                <EntityLinkPicker
+                  excludeIds={new Set((links ?? []).map((l) => l.entityId))}
+                  onPick={(entity) => link.mutate({ note, entity })}
+                />
+              </div>
+            )}
+          </div>
+        )}
+      </ImmersiveModal>
 
       {canEdit && (
         <>

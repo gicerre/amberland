@@ -19,18 +19,8 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { ImageUpload } from "@/components/shared/image-upload";
 import { PageHeader } from "@/components/shared/page-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -41,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { ConsoleField, ConsoleSegmented, ImmersiveModal } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useEntitiesByType } from "@/features/entities/data";
 import {
@@ -402,158 +393,18 @@ function AddToBagDialog({
   };
 
   return (
-    <Dialog
+    <ImmersiveModal
       open={open}
       onOpenChange={(value) => {
         if (!value) reset();
         onOpenChange(value);
       }}
-    >
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading flex items-center gap-2">
-            <Backpack className="size-5 text-gold" />
-            Aggiungi alla Borsa
-          </DialogTitle>
-          <DialogDescription>
-            Scegli un oggetto del catalogo o creane uno nuovo.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="inline-flex w-full rounded-lg border border-gold/20 bg-night/30 p-1">
-          {(
-            [
-              ["existing", "Esistente"],
-              ["new", "Nuovo"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setMode(value)}
-              className={cn(
-                "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                mode === value
-                  ? "bg-gold/20 text-gold-bright"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        <div className="space-y-4">
-          {mode === "existing" ? (
-            <>
-              <Input
-                value={search}
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Cerca un oggetto conservabile…"
-              />
-              <ScrollArea className="h-40 rounded-lg border border-gold/15">
-                <ul className="p-1">
-                  {candidates.map((item) => (
-                    <li key={item.id}>
-                      <button
-                        type="button"
-                        onClick={() => setSelected(item)}
-                        className={cn(
-                          "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors",
-                          selected?.id === item.id
-                            ? "bg-gold/15 text-gold-bright"
-                            : "hover:bg-accent"
-                        )}
-                      >
-                        <Package className="size-4 shrink-0 text-gold/70" />
-                        <span className="flex-1 truncate">{item.name}</span>
-                      </button>
-                    </li>
-                  ))}
-                  {candidates.length === 0 && (
-                    <li className="px-2.5 py-4 text-center text-sm text-muted-foreground italic">
-                      Nessun oggetto conservabile trovato.
-                    </li>
-                  )}
-                </ul>
-              </ScrollArea>
-            </>
-          ) : (
-            <>
-              <div className="space-y-2">
-                <Label>Nome</Label>
-                <Input
-                  value={name}
-                  onChange={(event) => setName(event.target.value)}
-                  placeholder="Pozione di cura…"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Categoria</Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ITEM_CATEGORY_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Immagine (opzionale)</Label>
-                <ImageUpload value={imageUrl} onChange={setImageUrl} folder="item" />
-              </div>
-            </>
-          )}
-
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Quantità</Label>
-              <div className="flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                >
-                  <Minus />
-                </Button>
-                <Input
-                  type="number"
-                  min={1}
-                  value={quantity}
-                  onChange={(event) =>
-                    setQuantity(Math.max(1, Number(event.target.value) || 1))
-                  }
-                  className="text-center"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon-sm"
-                  onClick={() => setQuantity((q) => q + 1)}
-                >
-                  <Plus />
-                </Button>
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Note (opzionale)</Label>
-            <Textarea
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              rows={2}
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
+      size="md"
+      icon={<Backpack />}
+      title="Aggiungi alla Borsa"
+      description="Scegli un oggetto del catalogo o creane uno nuovo."
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
@@ -561,9 +412,121 @@ function AddToBagDialog({
             {pending && <Loader2 className="size-4 animate-spin" />}
             Aggiungi
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        <ConsoleSegmented<"existing" | "new">
+          options={[
+            { value: "existing", label: "Esistente" },
+            { value: "new", label: "Nuovo" },
+          ]}
+          value={mode}
+          onChange={setMode}
+        />
+
+        {mode === "existing" ? (
+          <>
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Cerca un oggetto conservabile…"
+            />
+            <ScrollArea className="h-44 rounded-lg border border-gold/15 bg-black/20">
+              <ul className="p-1">
+                {candidates.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      onClick={() => setSelected(item)}
+                      className={cn(
+                        "flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors",
+                        selected?.id === item.id
+                          ? "bg-gold/15 text-gold-bright"
+                          : "hover:bg-accent"
+                      )}
+                    >
+                      <Package className="size-4 shrink-0 text-gold/70" />
+                      <span className="flex-1 truncate">{item.name}</span>
+                    </button>
+                  </li>
+                ))}
+                {candidates.length === 0 && (
+                  <li className="px-2.5 py-4 text-center text-sm text-muted-foreground italic">
+                    Nessun oggetto conservabile trovato.
+                  </li>
+                )}
+              </ul>
+            </ScrollArea>
+          </>
+        ) : (
+          <>
+            <ConsoleField label="Nome">
+              <Input
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+                placeholder="Pozione di cura…"
+              />
+            </ConsoleField>
+            <ConsoleField label="Categoria">
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ITEM_CATEGORY_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </ConsoleField>
+            <ConsoleField label="Immagine (opzionale)">
+              <ImageUpload value={imageUrl} onChange={setImageUrl} folder="item" />
+            </ConsoleField>
+          </>
+        )}
+
+        <ConsoleField label="Quantità">
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+            >
+              <Minus />
+            </Button>
+            <Input
+              type="number"
+              min={1}
+              value={quantity}
+              onChange={(event) =>
+                setQuantity(Math.max(1, Number(event.target.value) || 1))
+              }
+              className="text-center"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              onClick={() => setQuantity((q) => q + 1)}
+            >
+              <Plus />
+            </Button>
+          </div>
+        </ConsoleField>
+
+        <ConsoleField label="Note (opzionale)">
+          <Textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            rows={2}
+          />
+        </ConsoleField>
+      </div>
+    </ImmersiveModal>
   );
 }
 
@@ -587,34 +550,15 @@ function EditEntryDialog({
     );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="font-heading">{entry.itemName}</DialogTitle>
-          <DialogDescription>Aggiorna quantità e note.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Quantità</Label>
-            <Input
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={(event) =>
-                setQuantity(Math.max(1, Number(event.target.value) || 1))
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Note</Label>
-            <Textarea
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              rows={3}
-            />
-          </div>
-        </div>
-        <DialogFooter>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="sm"
+      icon={<Package />}
+      title={entry.itemName}
+      description="Aggiorna quantità e note."
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
@@ -622,9 +566,29 @@ function EditEntryDialog({
             {updateEntry.isPending && <Loader2 className="size-4 animate-spin" />}
             Salva
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        <ConsoleField label="Quantità">
+          <Input
+            type="number"
+            min={1}
+            value={quantity}
+            onChange={(event) =>
+              setQuantity(Math.max(1, Number(event.target.value) || 1))
+            }
+          />
+        </ConsoleField>
+        <ConsoleField label="Note">
+          <Textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            rows={3}
+          />
+        </ConsoleField>
+      </div>
+    </ImmersiveModal>
   );
 }
 
@@ -637,16 +601,16 @@ function HistoryDialog({
 }) {
   const { data: log } = useBagLog();
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="font-heading flex items-center gap-2">
-            <History className="size-5 text-gold" />
-            Cronologia della Borsa
-          </DialogTitle>
-        </DialogHeader>
-        <ScrollArea className="max-h-[60vh]">
-          <ul className="space-y-2 pr-3">
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="lg"
+      icon={<History />}
+      title="Cronologia della Borsa"
+      description="Ogni movimento registrato: chi ha preso, riposto o approvato."
+    >
+      <ScrollArea className="max-h-[70vh]">
+        <ul className="space-y-2 pr-3">
             {(log ?? []).map((entry: BagLogEntry) => (
               <li
                 key={entry.id}
@@ -663,15 +627,14 @@ function HistoryDialog({
                 </span>
               </li>
             ))}
-            {(log ?? []).length === 0 && (
-              <li className="py-6 text-center text-sm text-muted-foreground italic">
-                Nessun movimento registrato.
-              </li>
-            )}
-          </ul>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
+          {(log ?? []).length === 0 && (
+            <li className="py-6 text-center text-sm text-muted-foreground italic">
+              Nessun movimento registrato.
+            </li>
+          )}
+        </ul>
+      </ScrollArea>
+    </ImmersiveModal>
   );
 }
 

@@ -1,7 +1,19 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  BookText,
+  Dices,
+  Images,
+  Loader2,
+  PawPrint,
+  ScrollText,
+  Shield,
+  ShieldAlert,
+  Sparkles,
+  Swords,
+  User,
+} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { useCelebration } from "@/components/shared/celebration";
@@ -20,15 +32,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ConsoleNav,
+  ConsolePanel,
+  FormConsole,
+  ImmersiveModal,
+  type ConsoleSection,
+} from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   useEntitiesByType,
@@ -36,7 +47,6 @@ import {
   useEntityPrivate,
   type EntityInput,
 } from "@/features/entities/data";
-import { cn } from "@/lib/utils";
 import {
   VISIBILITY_LABELS,
 } from "@/features/entities/registry";
@@ -117,6 +127,7 @@ export function CharacterFormSheet({
   const [showRace, setShowRace] = useState(entity.fields.showRace !== false);
   const [showClass, setShowClass] = useState(entity.fields.showClass !== false);
   const [sheet, setSheet] = useState<CharacterSheet>(() => emptySheet());
+  const [section, setSection] = useState("identita");
 
   const isPC = entity.fields.kind === "PC";
   const kind = isPC ? "PC" : "NPC";
@@ -130,6 +141,7 @@ export function CharacterFormSheet({
   // Risincronizza all'apertura e quando arrivano i dati privati.
   useEffect(() => {
     if (!open) return;
+    setSection("identita");
     setName(entity.name);
     setDescription(entity.description);
     setTags(entity.tags);
@@ -275,43 +287,100 @@ export function CharacterFormSheet({
     (option) => option.id !== entity.id
   );
 
+  const sections: ConsoleSection[] = useMemo(() => {
+    const list: ConsoleSection[] = [
+      { id: "identita", label: "Identità", icon: <User /> },
+    ];
+    if (hasSheet) {
+      list.push(
+        { id: "dettagli", label: "Dettagli", icon: <ScrollText /> },
+        { id: "caratteristiche", label: "Caratteristiche", icon: <Dices /> },
+        { id: "competenze", label: "Competenze", icon: <BookText /> },
+        { id: "classi", label: "Classi", icon: <Swords /> },
+        { id: "famigli", label: "Famigli", icon: <PawPrint /> },
+        { id: "equip", label: "Equipaggiamento", icon: <Shield /> },
+        { id: "magia", label: "Magia", icon: <Sparkles /> }
+      );
+    }
+    list.push({ id: "immagini", label: "Immagini", icon: <Images /> });
+    if (isMaster) {
+      list.push({ id: "master", label: "Sala del Master", icon: <ShieldAlert /> });
+    }
+    return list;
+  }, [hasSheet, isMaster]);
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn(
-          "flex max-h-[92vh] w-full flex-col gap-0 overflow-hidden border-gold/20 bg-card p-0",
-          hasSheet ? "sm:max-w-4xl" : "sm:max-w-xl"
-        )}
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="xl"
+      flush
+      icon={<User />}
+      title={name || entity.name}
+      description="Modifica la scheda di questo personaggio."
+      footer={
+        <>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Annulla
+          </Button>
+          <Button onClick={handleSubmit} disabled={update.isPending}>
+            {update.isPending && <Loader2 className="size-4 animate-spin" />}
+            Sigilla le modifiche
+          </Button>
+        </>
+      }
+    >
+      <FormConsole
+        nav={
+          <ConsoleNav
+            sections={sections}
+            active={section}
+            onChange={setSection}
+          />
+        }
+        aside={
+          <div className="space-y-3">
+            <p className="font-heading text-[0.65rem] font-semibold tracking-[0.18em] text-gold/50 uppercase">
+              Anteprima
+            </p>
+            <div className="overflow-hidden rounded-lg border border-gold/20 bg-stone-mid/70 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)]">
+              <div className="relative aspect-[4/3] w-full bg-night/60">
+                {imageUrl ? (
+                  <div
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url(${imageUrl})` }}
+                  />
+                ) : (
+                  <div className="absolute inset-0 grid place-items-center text-gold/25">
+                    <User className="size-12" />
+                  </div>
+                )}
+                <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
+                <span className="absolute top-2 left-2 rounded border border-gold/30 bg-black/50 px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide text-gold-bright">
+                  {kind}
+                </span>
+              </div>
+              <div className="space-y-1.5 p-3">
+                <h4 className="font-heading text-base leading-tight text-foreground">
+                  {name || "Senza nome"}
+                </h4>
+                {(race || klass) && (
+                  <p className="text-xs text-muted-foreground">
+                    {[race, klass].filter(Boolean).join(" · ")}
+                  </p>
+                )}
+                <span className="inline-block rounded border border-gold/25 bg-gold/10 px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide text-gold/80">
+                  {VISIBILITY_LABELS[visibility]}
+                </span>
+              </div>
+            </div>
+          </div>
+        }
       >
-        <DialogHeader className="border-b border-gold/15 px-6 py-4 text-left">
-          <DialogTitle className="font-heading text-xl">{entity.name}</DialogTitle>
-          <DialogDescription>
-            Modifica la scheda di questo personaggio.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs defaultValue="identita" className="flex min-h-0 flex-1 flex-col">
-          <TabsList className="mx-6 mt-4 flex w-fit max-w-[calc(100%-3rem)] overflow-x-auto">
-            <TabsTrigger value="identita">Identità</TabsTrigger>
-            {hasSheet && <TabsTrigger value="dettagli">Dettagli</TabsTrigger>}
-            {hasSheet && (
-              <TabsTrigger value="caratteristiche">Caratteristiche</TabsTrigger>
-            )}
-            {hasSheet && (
-              <TabsTrigger value="competenze">Competenze</TabsTrigger>
-            )}
-            {hasSheet && <TabsTrigger value="classi">Classi</TabsTrigger>}
-            {hasSheet && <TabsTrigger value="famigli">Famigli</TabsTrigger>}
-            {hasSheet && <TabsTrigger value="equip">Equip.</TabsTrigger>}
-            {hasSheet && <TabsTrigger value="magia">Magia</TabsTrigger>}
-            <TabsTrigger value="immagini">Immagini</TabsTrigger>
-            {isMaster && <TabsTrigger value="master">Master</TabsTrigger>}
-          </TabsList>
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-            {/* --------------------- Identità --------------------- */}
-            <TabsContent value="identita" className="space-y-5">
-              <div className="space-y-2">
+        {/* --------------------- Identità --------------------- */}
+        {section === "identita" && (
+          <ConsolePanel sectionKey="identita">
+            <div className="space-y-2">
                 <Label>Nome</Label>
                 <Input
                   value={name}
@@ -421,37 +490,50 @@ export function CharacterFormSheet({
                 <Label>Tag</Label>
                 <TagInput value={tags} onChange={setTags} />
               </div>
-            </TabsContent>
+          </ConsolePanel>
+        )}
 
-            {/* Sezioni della scheda D&D completa */}
-            {hasSheet && (
-              <>
-                <TabsContent value="dettagli">
-                  <IdentitySheetSection sheet={sheet} patch={patchSheet} />
-                </TabsContent>
-                <TabsContent value="caratteristiche">
-                  <AbilitiesSection sheet={sheet} patch={patchSheet} />
-                </TabsContent>
-                <TabsContent value="competenze">
-                  <ProficienciesSection sheet={sheet} patch={patchSheet} />
-                </TabsContent>
-                <TabsContent value="classi">
-                  <ClassesSection sheet={sheet} patch={patchSheet} />
-                </TabsContent>
-                <TabsContent value="famigli">
-                  <CompanionsSection sheet={sheet} patch={patchSheet} />
-                </TabsContent>
-                <TabsContent value="equip">
-                  <EquipmentSection sheet={sheet} patch={patchSheet} />
-                </TabsContent>
-                <TabsContent value="magia">
-                  <MagicSection sheet={sheet} patch={patchSheet} />
-                </TabsContent>
-              </>
-            )}
+        {/* Sezioni della scheda D&D completa */}
+        {section === "dettagli" && (
+          <ConsolePanel sectionKey="dettagli">
+            <IdentitySheetSection sheet={sheet} patch={patchSheet} />
+          </ConsolePanel>
+        )}
+        {section === "caratteristiche" && (
+          <ConsolePanel sectionKey="caratteristiche">
+            <AbilitiesSection sheet={sheet} patch={patchSheet} />
+          </ConsolePanel>
+        )}
+        {section === "competenze" && (
+          <ConsolePanel sectionKey="competenze">
+            <ProficienciesSection sheet={sheet} patch={patchSheet} />
+          </ConsolePanel>
+        )}
+        {section === "classi" && (
+          <ConsolePanel sectionKey="classi">
+            <ClassesSection sheet={sheet} patch={patchSheet} />
+          </ConsolePanel>
+        )}
+        {section === "famigli" && (
+          <ConsolePanel sectionKey="famigli">
+            <CompanionsSection sheet={sheet} patch={patchSheet} />
+          </ConsolePanel>
+        )}
+        {section === "equip" && (
+          <ConsolePanel sectionKey="equip">
+            <EquipmentSection sheet={sheet} patch={patchSheet} />
+          </ConsolePanel>
+        )}
+        {section === "magia" && (
+          <ConsolePanel sectionKey="magia">
+            <MagicSection sheet={sheet} patch={patchSheet} />
+          </ConsolePanel>
+        )}
 
-            {/* --------------------- Immagini --------------------- */}
-            <TabsContent value="immagini" className="space-y-6">
+        {/* --------------------- Immagini --------------------- */}
+        {section === "immagini" && (
+          <ConsolePanel sectionKey="immagini">
+            <div className="space-y-6">
               <div className="space-y-2">
                 <Label>Immagine principale</Label>
                 <ImageUpload
@@ -492,11 +574,14 @@ export function CharacterFormSheet({
                   </div>
                 </>
               )}
-            </TabsContent>
+            </div>
+          </ConsolePanel>
+        )}
 
-            {/* ---------------------- Master ---------------------- */}
-            {isMaster && (
-              <TabsContent value="master" className="space-y-5">
+        {/* ---------------------- Master ---------------------- */}
+        {isMaster && section === "master" && (
+          <ConsolePanel sectionKey="master">
+            <div className="space-y-5">
                 <div className="space-y-2">
                   <Label>Visibilità</Label>
                   <Select
@@ -576,21 +661,10 @@ export function CharacterFormSheet({
                     folder="misc"
                   />
                 </div>
-              </TabsContent>
-            )}
-          </div>
-        </Tabs>
-
-        <div className="flex justify-end gap-2 border-t border-gold/15 px-6 py-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annulla
-          </Button>
-          <Button onClick={handleSubmit} disabled={update.isPending}>
-            {update.isPending && <Loader2 className="size-4 animate-spin" />}
-            Salva modifiche
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+            </div>
+          </ConsolePanel>
+        )}
+      </FormConsole>
+    </ImmersiveModal>
   );
 }

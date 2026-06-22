@@ -5,15 +5,9 @@ import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { frameImageStyle, getAsset } from "@/design-system";
+import { frameImageStyle, getAsset, ImmersiveModal } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   QUEST_EVENT_STYLE,
@@ -198,47 +192,47 @@ function LinkExistingDialog({
   }, [notes, linkedIds, search]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading">
-            Collega una nota a «{entity.name}»
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Cerca una nota…"
-          />
-          <ScrollArea className="h-56 rounded-lg border border-gold/15">
-            <ul className="p-1">
-              {candidates.map((note) => (
-                <li key={note.id}>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      link.mutate(
-                        { note, entity },
-                        { onSuccess: () => onOpenChange(false) }
-                      )
-                    }
-                    className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-accent"
-                  >
-                    <BookText className="size-4 shrink-0 text-gold/70" />
-                    <span className="flex-1 truncate">{note.title}</span>
-                  </button>
-                </li>
-              ))}
-              {candidates.length === 0 && (
-                <li className="px-2.5 py-4 text-center text-sm text-muted-foreground italic">
-                  Nessuna nota disponibile.
-                </li>
-              )}
-            </ul>
-          </ScrollArea>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="md"
+      icon={<Link2 />}
+      title={`Collega una nota a «${entity.name}»`}
+      description="Scegli una cronaca esistente da agganciare a questa voce."
+    >
+      <div className="space-y-3">
+        <Input
+          value={search}
+          onChange={(event) => setSearch(event.target.value)}
+          placeholder="Cerca una nota…"
+        />
+        <ScrollArea className="h-72 rounded-lg border border-gold/15 bg-black/20">
+          <ul className="p-1">
+            {candidates.map((note) => (
+              <li key={note.id}>
+                <button
+                  type="button"
+                  onClick={() =>
+                    link.mutate(
+                      { note, entity },
+                      { onSuccess: () => onOpenChange(false) }
+                    )
+                  }
+                  className="flex w-full items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors hover:bg-accent"
+                >
+                  <BookText className="size-4 shrink-0 text-gold/70" />
+                  <span className="flex-1 truncate">{note.title}</span>
+                </button>
+              </li>
+            ))}
+            {candidates.length === 0 && (
+              <li className="px-2.5 py-4 text-center text-sm text-muted-foreground italic">
+                Nessuna nota disponibile.
+              </li>
+            )}
+          </ul>
+        </ScrollArea>
+      </div>
+    </ImmersiveModal>
   );
 }

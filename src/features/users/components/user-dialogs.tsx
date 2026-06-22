@@ -8,14 +8,6 @@ import { z } from "zod";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Form,
   FormControl,
   FormDescription,
@@ -24,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { ImmersiveModal } from "@/design-system";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -66,19 +59,39 @@ export function CreateUserDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading">Nuovo utente</DialogTitle>
-          <DialogDescription>
-            Comunica le credenziali al giocatore: al primo accesso dovrà
-            scegliere una nuova password.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="md"
+      title="Nuovo utente"
+      description="Comunica le credenziali al giocatore: al primo accesso dovrà scegliere una nuova password."
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Annulla
+          </Button>
+          <Button
+            type="submit"
+            form="create-user-form"
+            disabled={createUser.isPending}
+          >
+            {createUser.isPending && <Loader2 className="size-4 animate-spin" />}
+            Crea account
+          </Button>
+        </>
+      }
+    >
+      <Form {...form}>
+        <form
+          id="create-user-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
+          <FormField
               control={form.control}
               name="username"
               render={({ field }) => (
@@ -148,25 +161,9 @@ export function CreateUserDialog({
               )}
             />
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Annulla
-              </Button>
-              <Button type="submit" disabled={createUser.isPending}>
-                {createUser.isPending && (
-                  <Loader2 className="size-4 animate-spin" />
-                )}
-                Crea account
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+        </form>
+      </Form>
+    </ImmersiveModal>
   );
 }
 
@@ -198,40 +195,17 @@ export function EditRoleDialog({
   };
 
   return (
-    <Dialog
+    <ImmersiveModal
       open={user !== null}
       onOpenChange={(open) => {
         if (!open) setRole(null);
         onOpenChange(open);
       }}
-    >
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="font-heading">
-            Ruolo di {user?.username}
-          </DialogTitle>
-          <DialogDescription>
-            Il nuovo ruolo sarà effettivo dal prossimo accesso dell&rsquo;utente.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Select
-          value={currentRole}
-          onValueChange={(value) => setRole(value as Role)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {ROLES.map((option) => (
-              <SelectItem key={option} value={option}>
-                {option} — {ROLE_LABELS[option]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
-        <DialogFooter>
+      size="sm"
+      title={`Ruolo di ${user?.username ?? ""}`}
+      description="Il nuovo ruolo sarà effettivo dal prossimo accesso dell'utente."
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
@@ -242,9 +216,25 @@ export function EditRoleDialog({
             {updateUser.isPending && <Loader2 className="size-4 animate-spin" />}
             Assegna ruolo
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <Select
+        value={currentRole}
+        onValueChange={(value) => setRole(value as Role)}
+      >
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {ROLES.map((option) => (
+            <SelectItem key={option} value={option}>
+              {option} — {ROLE_LABELS[option]}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </ImmersiveModal>
   );
 }
 
@@ -281,27 +271,42 @@ export function ResetPasswordDialog({
   };
 
   return (
-    <Dialog
+    <ImmersiveModal
       open={user !== null}
       onOpenChange={(open) => {
         if (!open) form.reset();
         onOpenChange(open);
       }}
+      size="md"
+      title={`Reimposta la password di ${user?.username ?? ""}`}
+      description="Le sessioni attive verranno revocate e l'utente dovrà cambiare la password al prossimo accesso."
+      footer={
+        <>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+          >
+            Annulla
+          </Button>
+          <Button
+            type="submit"
+            form="reset-password-form"
+            disabled={updateUser.isPending}
+          >
+            {updateUser.isPending && <Loader2 className="size-4 animate-spin" />}
+            Reimposta
+          </Button>
+        </>
+      }
     >
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading">
-            Reimposta la password di {user?.username}
-          </DialogTitle>
-          <DialogDescription>
-            Le sessioni attive verranno revocate e l&rsquo;utente dovrà cambiare
-            la password al prossimo accesso.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
+      <Form {...form}>
+        <form
+          id="reset-password-form"
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4"
+        >
+          <FormField
               control={form.control}
               name="password"
               render={({ field }) => (
@@ -329,24 +334,8 @@ export function ResetPasswordDialog({
               )}
             />
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-              >
-                Annulla
-              </Button>
-              <Button type="submit" disabled={updateUser.isPending}>
-                {updateUser.isPending && (
-                  <Loader2 className="size-4 animate-spin" />
-                )}
-                Reimposta
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+        </form>
+      </Form>
+    </ImmersiveModal>
   );
 }

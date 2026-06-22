@@ -288,6 +288,65 @@
   }
 }
 
+/* ── Modale "finestra forgiata": entrata/uscita scenografica ──────────
+   Il centraggio è gestito dal wrapper flex: qui solo scala/opacità/blur,
+   così l'animazione non tocca il posizionamento. */
+@keyframes forge-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+    filter: blur(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes forge-out {
+  from {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(5px);
+  }
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes overlay-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+/* Cambio sezione nella console multi-pannello: la pagina viene "girata". */
+@keyframes console-page-in {
+  from {
+    opacity: 0;
+    transform: translateX(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -563,6 +622,56 @@
   .btn-fantasy-primary:active {
     transform: translateY(1px) scale(0.98);
     box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.40);
+  }
+
+  /* ── Campo "inciso" — input/select/textarea materici ──────────────
+     Pietra scura incassata con bordo oro tarnito; al focus la runa si
+     accende (glow dorato). Sostituisce il look "form aziendale". */
+  .field-engraved {
+    background-color: rgba(6, 6, 10, 0.55);
+    border: 1px solid rgba(184, 144, 24, 0.22);
+    box-shadow:
+      inset 0 1px 3px rgba(0, 0, 0, 0.55),
+      inset 0 0 0 1px rgba(0, 0, 0, 0.20);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .field-engraved:hover {
+    border-color: rgba(184, 144, 24, 0.42);
+  }
+
+  .field-engraved:focus,
+  .field-engraved:focus-visible,
+  .field-engraved:focus-within,
+  .field-engraved[data-state="open"] {
+    border-color: rgba(212, 168, 40, 0.70);
+    background-color: rgba(8, 8, 13, 0.65);
+    box-shadow:
+      inset 0 1px 3px rgba(0, 0, 0, 0.55),
+      0 0 0 1px rgba(184, 144, 24, 0.35),
+      0 0 16px rgba(184, 144, 24, 0.22);
+    outline: none;
+  }
+
+  /* ── Velo della modale: vignetta + buio profondo dietro il tomo ──── */
+  .modal-vignette {
+    background:
+      radial-gradient(125% 125% at 50% 0%, rgba(0, 0, 0, 0.50), rgba(2, 2, 4, 0.84) 70%),
+      rgba(2, 2, 4, 0.42);
+  }
+
+  /* ── Riga ornamentale che chiude un'intestazione di sezione ──────── */
+  .rule-gold {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      rgba(212, 168, 40, 0.55) 0%,
+      rgba(184, 144, 24, 0.18) 45%,
+      transparent 100%
+    );
   }
 }
 

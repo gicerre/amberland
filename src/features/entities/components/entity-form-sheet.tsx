@@ -1,7 +1,7 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Images, Loader2, ScrollText, ShieldAlert } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { ImageUpload } from "@/components/shared/image-upload";
@@ -10,7 +10,6 @@ import type { RichTextValue } from "@/components/shared/rich-text-utils";
 import { TagInput } from "@/components/shared/tag-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -18,15 +17,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  ConsoleField,
+  ConsoleNav,
+  ConsolePanel,
+  ConsoleSectionHeading,
+  FormConsole,
+  ImmersiveModal,
+  type ConsoleSection,
+} from "@/design-system";
+import { cn } from "@/lib/utils";
 import {
   VISIBILITIES,
   type Entity,
@@ -41,7 +42,12 @@ import {
   useEntityPrivate,
   type EntityInput,
 } from "../data";
-import { ENTITY_REGISTRY, VISIBILITY_LABELS, type FieldDef } from "../registry";
+import {
+  ENTITY_REGISTRY,
+  VISIBILITY_BADGES,
+  VISIBILITY_LABELS,
+  type FieldDef,
+} from "../registry";
 import { GalleryManager } from "./gallery-manager";
 
 interface FormState {
@@ -128,9 +134,7 @@ function DynamicField({
         </Select>
       );
     case "switch":
-      return (
-        <Switch checked={Boolean(value)} onCheckedChange={onChange} />
-      );
+      return <Switch checked={Boolean(value)} onCheckedChange={onChange} />;
     default:
       return (
         <Input
@@ -143,8 +147,10 @@ function DynamicField({
 }
 
 /**
- * Drawer di modifica completa di un'entità: scheda base, campi
- * specifici del tipo, immagini e contenuti riservati al Master.
+ * Console di modifica completa di un'entità in stile menu world-building AAA:
+ * navigazione delle sezioni a sinistra, pannello scorrevole al centro,
+ * anteprima viva della scheda a destra. Scheda base, campi specifici del tipo,
+ * immagini e contenuti riservati al Master.
  */
 export function EntityFormSheet({
   open,
@@ -168,10 +174,12 @@ export function EntityFormSheet({
   const { data: sessions } = useEntitiesByType("session", open);
 
   const [form, setForm] = useState<FormState>(() => buildInitialState(entity));
+  const [section, setSection] = useState("scheda");
 
   // Risincronizza il form all'apertura e quando arrivano i dati privati
   useEffect(() => {
     if (!open) return;
+    setSection("scheda");
     setForm({
       ...buildInitialState(entity),
       masterNotes: privateData?.masterNotes ?? "",
@@ -186,6 +194,7 @@ export function EntityFormSheet({
     const name = form.name.trim();
     if (name.length < 2) {
       toast.error("Il nome è troppo corto");
+      setSection("scheda");
       return;
     }
     const data: Partial<EntityInput> = {
@@ -216,218 +225,319 @@ export function EntityFormSheet({
     (option) => option.id !== entity.id
   );
 
+  const sections: ConsoleSection[] = useMemo(() => {
+    const Icon = config.icon;
+    const list: ConsoleSection[] = [
+      { id: "scheda", label: "Identità", icon: <Icon /> },
+    ];
+    if (config.fields.length > 0) {
+      list.push({ id: "dettagli", label: "Dettagli", icon: <ScrollText /> });
+    }
+    list.push({ id: "immagini", label: "Immagini", icon: <Images /> });
+    list.push({ id: "master", label: "Sala del Master", icon: <ShieldAlert /> });
+    return list;
+  }, [config]);
+
+  const Icon = config.icon;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[92vh] w-full flex-col gap-0 overflow-hidden border-gold/20 bg-card p-0 sm:max-w-3xl">
-        <DialogHeader className="border-b border-gold/15 px-6 py-4 text-left">
-          <DialogTitle className="font-heading flex items-center gap-2 text-xl">
-            <config.icon className="size-5 text-gold" />
-            {entity.name}
-          </DialogTitle>
-          <DialogDescription>
-            {config.label} — modifica la scheda e i contenuti riservati.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs defaultValue="scheda" className="flex min-h-0 flex-1 flex-col">
-          <TabsList className="mx-6 mt-4 flex w-fit max-w-[calc(100%-3rem)] overflow-x-auto">
-            <TabsTrigger value="scheda">Scheda</TabsTrigger>
-            {config.fields.length > 0 && (
-              <TabsTrigger value="dettagli">Dettagli</TabsTrigger>
-            )}
-            <TabsTrigger value="immagini">Immagini</TabsTrigger>
-            <TabsTrigger value="master">Master</TabsTrigger>
-          </TabsList>
-
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
-            {/* ------------------------ Scheda ------------------------ */}
-            <TabsContent value="scheda" className="space-y-5">
-              <div className="space-y-2">
-                <Label>Nome</Label>
-                <Input
-                  value={form.name}
-                  onChange={(event) => patch({ name: event.target.value })}
-                />
-              </div>
-
-              {parentType && (
-                <div className="space-y-2">
-                  <Label>
-                    {ENTITY_REGISTRY[parentType].label} di appartenenza
-                  </Label>
-                  <Select
-                    value={form.parentId}
-                    onValueChange={(value) => patch({ parentId: value })}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Seleziona…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(parentOptions ?? [])
-                        .filter((option) => option.id !== entity.id)
-                        .map((option) => (
-                          <SelectItem key={option.id} value={option.id}>
-                            {option.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Descrizione</Label>
-                <RichTextEditor
-                  value={form.description as RichTextValue}
-                  onChange={(json) => patch({ description: json })}
-                  placeholder="Le cronache di questa voce: storia, atmosfere, dettagli…"
-                  folder={entity.type}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Tag</Label>
-                <TagInput
-                  value={form.tags}
-                  onChange={(tags) => patch({ tags })}
-                />
-              </div>
-            </TabsContent>
-
-            {/* ----------------------- Dettagli ----------------------- */}
-            {config.fields.length > 0 && (
-              <TabsContent value="dettagli" className="space-y-5">
-                {config.fields.map((def) => (
-                  <div
-                    key={def.key}
-                    className={
-                      def.kind === "switch"
-                        ? "flex items-center justify-between gap-3 rounded-lg border border-gold/15 bg-night/30 px-4 py-3"
-                        : "space-y-2"
-                    }
-                  >
-                    <Label>{def.label}</Label>
-                    <DynamicField
-                      def={def}
-                      value={form.fields[def.key]}
-                      onChange={(value) =>
-                        patch({ fields: { ...form.fields, [def.key]: value } })
-                      }
-                    />
-                  </div>
-                ))}
-              </TabsContent>
-            )}
-
-            {/* ----------------------- Immagini ----------------------- */}
-            <TabsContent value="immagini" className="space-y-6">
-              <div className="space-y-2">
-                <Label>Immagine principale</Label>
-                <ImageUpload
-                  value={form.imageUrl}
-                  onChange={(imageUrl) => patch({ imageUrl })}
-                  folder={entity.type}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Galleria</Label>
-                <GalleryManager
-                  value={form.gallery}
-                  onChange={(gallery) => patch({ gallery })}
-                  folder={entity.type}
-                />
-              </div>
-            </TabsContent>
-
-            {/* ------------------------ Master ------------------------ */}
-            <TabsContent value="master" className="space-y-5">
-              <div className="space-y-2">
-                <Label>Visibilità</Label>
-                <Select
-                  value={form.visibility}
-                  onValueChange={(value) =>
-                    patch({ visibility: value as Visibility })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {VISIBILITIES.map((visibility) => (
-                      <SelectItem key={visibility} value={visibility}>
-                        {VISIBILITY_LABELS[visibility]}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  I giocatori vedono solo le voci «Pubblica» o «Solo Party».
-                </p>
-              </div>
-
-              {form.visibility === "MASTER_ONLY" && (
-                <div className="space-y-2">
-                  <Label>Da rivelare dopo (facoltativo)</Label>
-                  <Select
-                    value={form.unlockAfterId}
-                    onValueChange={(value) => patch({ unlockAfterId: value })}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Quest o sessione…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {unlockOptions.map((option) => (
-                        <SelectItem key={option.id} value={option.id}>
-                          {ENTITY_REGISTRY[option.type].label}: {option.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-muted-foreground">
-                    Promemoria nella Sala del Master: lo sblocco resta una tua
-                    decisione.
-                  </p>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label>Note del Master</Label>
-                <RichTextEditor
-                  value={form.masterNotes as RichTextValue}
-                  onChange={(json) => patch({ masterNotes: json })}
-                  placeholder="Appunti privati, agganci di trama, idee…"
-                  folder="misc"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Segreti</Label>
-                <RichTextEditor
-                  value={form.secrets as RichTextValue}
-                  onChange={(json) => patch({ secrets: json })}
-                  placeholder="Ciò che nessun giocatore deve sapere… per ora."
-                  folder="misc"
-                />
-              </div>
-
-              <p className="rounded-lg border border-gold/15 bg-night/30 p-3 text-xs text-muted-foreground">
-                Note e segreti sono salvati in un&rsquo;area riservata leggibile
-                solo da Master e Admin, anche a livello di database.
-              </p>
-            </TabsContent>
-          </div>
-        </Tabs>
-
-        <div className="flex justify-end gap-2 border-t border-gold/15 px-6 py-4">
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="xl"
+      flush
+      icon={<Icon />}
+      title={form.name || entity.name}
+      description={`${config.label} — modifica la scheda e i contenuti riservati.`}
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
           <Button onClick={handleSubmit} disabled={update.isPending}>
             {update.isPending && <Loader2 className="size-4 animate-spin" />}
-            Salva modifiche
+            Sigilla le modifiche
           </Button>
+        </>
+      }
+    >
+      <FormConsole
+        nav={
+          <ConsoleNav
+            sections={sections}
+            active={section}
+            onChange={setSection}
+          />
+        }
+        aside={<EntityPreview entity={entity} form={form} />}
+      >
+        {section === "scheda" && (
+          <ConsolePanel sectionKey="scheda">
+            <ConsoleSectionHeading
+              icon={<Icon />}
+              title="Identità"
+              subtitle="Nome, appartenenza e cronache della voce."
+            />
+            <ConsoleField label="Nome">
+              <Input
+                value={form.name}
+                onChange={(event) => patch({ name: event.target.value })}
+              />
+            </ConsoleField>
+
+            {parentType && (
+              <ConsoleField
+                label={`${ENTITY_REGISTRY[parentType].label} di appartenenza`}
+              >
+                <Select
+                  value={form.parentId}
+                  onValueChange={(value) => patch({ parentId: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Seleziona…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(parentOptions ?? [])
+                      .filter((option) => option.id !== entity.id)
+                      .map((option) => (
+                        <SelectItem key={option.id} value={option.id}>
+                          {option.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </ConsoleField>
+            )}
+
+            <ConsoleField label="Descrizione">
+              <RichTextEditor
+                value={form.description as RichTextValue}
+                onChange={(json) => patch({ description: json })}
+                placeholder="Le cronache di questa voce: storia, atmosfere, dettagli…"
+                folder={entity.type}
+              />
+            </ConsoleField>
+
+            <ConsoleField label="Tag">
+              <TagInput
+                value={form.tags}
+                onChange={(tags) => patch({ tags })}
+              />
+            </ConsoleField>
+          </ConsolePanel>
+        )}
+
+        {section === "dettagli" && config.fields.length > 0 && (
+          <ConsolePanel sectionKey="dettagli">
+            <ConsoleSectionHeading
+              icon={<ScrollText />}
+              title="Dettagli"
+              subtitle={`Attributi specifici — ${config.label}.`}
+            />
+            {config.fields.map((def) =>
+              def.kind === "switch" ? (
+                <div
+                  key={def.key}
+                  className="flex items-center justify-between gap-3 rounded-md border border-gold/15 bg-black/30 px-4 py-3"
+                >
+                  <span className="font-heading text-sm tracking-wide text-foreground/85">
+                    {def.label}
+                  </span>
+                  <DynamicField
+                    def={def}
+                    value={form.fields[def.key]}
+                    onChange={(value) =>
+                      patch({ fields: { ...form.fields, [def.key]: value } })
+                    }
+                  />
+                </div>
+              ) : (
+                <ConsoleField key={def.key} label={def.label}>
+                  <DynamicField
+                    def={def}
+                    value={form.fields[def.key]}
+                    onChange={(value) =>
+                      patch({ fields: { ...form.fields, [def.key]: value } })
+                    }
+                  />
+                </ConsoleField>
+              )
+            )}
+          </ConsolePanel>
+        )}
+
+        {section === "immagini" && (
+          <ConsolePanel sectionKey="immagini">
+            <ConsoleSectionHeading
+              icon={<Images />}
+              title="Immagini"
+              subtitle="Ritratto principale e galleria illustrata."
+            />
+            <ConsoleField label="Immagine principale">
+              <ImageUpload
+                value={form.imageUrl}
+                onChange={(imageUrl) => patch({ imageUrl })}
+                folder={entity.type}
+              />
+            </ConsoleField>
+            <ConsoleField label="Galleria">
+              <GalleryManager
+                value={form.gallery}
+                onChange={(gallery) => patch({ gallery })}
+                folder={entity.type}
+              />
+            </ConsoleField>
+          </ConsolePanel>
+        )}
+
+        {section === "master" && (
+          <ConsolePanel sectionKey="master">
+            <ConsoleSectionHeading
+              icon={<ShieldAlert />}
+              title="Sala del Master"
+              subtitle="Visibilità e contenuti riservati a Master e Admin."
+            />
+            <ConsoleField
+              label="Visibilità"
+              hint="I giocatori vedono solo le voci «Pubblica» o «Solo Party»."
+            >
+              <Select
+                value={form.visibility}
+                onValueChange={(value) =>
+                  patch({ visibility: value as Visibility })
+                }
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {VISIBILITIES.map((visibility) => (
+                    <SelectItem key={visibility} value={visibility}>
+                      {VISIBILITY_LABELS[visibility]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </ConsoleField>
+
+            {form.visibility === "MASTER_ONLY" && (
+              <ConsoleField
+                label="Da rivelare dopo (facoltativo)"
+                hint="Promemoria nella Sala del Master: lo sblocco resta una tua decisione."
+              >
+                <Select
+                  value={form.unlockAfterId}
+                  onValueChange={(value) => patch({ unlockAfterId: value })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Quest o sessione…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {unlockOptions.map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {ENTITY_REGISTRY[option.type].label}: {option.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ConsoleField>
+            )}
+
+            <ConsoleField label="Note del Master">
+              <RichTextEditor
+                value={form.masterNotes as RichTextValue}
+                onChange={(json) => patch({ masterNotes: json })}
+                placeholder="Appunti privati, agganci di trama, idee…"
+                folder="misc"
+              />
+            </ConsoleField>
+
+            <ConsoleField label="Segreti">
+              <RichTextEditor
+                value={form.secrets as RichTextValue}
+                onChange={(json) => patch({ secrets: json })}
+                placeholder="Ciò che nessun giocatore deve sapere… per ora."
+                folder="misc"
+              />
+            </ConsoleField>
+
+            <p className="rounded-md border border-crimson/25 bg-crimson/10 p-3 text-xs text-muted-foreground">
+              Note e segreti sono salvati in un&rsquo;area riservata leggibile
+              solo da Master e Admin, anche a livello di database.
+            </p>
+          </ConsolePanel>
+        )}
+      </FormConsole>
+    </ImmersiveModal>
+  );
+}
+
+/** Anteprima viva della scheda (rotaia destra della console). */
+function EntityPreview({ entity, form }: { entity: Entity; form: FormState }) {
+  const config = ENTITY_REGISTRY[entity.type];
+  const Icon = config.icon;
+
+  return (
+    <div className="space-y-3">
+      <p className="font-heading text-[0.65rem] font-semibold tracking-[0.18em] text-gold/50 uppercase">
+        Anteprima
+      </p>
+
+      <div className="overflow-hidden rounded-lg border border-gold/20 bg-stone-mid/70 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)]">
+        <div className="relative aspect-[4/3] w-full bg-night/60">
+          {form.imageUrl ? (
+            <div
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${form.imageUrl})` }}
+            />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center text-gold/25">
+              <Icon className="size-12" />
+            </div>
+          )}
+          <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 to-transparent" />
+          <span
+            className={cn(
+              "absolute top-2 left-2 rounded border px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide",
+              config.badgeClass
+            )}
+          >
+            {config.label}
+          </span>
         </div>
-      </DialogContent>
-    </Dialog>
+
+        <div className="space-y-2 p-3">
+          <h4 className="font-heading text-base leading-tight text-foreground">
+            {form.name || "Senza nome"}
+          </h4>
+
+          <span
+            className={cn(
+              "inline-block rounded border px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide",
+              VISIBILITY_BADGES[form.visibility]
+            )}
+          >
+            {VISIBILITY_LABELS[form.visibility]}
+          </span>
+
+          {form.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 pt-1">
+              {form.tags.slice(0, 6).map((tag) => (
+                <span
+                  key={tag}
+                  className="rounded bg-gold/10 px-1.5 py-0.5 text-[0.6rem] text-gold/80"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <p className="text-[0.7rem] leading-relaxed text-muted-foreground/80">
+        L&rsquo;anteprima si aggiorna mentre compili la scheda.
+      </p>
+    </div>
   );
 }

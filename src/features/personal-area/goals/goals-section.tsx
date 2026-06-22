@@ -28,14 +28,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -47,6 +39,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ConsoleField, ImmersiveModal } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useAllEntities } from "@/features/entities/data";
 import { ENTITY_REGISTRY } from "@/features/entities/registry";
@@ -318,90 +311,15 @@ function GoalEditorDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="font-heading flex items-center gap-2">
-            <Target className="size-5 text-gold" />
-            {goal ? "Modifica obiettivo" : "Nuovo obiettivo"}
-          </DialogTitle>
-          <DialogDescription>
-            Affiggi un&rsquo;impresa alla tua bacheca personale.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Titolo</Label>
-            <Input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Scoprire chi ha avvelenato il pozzo di Vyones"
-            />
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label>Priorità</Label>
-              <Select
-                value={priority}
-                onValueChange={(v) => setPriority(v as GoalPriority)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GOAL_PRIORITIES.map((p) => (
-                    <SelectItem key={p} value={p}>
-                      {GOAL_PRIORITY_LABELS[p]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Stato</Label>
-              <Select
-                value={status}
-                onValueChange={(v) => setStatus(v as GoalStatus)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {GOAL_STATUSES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {GOAL_STATUS_LABELS[s]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Descrizione</Label>
-            <RichTextEditor value={description} onChange={setDescription} />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Tag (separati da virgola)</Label>
-            <Input
-              value={tagsText}
-              onChange={(event) => setTagsText(event.target.value)}
-              placeholder="indagine, urgente, Vyones"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Immagine (opzionale)</Label>
-            <ImageUpload value={image} onChange={setImage} folder="misc" />
-          </div>
-
-          <GoalLinksPicker links={links} onChange={setLinks} />
-        </div>
-
-        <DialogFooter>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="lg"
+      icon={<Target />}
+      title={goal ? "Modifica obiettivo" : "Nuovo obiettivo"}
+      description="Affiggi un'impresa alla tua bacheca personale."
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
@@ -409,9 +327,74 @@ function GoalEditorDialog({
             {pending && <Loader2 className="size-4 animate-spin" />}
             {goal ? "Salva" : "Crea"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        <ConsoleField label="Titolo">
+          <Input
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            placeholder="Scoprire chi ha avvelenato il pozzo di Vyones"
+          />
+        </ConsoleField>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ConsoleField label="Priorità">
+            <Select
+              value={priority}
+              onValueChange={(v) => setPriority(v as GoalPriority)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {GOAL_PRIORITIES.map((p) => (
+                  <SelectItem key={p} value={p}>
+                    {GOAL_PRIORITY_LABELS[p]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </ConsoleField>
+          <ConsoleField label="Stato">
+            <Select
+              value={status}
+              onValueChange={(v) => setStatus(v as GoalStatus)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {GOAL_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {GOAL_STATUS_LABELS[s]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </ConsoleField>
+        </div>
+
+        <ConsoleField label="Descrizione">
+          <RichTextEditor value={description} onChange={setDescription} />
+        </ConsoleField>
+
+        <ConsoleField label="Tag (separati da virgola)">
+          <Input
+            value={tagsText}
+            onChange={(event) => setTagsText(event.target.value)}
+            placeholder="indagine, urgente, Vyones"
+          />
+        </ConsoleField>
+
+        <ConsoleField label="Immagine (opzionale)">
+          <ImageUpload value={image} onChange={setImage} folder="misc" />
+        </ConsoleField>
+
+        <GoalLinksPicker links={links} onChange={setLinks} />
+      </div>
+    </ImmersiveModal>
   );
 }
 

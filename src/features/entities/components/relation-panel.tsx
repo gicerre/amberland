@@ -7,18 +7,14 @@ import { useMemo, useState } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { frameImageStyle, getAsset } from "@/design-system";
+import {
+  ConsoleField,
+  frameImageStyle,
+  getAsset,
+  ImmersiveModal,
+} from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { cn } from "@/lib/utils";
 import type { Entity, Relation } from "@/types/entities";
@@ -221,80 +217,15 @@ function AddRelationDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading">
-            Collega «{from.name}»
-          </DialogTitle>
-          <DialogDescription>
-            Scegli un&rsquo;entità e descrivi il legame che le unisce.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Cerca entità</Label>
-            <Input
-              autoFocus
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Nome o tipo…"
-            />
-            <ScrollArea className="h-48 rounded-lg border border-gold/15">
-              <ul className="p-1">
-                {candidates.map((candidate) => {
-                  const config = ENTITY_REGISTRY[candidate.type];
-                  const Icon = config.icon;
-                  return (
-                    <li key={candidate.id}>
-                      <button
-                        type="button"
-                        onClick={() => setTargetId(candidate.id)}
-                        className={cn(
-                          "flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors",
-                          targetId === candidate.id
-                            ? "bg-gold/15 text-gold-bright"
-                            : "hover:bg-accent"
-                        )}
-                      >
-                        <Icon className="size-4 shrink-0 text-gold/70" />
-                        <span className="min-w-0 flex-1 truncate">
-                          {candidate.name}
-                        </span>
-                        <span className="shrink-0 text-xs text-muted-foreground">
-                          {config.label}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-                {candidates.length === 0 && (
-                  <li className="px-2.5 py-4 text-center text-sm text-muted-foreground italic">
-                    Nessuna entità trovata.
-                  </li>
-                )}
-              </ul>
-            </ScrollArea>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Etichetta del legame</Label>
-            <Input
-              value={label}
-              onChange={(event) => setLabel(event.target.value)}
-              placeholder="Si trova a, membro di, nemico di…"
-              list="relation-label-suggestions"
-            />
-            <datalist id="relation-label-suggestions">
-              {RELATION_LABEL_SUGGESTIONS.map((suggestion) => (
-                <option key={suggestion} value={suggestion} />
-              ))}
-            </datalist>
-          </div>
-        </div>
-
-        <DialogFooter>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="md"
+      icon={<Link2 />}
+      title={`Collega «${from.name}»`}
+      description="Scegli un'entità e descrivi il legame che le unisce."
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
@@ -302,8 +233,68 @@ function AddRelationDialog({
             {add.isPending && <Loader2 className="size-4 animate-spin" />}
             {target ? `Collega a «${target.name}»` : "Collega"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        <ConsoleField label="Cerca entità">
+          <Input
+            autoFocus
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Nome o tipo…"
+          />
+          <ScrollArea className="mt-2 h-56 rounded-lg border border-gold/15 bg-black/20">
+            <ul className="p-1">
+              {candidates.map((candidate) => {
+                const config = ENTITY_REGISTRY[candidate.type];
+                const Icon = config.icon;
+                return (
+                  <li key={candidate.id}>
+                    <button
+                      type="button"
+                      onClick={() => setTargetId(candidate.id)}
+                      className={cn(
+                        "flex w-full items-center gap-2.5 rounded-md px-2.5 py-1.5 text-left text-sm transition-colors",
+                        targetId === candidate.id
+                          ? "bg-gold/15 text-gold-bright"
+                          : "hover:bg-accent"
+                      )}
+                    >
+                      <Icon className="size-4 shrink-0 text-gold/70" />
+                      <span className="min-w-0 flex-1 truncate">
+                        {candidate.name}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground">
+                        {config.label}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+              {candidates.length === 0 && (
+                <li className="px-2.5 py-4 text-center text-sm text-muted-foreground italic">
+                  Nessuna entità trovata.
+                </li>
+              )}
+            </ul>
+          </ScrollArea>
+        </ConsoleField>
+
+        <ConsoleField label="Etichetta del legame">
+          <Input
+            value={label}
+            onChange={(event) => setLabel(event.target.value)}
+            placeholder="Si trova a, membro di, nemico di…"
+            list="relation-label-suggestions"
+          />
+          <datalist id="relation-label-suggestions">
+            {RELATION_LABEL_SUGGESTIONS.map((suggestion) => (
+              <option key={suggestion} value={suggestion} />
+            ))}
+          </datalist>
+        </ConsoleField>
+      </div>
+    </ImmersiveModal>
   );
 }

@@ -5,16 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -22,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ConsoleField, ImmersiveModal } from "@/design-system";
 import { cn } from "@/lib/utils";
 import {
   ENTITY_TYPES,
@@ -103,126 +95,123 @@ export function QuickCreateDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading flex items-center gap-2">
-            <Sparkles className="size-5 text-gold" />
-            {type ? `Aggiungi: ${config.label}` : "Creazione rapida"}
-          </DialogTitle>
-          <DialogDescription>{config.flavor}</DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {!type && (
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select
-                value={selectedType}
-                onValueChange={(value) => {
-                  setSelectedType(value as EntityType);
-                  setParent("");
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ENTITY_TYPES.map((entityType) => {
-                    const entry = ENTITY_REGISTRY[entityType];
-                    const Icon = entry.icon;
-                    return (
-                      <SelectItem key={entityType} value={entityType}>
-                        <Icon className="size-4" />
-                        {entry.label}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input
-              autoFocus
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              onKeyDown={(event) => event.key === "Enter" && handleSubmit()}
-              placeholder={`Nome — ${config.label}`}
-            />
-          </div>
-
-          {needsParent && !parentId && (
-            <div className="space-y-2">
-              <Label>
-                {ENTITY_REGISTRY[parentType!].label} di appartenenza
-              </Label>
-              <Select value={parent} onValueChange={setParent}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Seleziona…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(parentOptions ?? []).map((option) => (
-                    <SelectItem key={option.id} value={option.id}>
-                      {option.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {(parentOptions ?? []).length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Non esiste ancora nessuna voce di tipo{" "}
-                  {ENTITY_REGISTRY[parentType!].label}: creala prima.
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Visibilità obbligatoria: va scelta prima di salvare. */}
-          <div className="space-y-2">
-            <Label>
-              Visibilità <span className="text-crimson-bright">*</span>
-            </Label>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="sm"
+      icon={<Sparkles />}
+      title={type ? `Aggiungi: ${config.label}` : "Creazione rapida"}
+      description={config.flavor}
+      footer={
+        <>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Annulla
+          </Button>
+          <Button
+            onClick={handleSubmit}
+            disabled={!canSubmit || create.isPending}
+          >
+            {create.isPending && <Loader2 className="size-4 animate-spin" />}
+            Incidi nel Registro
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        {!type && (
+          <ConsoleField label="Tipo">
             <Select
-              value={visibility}
-              onValueChange={(value) => setVisibility(value as Visibility)}
+              value={selectedType}
+              onValueChange={(value) => {
+                setSelectedType(value as EntityType);
+                setParent("");
+              }}
             >
-              <SelectTrigger
-                className={cn(
-                  "w-full",
-                  visibility === "" && "border-crimson-bright/50"
-                )}
-              >
-                <SelectValue placeholder="Scegli chi può vederla…" />
+              <SelectTrigger className="w-full">
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {VISIBILITIES.map((value) => (
-                  <SelectItem key={value} value={value}>
-                    {VISIBILITY_LABELS[value]}
+                {ENTITY_TYPES.map((entityType) => {
+                  const entry = ENTITY_REGISTRY[entityType];
+                  const Icon = entry.icon;
+                  return (
+                    <SelectItem key={entityType} value={entityType}>
+                      <Icon className="size-4" />
+                      {entry.label}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </ConsoleField>
+        )}
+
+        <ConsoleField label="Nome">
+          <Input
+            autoFocus
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            onKeyDown={(event) => event.key === "Enter" && handleSubmit()}
+            placeholder={`Nome — ${config.label}`}
+          />
+        </ConsoleField>
+
+        {needsParent && !parentId && (
+          <ConsoleField
+            label={`${ENTITY_REGISTRY[parentType!].label} di appartenenza`}
+            hint={
+              (parentOptions ?? []).length === 0
+                ? `Non esiste ancora nessuna voce di tipo ${ENTITY_REGISTRY[parentType!].label}: creala prima.`
+                : undefined
+            }
+          >
+            <Select value={parent} onValueChange={setParent}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Seleziona…" />
+              </SelectTrigger>
+              <SelectContent>
+                {(parentOptions ?? []).map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {visibility === "" && (
-              <p className="text-xs text-muted-foreground">
-                Obbligatoria: decidi subito chi potrà vedere questa voce.
-              </p>
-            )}
-          </div>
-        </div>
+          </ConsoleField>
+        )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Annulla
-          </Button>
-          <Button onClick={handleSubmit} disabled={!canSubmit || create.isPending}>
-            {create.isPending && <Loader2 className="size-4 animate-spin" />}
-            Crea
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        {/* Visibilità obbligatoria: va scelta prima di salvare. */}
+        <ConsoleField
+          label="Visibilità"
+          required
+          hint={
+            visibility === ""
+              ? "Obbligatoria: decidi subito chi potrà vedere questa voce."
+              : undefined
+          }
+        >
+          <Select
+            value={visibility}
+            onValueChange={(value) => setVisibility(value as Visibility)}
+          >
+            <SelectTrigger
+              className={cn(
+                "w-full",
+                visibility === "" && "border-crimson-bright/50"
+              )}
+            >
+              <SelectValue placeholder="Scegli chi può vederla…" />
+            </SelectTrigger>
+            <SelectContent>
+              {VISIBILITIES.map((value) => (
+                <SelectItem key={value} value={value}>
+                  {VISIBILITY_LABELS[value]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </ConsoleField>
+      </div>
+    </ImmersiveModal>
   );
 }

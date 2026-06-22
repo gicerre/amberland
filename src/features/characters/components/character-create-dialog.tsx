@@ -6,16 +6,7 @@ import { useState } from "react";
 
 import { ImageUpload } from "@/components/shared/image-upload";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -24,6 +15,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  ConsoleField,
+  ConsoleSegmented,
+  ImmersiveModal,
+} from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   useEntityMutations,
@@ -172,172 +168,25 @@ export function CharacterCreateDialog({
   };
 
   return (
-    <Dialog
+    <ImmersiveModal
       open={open}
       onOpenChange={(value) => {
         if (!value) reset();
         onOpenChange(value);
       }}
-    >
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading flex items-center gap-2">
-            <UserPlus className="size-5 text-gold" />
-            Nuovo personaggio
-          </DialogTitle>
-          <DialogDescription>
-            {kind === "PC"
-              ? "Un personaggio giocante con scheda D&D completa."
-              : isQuickNpc
-                ? "Un PNG al volo: bastano nome e razza."
-                : "Un PNG con scheda completa da compilare."}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {/* Tipo PC / NPC (solo Master/Admin) */}
-          {!lockKind && isMaster && (
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Segmented
-                options={[
-                  { value: "NPC", label: "PNG" },
-                  { value: "PC", label: "Giocante" },
-                ]}
-                value={kind}
-                onChange={(value) => setKind(value as CharacterKind)}
-              />
-            </div>
-          )}
-
-          {/* Modalità NPC */}
-          {kind === "NPC" && (
-            <div className="space-y-2">
-              <Label>Modalità</Label>
-              <Segmented
-                options={[
-                  { value: "quick", label: "Rapido" },
-                  { value: "full", label: "Completo" },
-                ]}
-                value={npcMode}
-                onChange={(value) => setNpcMode(value as NpcMode)}
-              />
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label>Nome</Label>
-            <Input
-              autoFocus
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              onKeyDown={(event) =>
-                event.key === "Enter" && !isQuickNpc && handleSubmit()
-              }
-              placeholder="Nome del personaggio"
-            />
-          </div>
-
-          {/* Visibilità obbligatoria per gli NPC */}
-          {isNpc && (
-            <div className="space-y-2">
-              <Label>
-                Visibilità <span className="text-crimson-bright">*</span>
-              </Label>
-              <Select
-                value={visibility}
-                onValueChange={(value) => setVisibility(value as Visibility)}
-              >
-                <SelectTrigger
-                  className={cn(
-                    "w-full",
-                    visibility === "" && "border-crimson-bright/50"
-                  )}
-                >
-                  <SelectValue placeholder="Scegli chi può vederlo…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {VISIBILITIES.map((value) => (
-                    <SelectItem key={value} value={value}>
-                      {VISIBILITY_LABELS[value]}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Proprietario del PC */}
-          {kind === "PC" && isMaster && (
-            <div className="space-y-2">
-              <Label>Giocatore proprietario</Label>
-              <Select value={ownerId} onValueChange={setOwnerId}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Assegna un giocatore…" />
-                </SelectTrigger>
-                <SelectContent>
-                  {(players ?? []).map((player) => (
-                    <SelectItem key={player.id} value={player.id}>
-                      {player.username}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {(players ?? []).length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Nessun account giocatore disponibile. Potrai assegnarlo dopo.
-                </p>
-              )}
-            </div>
-          )}
-          {kind === "PC" && !isMaster && (
-            <p className="rounded-lg border border-gold/15 bg-night/30 px-3 py-2 text-xs text-muted-foreground">
-              Questo personaggio sarà tuo: potrai gestirne la scheda.
-            </p>
-          )}
-
-          {/* Campi NPC rapido */}
-          {isQuickNpc && (
-            <>
-              <div className="space-y-2">
-                <Label>Razza</Label>
-                <Input
-                  value={race}
-                  onChange={(event) => setRace(event.target.value)}
-                  placeholder="Umano, elfo, orco…"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Collegamenti (luoghi, fazioni, eventi, oggetti…)</Label>
-                <EntityMultiPicker
-                  value={linkedEntities}
-                  onChange={setLinkedEntities}
-                  placeholder="Cerca un'entità da collegare…"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Descrizione breve</Label>
-                <Textarea
-                  value={description}
-                  onChange={(event) => setDescription(event.target.value)}
-                  rows={3}
-                  placeholder="Chi è, in poche parole…"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Immagine (opzionale)</Label>
-                <ImageUpload
-                  value={imageUrl}
-                  onChange={setImageUrl}
-                  folder="character"
-                />
-              </div>
-            </>
-          )}
-        </div>
-
-        <DialogFooter>
-          <Button variant="destructive" onClick={() => onOpenChange(false)}>
+      size="md"
+      icon={<UserPlus />}
+      title="Registro Anagrafico della Gilda"
+      description={
+        kind === "PC"
+          ? "Un personaggio giocante con scheda D&D completa."
+          : isQuickNpc
+            ? "Un PNG al volo: bastano nome e razza."
+            : "Un PNG con scheda completa da compilare."
+      }
+      footer={
+        <>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
           <Button onClick={handleSubmit} disabled={!canSubmit}>
@@ -346,41 +195,143 @@ export function CharacterCreateDialog({
             ) : (
               <Sparkles className="size-4" />
             )}
-            Crea
+            Iscrivi nel Registro
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
+        </>
+      }
+    >
+      <div className="space-y-5">
+        {/* Tipo PC / NPC (solo Master/Admin) */}
+        {!lockKind && isMaster && (
+          <ConsoleField label="Tipo">
+            <ConsoleSegmented<CharacterKind>
+              options={[
+                { value: "NPC", label: "PNG" },
+                { value: "PC", label: "Giocante" },
+              ]}
+              value={kind}
+              onChange={setKind}
+            />
+          </ConsoleField>
+        )}
 
-/** Controllo segmentato (toggle a pillole). */
-function Segmented({
-  options,
-  value,
-  onChange,
-}: {
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <div className="inline-flex w-full rounded-lg border border-gold/20 bg-night/30 p-1">
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          onClick={() => onChange(option.value)}
-          className={cn(
-            "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-            value === option.value
-              ? "bg-gold/20 text-gold-bright"
-              : "text-muted-foreground hover:text-foreground"
-          )}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
+        {/* Modalità NPC */}
+        {kind === "NPC" && (
+          <ConsoleField label="Modalità">
+            <ConsoleSegmented<NpcMode>
+              options={[
+                { value: "quick", label: "Rapido" },
+                { value: "full", label: "Completo" },
+              ]}
+              value={npcMode}
+              onChange={setNpcMode}
+            />
+          </ConsoleField>
+        )}
+
+        <ConsoleField label="Nome">
+          <Input
+            autoFocus
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            onKeyDown={(event) =>
+              event.key === "Enter" && !isQuickNpc && handleSubmit()
+            }
+            placeholder="Nome del personaggio"
+          />
+        </ConsoleField>
+
+        {/* Visibilità obbligatoria per gli NPC */}
+        {isNpc && (
+          <ConsoleField label="Visibilità" required>
+            <Select
+              value={visibility}
+              onValueChange={(value) => setVisibility(value as Visibility)}
+            >
+              <SelectTrigger
+                className={cn(
+                  "w-full",
+                  visibility === "" && "border-crimson-bright/50"
+                )}
+              >
+                <SelectValue placeholder="Scegli chi può vederlo…" />
+              </SelectTrigger>
+              <SelectContent>
+                {VISIBILITIES.map((value) => (
+                  <SelectItem key={value} value={value}>
+                    {VISIBILITY_LABELS[value]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </ConsoleField>
+        )}
+
+        {/* Proprietario del PC */}
+        {kind === "PC" && isMaster && (
+          <ConsoleField
+            label="Giocatore proprietario"
+            hint={
+              (players ?? []).length === 0
+                ? "Nessun account giocatore disponibile. Potrai assegnarlo dopo."
+                : undefined
+            }
+          >
+            <Select value={ownerId} onValueChange={setOwnerId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Assegna un giocatore…" />
+              </SelectTrigger>
+              <SelectContent>
+                {(players ?? []).map((player) => (
+                  <SelectItem key={player.id} value={player.id}>
+                    {player.username}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </ConsoleField>
+        )}
+        {kind === "PC" && !isMaster && (
+          <p className="rounded-md border border-gold/15 bg-night/30 px-3 py-2 text-xs text-muted-foreground">
+            Questo personaggio sarà tuo: potrai gestirne la scheda.
+          </p>
+        )}
+
+        {/* Campi NPC rapido */}
+        {isQuickNpc && (
+          <>
+            <ConsoleField label="Razza">
+              <Input
+                value={race}
+                onChange={(event) => setRace(event.target.value)}
+                placeholder="Umano, elfo, orco…"
+              />
+            </ConsoleField>
+            <ConsoleField label="Collegamenti (luoghi, fazioni, eventi, oggetti…)">
+              <EntityMultiPicker
+                value={linkedEntities}
+                onChange={setLinkedEntities}
+                placeholder="Cerca un'entità da collegare…"
+              />
+            </ConsoleField>
+            <ConsoleField label="Descrizione breve">
+              <Textarea
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={3}
+                placeholder="Chi è, in poche parole…"
+              />
+            </ConsoleField>
+            <ConsoleField label="Immagine (opzionale)">
+              <ImageUpload
+                value={imageUrl}
+                onChange={setImageUrl}
+                folder="character"
+              />
+            </ConsoleField>
+          </>
+        )}
+      </div>
+    </ImmersiveModal>
   );
 }

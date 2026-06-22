@@ -50,3 +50,16 @@ export {
 export { WindowPanel } from "./components/window-panel";
 
 export { FrameCard } from "./components/frame-card";
+
+export { ImmersiveModal } from "./components/immersive-modal";
+export type { ImmersiveModalProps } from "./components/immersive-modal";
+
+export {
+  FormConsole,
+  ConsoleNav,
+  ConsolePanel,
+  ConsoleSectionHeading,
+  ConsoleField,
+  ConsoleSegmented,
+} from "./components/form-console";
+export type { ConsoleSection } from "./components/form-console";

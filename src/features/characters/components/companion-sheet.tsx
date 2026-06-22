@@ -4,17 +4,9 @@ import { PawPrint, Star, Swords, User } from "lucide-react";
 import { useState } from "react";
 
 import { FantasyImage } from "@/components/shared/fantasy-image";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ImmersiveModal } from "@/design-system";
 import { ABILITIES, type Companion } from "@/types/entities";
 
-import { getAsset } from "@/design-system/assets/registry";
-import { frameImageStyle } from "@/design-system/components/svg-asset";
 import { ABILITY_SHORT, abilityModifier, formatModifier } from "../constants";
 
 /**
@@ -112,75 +104,64 @@ export function CompanionSheetDialog({
   ).filter(([, value]) => Boolean(value));
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[92vh] overflow-y-auto sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="font-heading flex items-center gap-2 text-xl">
-            {companion.name || "Famiglio"}
-            {companion.featured && (
-              <Star className="size-4 fill-gold text-gold" />
-            )}
-          </DialogTitle>
-          <DialogDescription>
-            {subtitle || "Compagno"}
-            {ownerName && (
-              <span className="mt-1 flex items-center gap-1.5 text-gold/80">
-                <User className="size-3.5" />
-                Compagno di {ownerName}
-              </span>
-            )}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          {companion.imageUrl && (
-            <button
-              type="button"
-              onClick={() => null}
-              key={companion.id}
-              aria-label={`Apri ${companion.name || "Famiglio"} a schermo intero`}
-              className="block w-full overflow-hidden rounded-xl border border-gold/20"
-              style={frameImageStyle(getAsset("window_01"), "primary", "1.5rem")}
-            >
-              <FantasyImage
-                src={companion.imageUrl}
-                alt={companion.name}
-                className="h-48 w-full"
-                sizes="(max-width: 640px) 100vw, 512px"
-              />
-            </button>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="md"
+      icon={<PawPrint />}
+      title={
+        <span className="inline-flex items-center gap-2">
+          {companion.name || "Famiglio"}
+          {companion.featured && (
+            <Star className="size-4 fill-gold text-gold" />
           )}
-
-          {companion.abilities && (
-            <div className="grid grid-cols-6 gap-1.5">
-              {ABILITIES.map((ability) => {
-                const score = companion.abilities?.[ability] ?? 10;
-                return (
-                   <button
-              type="button"
-              onClick={() => null}
-              key={companion.id}
-              aria-label={`Apri ${companion.name || "Famiglio"} a schermo intero`}
-              className="flex flex-col items-center gap-0.5 rounded-md border border-gold/15 bg-night/30 px-2 py-1.5 text-center"
-              style={frameImageStyle(getAsset("banner_08"), "primary", "1.5rem")}
-            >
-                  {/* <div
-                    key={ability}
-                    className="rounded-md border border-gold/15 bg-night/30 py-1.5 text-center"
-                  > */}
-                    <p className="text-[9px] tracking-widest text-muted-foreground uppercase">
-                      {ABILITY_SHORT[ability]}
-                    </p>
-                    <p className="text-sm font-bold text-foreground">{score}</p>
-                    <p className="text-[9px] text-gold-bright">
-                      {formatModifier(abilityModifier(score))}
-                    </p>
-                  {/* </div> */}
-                  </button>
-                );
-              })}
-            </div>
+        </span>
+      }
+      description={
+        <span className="flex flex-col gap-1">
+          <span>{subtitle || "Compagno"}</span>
+          {ownerName && (
+            <span className="flex items-center gap-1.5 text-gold/80">
+              <User className="size-3.5" />
+              Compagno di {ownerName}
+            </span>
           )}
+        </span>
+      }
+    >
+      <div className="space-y-4">
+        {companion.imageUrl && (
+          <div className="block w-full overflow-hidden rounded-xl border border-gold/20">
+            <FantasyImage
+              src={companion.imageUrl}
+              alt={companion.name}
+              className="h-48 w-full"
+              sizes="(max-width: 640px) 100vw, 512px"
+            />
+          </div>
+        )}
+
+        {companion.abilities && (
+          <div className="grid grid-cols-6 gap-1.5">
+            {ABILITIES.map((ability) => {
+              const score = companion.abilities?.[ability] ?? 10;
+              return (
+                <div
+                  key={ability}
+                  className="flex flex-col items-center gap-0.5 rounded-md border border-gold/15 bg-night/30 px-2 py-1.5 text-center"
+                >
+                  <p className="text-[9px] tracking-widest text-muted-foreground uppercase">
+                    {ABILITY_SHORT[ability]}
+                  </p>
+                  <p className="text-sm font-bold text-foreground">{score}</p>
+                  <p className="text-[9px] text-gold-bright">
+                    {formatModifier(abilityModifier(score))}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
           {meta.length > 0 && (
             <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-lg border border-gold/15 bg-night/30 p-3 text-sm">
@@ -243,8 +224,7 @@ export function CompanionSheetDialog({
           <p className="border-t border-gold/15 pt-3 text-xs text-muted-foreground italic">
             La scheda del famiglio si modifica dalla scheda del personaggio.
           </p>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ImmersiveModal>
   );
 }

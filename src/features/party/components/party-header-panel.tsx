@@ -6,17 +6,8 @@ import { useState } from "react";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { ImageUpload } from "@/components/shared/image-upload";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { WindowPanel } from "@/design-system";
+import { ConsoleField, ImmersiveModal, WindowPanel } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { usePartyPublicCards } from "@/features/characters/data";
 import { useBagLog } from "@/features/party/bag/data";
@@ -147,58 +138,20 @@ function PartyConfigDialog({
     );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading flex items-center gap-2">
-            <Shield className="size-5 text-gold" />
-            Identità del Party
-          </DialogTitle>
-          <DialogDescription>
-            {isMaster
-              ? "Nome, motto e stemma della compagnia."
-              : "L'identità della compagnia, definita dal Master."}
-          </DialogDescription>
-        </DialogHeader>
-
-        {isMaster ? (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Nome del Party</Label>
-              <Input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="I Cavalieri dell'Alba"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Motto (opzionale)</Label>
-              <Input
-                value={motto}
-                onChange={(event) => setMotto(event.target.value)}
-                placeholder="Uniti fino all'ultima alba"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Stemma (opzionale)</Label>
-              <ImageUpload value={emblemUrl} onChange={setEmblemUrl} folder="misc" />
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-2 text-center">
-            <p className="font-heading text-lg text-gold-bright">
-              {config?.name ?? "La Compagnia"}
-            </p>
-            {config?.motto && (
-              <p className="text-sm text-muted-foreground italic">
-                «{config.motto}»
-              </p>
-            )}
-          </div>
-        )}
-
-        {isMaster && (
-          <DialogFooter>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="md"
+      icon={<Shield />}
+      title="Identità del Party"
+      description={
+        isMaster
+          ? "Nome, motto e stemma della compagnia."
+          : "L'identità della compagnia, definita dal Master."
+      }
+      footer={
+        isMaster ? (
+          <>
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Annulla
             </Button>
@@ -206,9 +159,42 @@ function PartyConfigDialog({
               {save.isPending && <Loader2 className="size-4 animate-spin" />}
               Salva
             </Button>
-          </DialogFooter>
-        )}
-      </DialogContent>
-    </Dialog>
+          </>
+        ) : undefined
+      }
+    >
+      {isMaster ? (
+        <div className="space-y-5">
+          <ConsoleField label="Nome del Party">
+            <Input
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="I Cavalieri dell'Alba"
+            />
+          </ConsoleField>
+          <ConsoleField label="Motto (opzionale)">
+            <Input
+              value={motto}
+              onChange={(event) => setMotto(event.target.value)}
+              placeholder="Uniti fino all'ultima alba"
+            />
+          </ConsoleField>
+          <ConsoleField label="Stemma (opzionale)">
+            <ImageUpload value={emblemUrl} onChange={setEmblemUrl} folder="misc" />
+          </ConsoleField>
+        </div>
+      ) : (
+        <div className="space-y-2 text-center">
+          <p className="font-heading text-lg text-gold-bright">
+            {config?.name ?? "La Compagnia"}
+          </p>
+          {config?.motto && (
+            <p className="text-sm text-muted-foreground italic">
+              «{config.motto}»
+            </p>
+          )}
+        </div>
+      )}
+    </ImmersiveModal>
   );
 }

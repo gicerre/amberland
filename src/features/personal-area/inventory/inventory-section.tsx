@@ -21,16 +21,7 @@ import { EmptyState } from "@/components/shared/empty-state";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Select,
@@ -41,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { ConsoleField, ConsoleSegmented, ImmersiveModal } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   ITEM_CATEGORY_BADGES,
@@ -410,49 +402,47 @@ function AddToInventoryDialog({
   };
 
   return (
-    <Dialog
+    <ImmersiveModal
       open={open}
       onOpenChange={(value) => {
         if (!value) reset();
         onOpenChange(value);
       }}
-    >
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="font-heading flex items-center gap-2">
-            <Backpack className="size-5 text-gold" />
-            Aggiungi allo zaino
-          </DialogTitle>
-          <DialogDescription>
-            Oggetti conservabili dal catalogo o presi dalla Borsa Conservante.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="inline-flex w-full rounded-lg border border-gold/20 bg-night/30 p-1">
-          {(
-            [
-              ["catalog", "Dal catalogo"],
-              ["bag", "Dalla Borsa"],
-            ] as const
-          ).map(([value, label]) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => {
-                setMode(value);
-                setSelected(null);
-              }}
-              className={cn(
-                "flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-                mode === value
-                  ? "bg-gold/20 text-gold-bright"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
+      size="md"
+      icon={<Backpack />}
+      title="Aggiungi allo zaino"
+      description="Oggetti conservabili dal catalogo o presi dalla Borsa Conservante."
+      footer={
+        mode === "catalog" ? (
+          <>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Annulla
+            </Button>
+            <Button
+              onClick={submit}
+              disabled={!selected || addExisting.isPending}
             >
-              {label}
-            </button>
-          ))}
-        </div>
+              {addExisting.isPending && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
+              Aggiungi
+            </Button>
+          </>
+        ) : undefined
+      }
+    >
+      <div className="space-y-4">
+        <ConsoleSegmented<"catalog" | "bag">
+          options={[
+            { value: "catalog", label: "Dal catalogo" },
+            { value: "bag", label: "Dalla Borsa" },
+          ]}
+          value={mode}
+          onChange={(value) => {
+            setMode(value);
+            setSelected(null);
+          }}
+        />
 
         <Input
           value={search}
@@ -462,7 +452,7 @@ function AddToInventoryDialog({
 
         {mode === "catalog" ? (
           <>
-            <ScrollArea className="h-40 rounded-lg border border-gold/15">
+            <ScrollArea className="h-44 rounded-lg border border-gold/15 bg-black/20">
               <ul className="p-1">
                 {candidates.map((item) => (
                   <li key={item.id}>
@@ -489,8 +479,7 @@ function AddToInventoryDialog({
               </ul>
             </ScrollArea>
 
-            <div className="space-y-2">
-              <Label>Quantità</Label>
+            <ConsoleField label="Quantità">
               <div className="flex items-center gap-1">
                 <Button
                   type="button"
@@ -518,33 +507,17 @@ function AddToInventoryDialog({
                   <Plus />
                 </Button>
               </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Note (opzionale)</Label>
+            </ConsoleField>
+            <ConsoleField label="Note (opzionale)">
               <Textarea
                 value={notes}
                 onChange={(event) => setNotes(event.target.value)}
                 rows={2}
               />
-            </div>
-
-            <DialogFooter>
-              <Button variant="outline" onClick={() => onOpenChange(false)}>
-                Annulla
-              </Button>
-              <Button
-                onClick={submit}
-                disabled={!selected || addExisting.isPending}
-              >
-                {addExisting.isPending && (
-                  <Loader2 className="size-4 animate-spin" />
-                )}
-                Aggiungi
-              </Button>
-            </DialogFooter>
+            </ConsoleField>
           </>
         ) : (
-          <ScrollArea className="h-56 rounded-lg border border-gold/15">
+          <ScrollArea className="h-72 rounded-lg border border-gold/15 bg-black/20">
             <ul className="p-1">
               {bagCandidates.map((item) => (
                 <li
@@ -578,8 +551,8 @@ function AddToInventoryDialog({
             </ul>
           </ScrollArea>
         )}
-      </DialogContent>
-    </Dialog>
+      </div>
+    </ImmersiveModal>
   );
 }
 
@@ -603,34 +576,15 @@ function EditInventoryDialog({
     );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
-          <DialogTitle className="font-heading">{item.itemName}</DialogTitle>
-          <DialogDescription>Aggiorna quantità e note.</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Quantità</Label>
-            <Input
-              type="number"
-              min={1}
-              value={quantity}
-              onChange={(event) =>
-                setQuantity(Math.max(1, Number(event.target.value) || 1))
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Note</Label>
-            <Textarea
-              value={notes}
-              onChange={(event) => setNotes(event.target.value)}
-              rows={3}
-            />
-          </div>
-        </div>
-        <DialogFooter>
+    <ImmersiveModal
+      open={open}
+      onOpenChange={onOpenChange}
+      size="sm"
+      icon={<Package />}
+      title={item.itemName}
+      description="Aggiorna quantità e note."
+      footer={
+        <>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annulla
           </Button>
@@ -638,8 +592,28 @@ function EditInventoryDialog({
             {updateEntry.isPending && <Loader2 className="size-4 animate-spin" />}
             Salva
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <div className="space-y-5">
+        <ConsoleField label="Quantità">
+          <Input
+            type="number"
+            min={1}
+            value={quantity}
+            onChange={(event) =>
+              setQuantity(Math.max(1, Number(event.target.value) || 1))
+            }
+          />
+        </ConsoleField>
+        <ConsoleField label="Note">
+          <Textarea
+            value={notes}
+            onChange={(event) => setNotes(event.target.value)}
+            rows={3}
+          />
+        </ConsoleField>
+      </div>
+    </ImmersiveModal>
   );
 }
