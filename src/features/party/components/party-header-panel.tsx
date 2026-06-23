@@ -1,17 +1,25 @@
 "use client";
 
-import { Clock, Loader2, Pencil, Shield, Users } from "lucide-react";
+import { Clock, Loader2, Pencil, Shield, User, Users } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { ImageUpload } from "@/components/shared/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ConsoleField, ImmersiveModal, WindowPanel } from "@/design-system";
+import {
+  ConsoleField,
+  FrameOverlay,
+  getAsset,
+  ImmersiveModal,
+} from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { usePartyPublicCards } from "@/features/characters/data";
 import { useBagLog } from "@/features/party/bag/data";
 import { useNotes } from "@/features/party/diary/data";
+
+import { cn } from "@/lib/utils";
 
 import { usePartyConfig, usePartyConfigMutation } from "../config/data";
 
@@ -27,7 +35,10 @@ function timeAgo(ms: number): string {
   return `${d} g fa`;
 }
 
-/** Pannello identità del Party, in alto a destra nella Home del Party. */
+/**
+ * Stendardo della Compagnia: l'emblema a tutto campo (in dissolvenza),
+ * nome, motto, ritratti dei membri e attività — il "box da party D&D".
+ */
 export function PartyHeaderPanel() {
   const { isMaster } = useAuth();
   const { data: config } = usePartyConfig();
@@ -36,74 +47,117 @@ export function PartyHeaderPanel() {
   const { data: bagLog } = useBagLog();
   const [editOpen, setEditOpen] = useState(false);
 
-  const memberCount = (cards ?? []).length;
+  const name = config?.name ?? "La Compagnia";
+  const members = cards ?? [];
+  const memberCount = members.length;
   const lastActivity = Math.max(
     notes?.[0]?.createdAt?.toMillis?.() ?? 0,
     bagLog?.[0]?.createdAt?.toMillis?.() ?? 0
   );
 
   return (
-    <WindowPanel
-      variant="04"
-      className="h-full bg-gradient-to-b from-gold/10 to-night/60"
-      contentClassName="flex flex-col items-center gap-3 text-center"
-    >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(212,175,55,0.16),transparent_65%)]" />
-
-      <span className="relative z-10 mt-1 flex size-24 items-center justify-center overflow-hidden rounded-2xl border-2 border-gold/50 bg-night/40 shadow-[0_0_30px_rgba(212,175,55,0.25)]">
+    <div className="group relative flex h-full min-h-[18rem] flex-col justify-end overflow-hidden rounded-2xl shadow-[0_14px_44px_-16px_rgba(0,0,0,0.85)]">
+      {/* ── Emblema a tutto campo (dissolvenza cinematografica) ── */}
+      <div className="absolute inset-0">
         {config?.emblemUrl ? (
-          <FantasyImage
-            src={config.emblemUrl}
-            alt={config.name}
-            fallbackIcon={Shield}
-            className="size-24"
-            sizes="96px"
-          />
+          <div className="absolute inset-0 animate-[image-reveal_900ms_ease-out_both]">
+            <FantasyImage
+              src={config.emblemUrl}
+              alt={name}
+              fallbackIcon={Shield}
+              className="size-full transition-transform duration-700 ease-out group-hover:scale-[1.04]"
+              sizes="(max-width: 1024px) 100vw, 340px"
+              position="center"
+            />
+          </div>
         ) : (
-          <Shield className="size-10 text-gold" />
+          <div className="absolute inset-0 grid place-items-center bg-gradient-to-br from-gold/12 via-card to-night/85">
+            <Shield className="size-28 text-gold/15" />
+          </div>
         )}
-      </span>
+      </div>
 
-      <div className="relative z-10">
-        <button
-          type="button"
-          onClick={() => setEditOpen(true)}
-          className="font-heading text-xl font-bold tracking-wide text-gold-bright hover:underline"
-        >
-          {config?.name ?? "La Compagnia"}
-        </button>
+      {/* Veli per leggibilità + alone dorato superiore */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/82 to-background/10" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_60%_at_50%_0%,rgba(200,167,93,0.16),transparent_60%)]" />
+
+      {/* ── Identità, in basso ── */}
+      <div className="relative z-10 p-6">
+        <p className="font-heading text-[10px] font-bold tracking-[0.34em] text-gold/70 uppercase">
+          ◆ La Compagnia ◆
+        </p>
+        <h2 className="text-gold-gradient mt-1 font-heading text-2xl font-black tracking-wide drop-shadow-[0_2px_10px_rgba(0,0,0,0.9)]">
+          {name}
+        </h2>
         {config?.motto && (
-          <p className="mt-0.5 text-sm text-foreground/80 italic">
+          <p className="mt-1 text-sm text-foreground/85 italic">
             «{config.motto}»
           </p>
         )}
+
+        {/* Ritratti dei membri */}
+        {memberCount > 0 && (
+          <div className="mt-3.5 flex items-center gap-2">
+            <div className="flex -space-x-2.5">
+              {members.slice(0, 6).map((entry) => (
+                <Link
+                  key={entry.id}
+                  href={`/entita/${entry.id}`}
+                  title={entry.card.name}
+                  className="relative size-9 overflow-hidden rounded-full border-2 border-stone-mid shadow-[0_2px_6px_rgba(0,0,0,0.5)] ring-1 ring-gold/45 transition-transform hover:z-10 hover:-translate-y-0.5 hover:ring-gold/70"
+                >
+                  <FantasyImage
+                    src={entry.card.tokenUrl || entry.card.imageUrl}
+                    alt={entry.card.name}
+                    fallbackIcon={User}
+                    className={cn("size-full", entry.card.isDead && "grayscale")}
+                    sizes="36px"
+                  />
+                </Link>
+              ))}
+            </div>
+            {memberCount > 6 && (
+              <span className="font-heading text-xs text-gold/80">
+                +{memberCount - 6}
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* Stat chips */}
+        <div className="mt-3.5 flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/20 bg-black/45 px-2.5 py-1.5 text-xs">
+            <Users className="size-3.5 text-gold/70" />
+            <strong className="text-gold-bright">{memberCount}</strong>
+            <span className="text-muted-foreground">
+              {memberCount === 1 ? "membro" : "membri"}
+            </span>
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/20 bg-black/45 px-2.5 py-1.5 text-xs">
+            <Clock className="size-3.5 text-gold/70" />
+            <span className="text-muted-foreground">{timeAgo(lastActivity)}</span>
+          </span>
+        </div>
+
+        {/* Azione (solo Master) */}
+        {isMaster && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-4 h-10 w-full"
+            onClick={() => setEditOpen(true)}
+          >
+            <Pencil className="size-3.5" />
+            Modifica identità
+          </Button>
+        )}
       </div>
 
-      <div className="relative z-10 flex flex-col gap-1.5 text-sm text-muted-foreground">
-        <span className="flex items-center justify-center gap-1.5">
-          <Users className="size-3.5 text-gold/70" />
-          {memberCount} {memberCount === 1 ? "membro" : "membri"}
-        </span>
-        <span className="flex items-center justify-center gap-1.5">
-          <Clock className="size-3.5 text-gold/70" />
-          Attività: {timeAgo(lastActivity)}
-        </span>
-      </div>
-
-      {isMaster && (
-        <Button
-          variant="default"
-          size="sm"
-          className="relative z-10 mt-auto w-full border-gold/30"
-          onClick={() => setEditOpen(true)}
-        >
-          <Pencil className="size-3.5" />
-          <span className="sm:inline hidden">Modifica identità</span>
-        </Button>
-      )}
+      {/* Cornice metallica sovrapposta */}
+      <FrameOverlay asset={getAsset("window_04")} borderWidth="1.4rem" />
 
       <PartyConfigDialog open={editOpen} onOpenChange={setEditOpen} />
-    </WindowPanel>
+    </div>
   );
 }
 
