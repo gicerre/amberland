@@ -40,7 +40,7 @@ const BTN12_PAD: Record<string, string> = {
 // Palette definitiva da decidere nella prossima sessione — qui valori corretti ma provvisori
 const BTN12_STYLES: Record<string, { shell: string; text: string }> = {
   outline: {
-    shell: "text-gold/55 group-hover/button:text-gold/90 group-hover/button:[filter:drop-shadow(0_0_8px_rgba(184,144,24,0.3))]",
+    shell: "text-gold/55 group-hover/button:text-gold/90 group-hover/button:[filter:drop-shadow(0_0_8px_rgba(200,167,93,0.3))]",
     text:  "text-gold/90 hover:text-gold",
   },
   secondary: {
@@ -48,7 +48,7 @@ const BTN12_STYLES: Record<string, { shell: string; text: string }> = {
     text:  "text-foreground/80 hover:text-foreground",
   },
   destructive: {
-    shell: "text-crimson/65 group-hover/button:text-crimson group-hover/button:[filter:drop-shadow(0_0_8px_rgba(104,14,28,0.5))]",
+    shell: "text-crimson/65 group-hover/button:text-crimson group-hover/button:[filter:drop-shadow(0_0_8px_rgba(185,28,28,0.5))]",
     text:  "text-red-300 hover:text-red-200",
   },
 }
@@ -72,7 +72,7 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-b from-gold/90 to-gold border-gold/40 text-[#181102] text-[0.78rem] font-heading font-bold tracking-[0.08em] uppercase shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] hover:from-gold-bright hover:to-gold hover:border-gold-bright/60 hover:shadow-[0_0_18px_rgba(201,162,39,0.4),0_2px_8px_rgba(0,0,0,0.4)]",
+          "bg-gradient-to-b from-gold/90 to-gold border-gold/40 text-[#181102] text-[0.78rem] font-heading font-bold tracking-[0.08em] uppercase shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] hover:from-gold-bright hover:to-gold hover:border-gold-bright/60 hover:shadow-[0_0_18px_rgba(212,175,55,0.4),0_2px_8px_rgba(0,0,0,0.4)]",
         outline:
           "border-gold/28 bg-stone-surface/50 text-foreground/85 text-sm hover:bg-stone-highlight/70 hover:border-gold/50 hover:text-foreground aria-expanded:bg-stone-highlight aria-expanded:border-gold/40",
         secondary:
@@ -141,7 +141,7 @@ function Button({
         {/* size-full evita il selettore [&_svg:not([class*='size-'])]:size-4 */}
         <SvgAssetBase
           asset={BTN01_ASSET}
-          className="size-full text-gold transition-[color,filter] duration-150 group-hover/button:text-gold-bright group-hover/button:[filter:drop-shadow(0_0_12px_rgba(184,144,24,0.55))] group-active/button:brightness-90"
+          className="size-full text-gold transition-[color,filter] duration-150 group-hover/button:text-gold-bright group-hover/button:[filter:drop-shadow(0_0_12px_rgba(200,167,93,0.55))] group-active/button:brightness-90"
         />
         <span className="relative z-[1] inline-flex items-center gap-1.5">{children}</span>
       </button>

@@ -98,7 +98,7 @@ export function ImmersiveModal({
             backgroundSize: "cover, 360px",
             backgroundBlendMode: "normal, overlay",
             boxShadow:
-              "0 40px 110px -30px rgba(0,0,0,0.85), 0 0 70px rgba(184,144,24,0.10)",
+              "0 40px 110px -30px rgba(0,0,0,0.85), 0 0 70px rgba(200,167,93,0.10)",
           }}
           className={cn(
             // Cornice unica per TUTTE le modali: centrata dal wrapper flex,
@@ -118,7 +118,7 @@ export function ImmersiveModal({
           )}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(184,144,24,0.10),transparent_60%)]"
+            className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(200,167,93,0.10),transparent_60%)]"
           />
 
           {/* Contenuto reale, sopra l'atmosfera. */}
@@ -126,7 +126,7 @@ export function ImmersiveModal({
             <header className="shrink-0 px-6 pt-5 pb-3">
               <div className="flex items-start gap-3 pr-8">
                 {icon && (
-                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border border-gold/30 bg-night/50 text-gold shadow-[inset_0_1px_0_rgba(212,168,40,0.25)] [&_svg]:size-5">
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border border-gold/30 bg-night/50 text-gold shadow-[inset_0_1px_0_rgba(212,175,55,0.25)] [&_svg]:size-5">
                     {icon}
                   </span>
                 )}

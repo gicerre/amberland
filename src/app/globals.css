@@ -64,6 +64,10 @@
   --color-amber-deep: var(--amber-deep);
   --color-amber: var(--amber);
   --color-amber-bright: var(--amber-bright);
+  --color-nature: var(--nature);
+  --color-nature-bright: var(--nature-bright);
+  --color-shadow-arcane: var(--shadow-arcane);
+  --color-shadow-arcane-deep: var(--shadow-arcane-deep);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -81,118 +85,129 @@
 }
 
 /*
- * Palette "Amberland" — dark fantasy.
- * Oro antico, rosso cremisi, nero, blu notte, pergamena antica.
- * Il tema è esclusivamente scuro: la classe `dark` su <html> attiva
- * le varianti dark: dei componenti, i valori vivono in :root.
- */
-/*
- * Palette "Ossidiana × Brace × Viola" — fusione dark fantasy.
+ * Palette ufficiale "Amberland — Archivio della Compagnia" (RPG AAA).
+ * Ispirazione: Baldur's Gate 3, Dragon Age, Diablo IV, Pillars of Eternity.
  *
- * Ossidiana & Sangue  → superfici nere, sangue profondo
- * Carbonia & Brace    → calore forgia, braci, metallo incandescente
- * Gotico Viola        → magia abissale, vuoto, arcano viola-nero
+ * Background  → Abyss #06070A · Void #0B0D12 · Dark Obsidian #11151C
+ * Superfici   → Ancient Stone #181C24 · Dark Slate #1F2430 · Charcoal Steel #262D3A
+ * Oro (raro)  → Antique #C8A75D · Royal #D4AF37 · Soft Glow #E8C979
+ * Testo       → Ivory #F1E8D2 (titoli) · Aged Paper #D7CCB4 · Muted #9A907C
+ * Contestuali → Arcano #7C5CFF · Natura #84CC16 · Luce #34D399
+ *               Fuoco #FF7A18 · Oscurità #A855F7 · Sangue #DC2626
+ *
+ * Tema esclusivamente scuro; i valori vivono in :root e ogni componente
+ * li eredita via token (@theme inline). L'oro è una risorsa preziosa,
+ * non un colore dominante.
  */
 :root {
-  /* ── Base ossidiana (nera, quasi pura) ── */
-  --background: #060608;
-  --foreground: #dcd0b0;
-  --card: #0b0c11;
-  --card-foreground: #dcd0b0;
-  --popover: #0e0f16;
-  --popover-foreground: #dcd0b0;
+  /* ── Background — i tre neri dell'abisso ──
+     Abyss #06070A · Void #0B0D12 · Dark Obsidian #11151C */
+  --background: #06070a;
+  --foreground: #d7ccb4; /* Aged Paper — corpo del testo */
+  --card: #181c24; /* Ancient Stone — superficie */
+  --card-foreground: #d7ccb4;
+  --popover: #1f2430; /* Dark Slate — pannelli flottanti */
+  --popover-foreground: #d7ccb4;
 
-  /* ── CTA — oro tarníto (Brace) ── */
-  --primary: #b89018;
-  --primary-foreground: #180e02;
+  /* ── CTA — oro reale (risorsa preziosa, non dominante) ── */
+  --primary: #d4af37; /* Royal Gold */
+  --primary-foreground: #0b0d12;
 
-  /* ── Pannelli secondari — viola notte (Gotico) ── */
-  --secondary: #13101e;
-  --secondary-foreground: #c0b4d8;
-  --muted: #0e0d16;
-  --muted-foreground: #88785e;
-  --accent: #1b1430;
-  --accent-foreground: #d4b858;
+  /* ── Pannelli secondari — acciaio carbone ── */
+  --secondary: #262d3a; /* Charcoal Steel */
+  --secondary-foreground: #d7ccb4;
+  --muted: #11151c; /* Dark Obsidian */
+  --muted-foreground: #9a907c; /* Muted Text */
+  --accent: #262d3a;
+  --accent-foreground: #e8c979; /* Soft Gold Glow */
 
-  /* ── Distruttivo — sangue (Ossidiana) ── */
-  --destructive: #960f22;
+  /* ── Distruttivo — sangue ── */
+  --destructive: #b91c1c;
 
-  /* ── Bordi e input ── */
-  --border: rgba(184, 144, 24, 0.13);
-  --input: rgba(184, 144, 24, 0.20);
-  --ring: rgba(184, 144, 24, 0.50);
+  /* ── Bordi e input — oro come filo prezioso ── */
+  --border: rgba(200, 167, 93, 0.14);
+  --input: rgba(200, 167, 93, 0.20);
+  --ring: rgba(212, 175, 55, 0.50);
 
-  /* ── Grafici ── */
-  --chart-1: #b89018;
-  --chart-2: #680e1c;
-  --chart-3: #40187a;
-  --chart-4: #7a5c14;
-  --chart-5: #2e1848;
+  /* ── Grafici — colori contestuali ── */
+  --chart-1: #d4af37; /* oro */
+  --chart-2: #b91c1c; /* sangue */
+  --chart-3: #7c5cff; /* arcano */
+  --chart-4: #20c997; /* luce */
+  --chart-5: #ff7a18; /* fuoco */
 
   --radius: 0.625rem;
 
-  /* ── Sidebar ── */
-  --sidebar: #060608;
-  --sidebar-foreground: #dcd0b0;
-  --sidebar-primary: #b89018;
-  --sidebar-primary-foreground: #180e02;
-  --sidebar-accent: #1b1430;
-  --sidebar-accent-foreground: #d4b858;
-  --sidebar-border: rgba(184, 144, 24, 0.10);
-  --sidebar-ring: rgba(184, 144, 24, 0.50);
+  /* ── Sidebar — Void Black, distinta dal body ── */
+  --sidebar: #0b0d12;
+  --sidebar-foreground: #d7ccb4;
+  --sidebar-primary: #d4af37;
+  --sidebar-primary-foreground: #0b0d12;
+  --sidebar-accent: #262d3a;
+  --sidebar-accent-foreground: #e8c979;
+  --sidebar-border: rgba(200, 167, 93, 0.10);
+  --sidebar-ring: rgba(212, 175, 55, 0.50);
 
-  /* ── Oro tarnito (metallo antico, Brace) ── */
-  --gold: #b89018;
-  --gold-bright: #d4a828;
-  --gold-light: #e8c860;
-  --gold-dark: #7a6010;
-  --gold-dim: #4e3e0a;
+  /* ── Oro — Antique / Royal / Soft Glow ── */
+  --gold: #c8a75d; /* Antique Gold (base) */
+  --gold-bright: #d4af37; /* Royal Gold */
+  --gold-light: #e8c979; /* Soft Gold Glow */
+  --gold-dark: #9a7e3a;
+  --gold-dim: #4a3c1c;
 
-  /* ── Pergamena osso (Ossidiana — tono caldo, invecchiato) ── */
-  --parchment: #d4c8a0;
-  --parchment-dark: #b0a070;
+  /* ── Pergamena — avorio per i titoli, carta invecchiata ── */
+  --parchment: #f1e8d2; /* Ivory Parchment */
+  --parchment-dark: #d7ccb4; /* Aged Paper */
 
-  /* ── Superfici pietra ossidiana ── */
-  --stone-deep: #060608;
-  --stone-mid: #0b0c11;
-  --stone-surface: #10111a;
-  --stone-highlight: #191a26;
+  /* ── Superfici pietra — layering progressivo ── */
+  --stone-deep: #0b0d12; /* Void */
+  --stone-mid: #181c24; /* Ancient Stone */
+  --stone-surface: #1f2430; /* Dark Slate */
+  --stone-highlight: #262d3a; /* Charcoal Steel */
 
-  /* ── Metalli ── */
-  --iron-dark: #1e1f28;
-  --iron-mid: #2c2e3e;
-  --brass: #7a5c14;
+  /* ── Metalli — acciaio brunito ── */
+  --iron-dark: #262d3a;
+  --iron-mid: #3a4150;
+  --brass: #9a7e3a;
 
-  /* ── Notte — viola vuoto (Gotico) ── */
-  --night: #0f0a1a;
+  /* ── Notte — obsidiana profonda (pannelli incassati) ── */
+  --night: #11151c;
 
-  /* ── Arcano / Vuoto — viola abissale (Gotico Viola) ── */
-  --arcane-blue: #200e3e;
-  --arcane-bright: #6030a8;
-  --arcane-glow: rgba(96, 48, 168, 0.35);
+  /* ── Arcano — sapere, mana, mistico ── */
+  --arcane-blue: #1e2a4a;
+  --arcane-bright: #7c5cff;
+  --arcane-glow: rgba(124, 92, 255, 0.35);
 
-  /* ── Sangue / Cremisi (Ossidiana & Sangue) ── */
-  --crimson: #680e1c;
-  --crimson-bright: #a01828;
+  /* ── Sangue / Cremisi — fallimenti, pericoli, stati critici ── */
+  --crimson: #b91c1c;
+  --crimson-bright: #dc2626;
 
-  /* ── Smeraldo ── */
-  --emerald-deep: #142218;
-  --emerald: #246040;
-  --emerald-bright: #389860;
+  /* ── Luce — successo, completamento, stati positivi ── */
+  --emerald-deep: #0e2a22;
+  --emerald: #20c997;
+  --emerald-bright: #34d399;
 
-  /* ── Brace / Forgia (Carbonia & Brace — calore, carbone incandescente) ── */
-  --amber-deep: #5c2000;
-  --amber: #a04020;
-  --amber-bright: #cc5a28;
+  /* ── Fuoco — eventi, battaglie, energia, avvisi ── */
+  --amber-deep: #5a2a00;
+  --amber: #ff7a18;
+  --amber-bright: #ffb347;
+
+  /* ── Natura — druidi, foreste, guarigione ── */
+  --nature: #65a30d;
+  --nature-bright: #84cc16;
+
+  /* ── Oscurità — necromanzia, corruzione, proibito ── */
+  --shadow-arcane: #a855f7;
+  --shadow-arcane-deep: #6d28d9;
 }
 
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 22px rgba(184, 144, 24, 0.25), 0 0 50px rgba(184, 144, 24, 0.08);
+    box-shadow: 0 0 22px rgba(200, 167, 93, 0.25), 0 0 50px rgba(200, 167, 93, 0.08);
   }
   50% {
-    box-shadow: 0 0 34px rgba(184, 144, 24, 0.50), 0 0 80px rgba(184, 144, 24, 0.18);
+    box-shadow: 0 0 34px rgba(200, 167, 93, 0.50), 0 0 80px rgba(200, 167, 93, 0.18);
   }
 }
 
@@ -360,11 +375,12 @@
   body {
     @apply bg-background text-foreground;
     /* Ossidiana base + angolo sangue (Ossidiana) + angolo vuoto (Gotico) + calore forgia (Brace) */
+    /* Abisso base + tenue alone di sangue, arcano e oro — molto sobri */
     background-image:
-      radial-gradient(1400px 900px at 50% -5%,  rgba(6, 6, 10, 0.98),          transparent 70%),
-      radial-gradient(1000px 700px at 95% 110%, rgba(104, 14, 28, 0.20),        transparent 60%),
-      radial-gradient(800px 600px at 5% 90%,    rgba(96, 48, 168, 0.10),        transparent 55%),
-      radial-gradient(500px 400px at 68% 52%,   rgba(160, 64, 32, 0.05),        transparent 60%);
+      radial-gradient(1400px 900px at 50% -5%,  rgba(6, 7, 10, 0.98),     transparent 70%),
+      radial-gradient(1000px 700px at 95% 110%, rgba(185, 28, 28, 0.10),  transparent 60%),
+      radial-gradient(800px 600px at 5% 90%,    rgba(124, 92, 255, 0.06), transparent 55%),
+      radial-gradient(500px 400px at 68% 52%,   rgba(200, 167, 93, 0.04), transparent 60%);
     background-attachment: fixed;
   }
 
@@ -373,11 +389,12 @@
   h3,
   h4 {
     @apply font-heading tracking-wide;
+    color: var(--parchment); /* Ivory Parchment — tomi e registri */
   }
 
   ::selection {
-    background: rgba(184, 144, 24, 0.35);
-    color: #ece0c0;
+    background: rgba(200, 167, 93, 0.35);
+    color: #f1e8d2;
   }
 
   ::-webkit-scrollbar {
@@ -390,18 +407,18 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(184, 144, 24, 0.18);
+    background: rgba(200, 167, 93, 0.18);
     border-radius: 999px;
     border: 2px solid var(--background);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(184, 144, 24, 0.38);
+    background: rgba(200, 167, 93, 0.38);
   }
 
   :focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgba(184, 144, 24, 0.60);
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgba(200, 167, 93, 0.60);
     border-radius: var(--radius);
   }
 }
@@ -409,7 +426,7 @@
 @layer components {
   /* Titoli: oro tarnito con profondità metallica */
   .text-gold-gradient {
-    background-image: linear-gradient(180deg, #e0be58 0%, #b89018 52%, #7a6010 100%);
+    background-image: linear-gradient(180deg, #e8c979 0%, #c8a75d 52%, #9a7e3a 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -442,24 +459,24 @@
 
   .glow-gold {
     box-shadow:
-      0 0 20px rgba(184, 144, 24, 0.40),
-      0 0 60px rgba(184, 144, 24, 0.12);
+      0 0 20px rgba(200, 167, 93, 0.40),
+      0 0 60px rgba(200, 167, 93, 0.12);
   }
 
   .glow-gold-sm {
-    box-shadow: 0 0 12px rgba(184, 144, 24, 0.35);
+    box-shadow: 0 0 12px rgba(200, 167, 93, 0.35);
   }
 
   .glow-arcane {
     box-shadow:
-      0 0 20px rgba(96, 48, 168, 0.50),
-      0 0 60px rgba(96, 48, 168, 0.18);
+      0 0 20px rgba(124, 92, 255, 0.50),
+      0 0 60px rgba(124, 92, 255, 0.18);
   }
 
   .glow-crimson {
     box-shadow:
-      0 0 20px rgba(160, 24, 40, 0.50),
-      0 0 60px rgba(160, 24, 40, 0.16);
+      0 0 20px rgba(220, 38, 38, 0.50),
+      0 0 60px rgba(220, 38, 38, 0.16);
   }
 
   .glow-emerald {
@@ -512,9 +529,9 @@
   .shimmer-gold {
     background: linear-gradient(
       90deg,
-      rgba(184, 144, 24, 0.04) 0%,
-      rgba(184, 144, 24, 0.10) 50%,
-      rgba(184, 144, 24, 0.04) 100%
+      rgba(200, 167, 93, 0.04) 0%,
+      rgba(200, 167, 93, 0.10) 50%,
+      rgba(200, 167, 93, 0.04) 100%
     );
     background-size: 200% 100%;
     animation: shimmer-gold 2.2s ease-in-out infinite;
@@ -534,27 +551,27 @@
     font-weight: 700;
     letter-spacing: 0.28em;
     text-transform: uppercase;
-    color: rgba(184, 144, 24, 0.45);
+    color: rgba(200, 167, 93, 0.45);
   }
 
   .nav-group-label::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: linear-gradient(to right, rgba(184, 144, 24, 0.25), transparent);
+    background: linear-gradient(to right, rgba(200, 167, 93, 0.25), transparent);
   }
 
   /* ── Rarità oggetti (bordo + glow) ──────────────── */
 
-  .rarity-common    { --rarity-color: rgba(140, 130, 120, 0.5); }
-  .rarity-rare      { --rarity-color: rgba(96, 48, 168, 0.70); }   /* viola arcano */
-  .rarity-magic     { --rarity-color: rgba(130, 60, 180, 0.70); }  /* viola magico */
+  .rarity-common    { --rarity-color: rgba(154, 144, 124, 0.5); }   /* muted text */
+  .rarity-rare      { --rarity-color: rgba(110, 168, 254, 0.70); }  /* arcano blu */
+  .rarity-magic     { --rarity-color: rgba(124, 92, 255, 0.70); }   /* arcano indaco */
   .rarity-legendary {
-    --rarity-color: rgba(184, 144, 24, 0.80);                       /* oro tarnito */
+    --rarity-color: rgba(200, 167, 93, 0.80);                       /* oro tarnito */
     animation: glow-pulse 3s ease-in-out infinite;
   }
   .rarity-artifact  {
-    --rarity-color: rgba(160, 24, 40, 0.80);                        /* sangue profondo */
+    --rarity-color: rgba(220, 38, 38, 0.80);                        /* sangue */
   }
 
   /* ── Card hover standard ─────────────────────────── */
@@ -567,7 +584,7 @@
 
   .card-hover:hover {
     transform: translateY(-3px) scale(1.005);
-    box-shadow: 0 8px 40px rgba(184, 144, 24, 0.14);
+    box-shadow: 0 8px 40px rgba(200, 167, 93, 0.14);
   }
 
   /* ── Striscia ornamentale superiore ─────────────── */
@@ -585,9 +602,9 @@
     background: linear-gradient(
       to right,
       transparent 0%,
-      rgba(184, 144, 24, 0.55) 20%,
-      rgba(212, 172, 60, 0.88) 50%,
-      rgba(184, 144, 24, 0.55) 80%,
+      rgba(200, 167, 93, 0.55) 20%,
+      rgba(212, 175, 55, 0.88) 50%,
+      rgba(200, 167, 93, 0.55) 80%,
       transparent 100%
     );
     border-radius: var(--radius) var(--radius) 0 0;
@@ -597,8 +614,8 @@
 
   .btn-fantasy-primary {
     position: relative;
-    background: linear-gradient(135deg, #7a5c10 0%, #b89018 50%, #8a6c14 100%);
-    border: 1px solid rgba(212, 172, 60, 0.40);
+    background: linear-gradient(135deg, #9a7e3a 0%, #c8a75d 50%, #b08f45 100%);
+    border: 1px solid rgba(212, 175, 55, 0.40);
     color: #180e02;
     font-family: var(--font-heading);
     font-weight: 700;
@@ -613,9 +630,9 @@
 
   .btn-fantasy-primary:hover {
     box-shadow:
-      0 0 18px rgba(184, 144, 24, 0.45),
-      0 0 50px rgba(184, 144, 24, 0.12);
-    border-color: rgba(212, 172, 60, 0.65);
+      0 0 18px rgba(200, 167, 93, 0.45),
+      0 0 50px rgba(200, 167, 93, 0.12);
+    border-color: rgba(212, 175, 55, 0.65);
     transform: translateY(-1px);
   }
 
@@ -629,7 +646,7 @@
      accende (glow dorato). Sostituisce il look "form aziendale". */
   .field-engraved {
     background-color: rgba(6, 6, 10, 0.55);
-    border: 1px solid rgba(184, 144, 24, 0.22);
+    border: 1px solid rgba(200, 167, 93, 0.22);
     box-shadow:
       inset 0 1px 3px rgba(0, 0, 0, 0.55),
       inset 0 0 0 1px rgba(0, 0, 0, 0.20);
@@ -640,19 +657,19 @@
   }
 
   .field-engraved:hover {
-    border-color: rgba(184, 144, 24, 0.42);
+    border-color: rgba(200, 167, 93, 0.42);
   }
 
   .field-engraved:focus,
   .field-engraved:focus-visible,
   .field-engraved:focus-within,
   .field-engraved[data-state="open"] {
-    border-color: rgba(212, 168, 40, 0.70);
+    border-color: rgba(212, 175, 55, 0.70);
     background-color: rgba(8, 8, 13, 0.65);
     box-shadow:
       inset 0 1px 3px rgba(0, 0, 0, 0.55),
-      0 0 0 1px rgba(184, 144, 24, 0.35),
-      0 0 16px rgba(184, 144, 24, 0.22);
+      0 0 0 1px rgba(200, 167, 93, 0.35),
+      0 0 16px rgba(200, 167, 93, 0.22);
     outline: none;
   }
 
@@ -668,11 +685,41 @@
     height: 1px;
     background: linear-gradient(
       to right,
-      rgba(212, 168, 40, 0.55) 0%,
-      rgba(184, 144, 24, 0.18) 45%,
+      rgba(212, 175, 55, 0.55) 0%,
+      rgba(200, 167, 93, 0.18) 45%,
       transparent 100%
     );
   }
+}
+
+/* ── Notifiche (Sonner) — pergamene sigillate con accento per tipo ──── */
+[data-sonner-toast].amber-toast {
+  background-image:
+    radial-gradient(120% 80% at 50% 0%, rgba(200, 167, 93, 0.06), transparent 60%),
+    linear-gradient(180deg, rgba(25, 26, 38, 0.4), transparent 60%);
+  box-shadow:
+    0 18px 50px -14px rgba(0, 0, 0, 0.85),
+    inset 0 1px 0 rgba(212, 175, 55, 0.12);
+  border-left-width: 3px;
+  border-left-color: rgba(200, 167, 93, 0.55);
+}
+
+[data-sonner-toast].amber-toast[data-type="success"] {
+  border-left-color: var(--emerald-bright);
+}
+[data-sonner-toast].amber-toast[data-type="error"] {
+  border-left-color: var(--crimson-bright);
+}
+[data-sonner-toast].amber-toast[data-type="warning"] {
+  border-left-color: var(--amber-bright);
+}
+[data-sonner-toast].amber-toast[data-type="info"] {
+  border-left-color: var(--arcane-bright);
+}
+
+[data-sonner-toast].amber-toast [data-title] {
+  font-family: var(--font-heading);
+  letter-spacing: 0.01em;
 }
 
 /* ---- Contenuti rich-text (Tiptap) ---- */
@@ -730,7 +777,7 @@
   margin: 0.5em 0;
 }
 .rich-text blockquote {
-  border-left: 3px solid rgba(184, 144, 24, 0.50);
+  border-left: 3px solid rgba(200, 167, 93, 0.50);
   padding-left: 1em;
   margin: 0.6em 0;
   font-style: italic;
@@ -743,7 +790,7 @@
 }
 .rich-text hr {
   border: none;
-  border-top: 1px solid rgba(184, 144, 24, 0.28);
+  border-top: 1px solid rgba(200, 167, 93, 0.28);
   margin: 1em 0;
 }
 .rich-text img {
@@ -758,7 +805,7 @@
   font-size: 0.9em;
 }
 .rich-text mark {
-  background: rgba(184, 144, 24, 0.35);
+  background: rgba(200, 167, 93, 0.35);
   border-radius: 0.2rem;
   padding: 0 0.15em;
 }

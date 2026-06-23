@@ -4,13 +4,20 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const alertVariants = cva(
-  "group/alert relative grid w-full gap-0.5 rounded-lg border px-2.5 py-2 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  "group/alert relative grid w-full gap-0.5 rounded-lg border border-l-[3px] px-3.5 py-2.5 text-left text-sm shadow-[0_6px_22px_-10px_rgba(0,0,0,0.7)] has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2.5 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
   {
     variants: {
       variant: {
-        default: "bg-card text-card-foreground",
+        default:
+          "border-gold/25 border-l-gold bg-card/80 text-card-foreground *:[svg]:text-gold",
         destructive:
-          "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+          "border-crimson/30 border-l-crimson-bright bg-crimson/10 text-red-200 *:data-[slot=alert-description]:text-red-200/80 *:[svg]:text-crimson-bright",
+        success:
+          "border-emerald/30 border-l-emerald-bright bg-emerald-deep/40 text-emerald-bright *:data-[slot=alert-description]:text-emerald-bright/80",
+        warning:
+          "border-amber/30 border-l-amber-bright bg-amber-deep/25 text-amber-bright *:data-[slot=alert-description]:text-amber-bright/80",
+        info:
+          "border-arcane-bright/30 border-l-arcane-bright bg-arcane-blue/30 text-foreground *:[svg]:text-arcane-bright",
       },
     },
     defaultVariants: {

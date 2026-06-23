@@ -51,7 +51,6 @@ import type { RichText } from "@/types/entities";
 
 import { CreatureStatusBar } from "./creature-status-bar";
 import { EntityDetailBody } from "./entity-detail-body";
-import { EntityTypeBanner } from "./entity-type-banner";
 import { GeoTrail } from "./geo-trail";
 import { QuestStatusBar } from "./quest-status-bar";
 import { QuickLinks } from "./quick-links";
@@ -222,9 +221,6 @@ export function EntityView({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Banner identificativo della tipologia */}
-      <EntityTypeBanner entity={entity} />
-
       {/* Posizione nel mondo (geografiche) o breadcrumb semplice */}
       {isGeographic ? (
         <GeoTrail chain={chain ?? []} current={entity} />

@@ -1,15 +1,18 @@
 "use client";
 
-import { ScrollText } from "lucide-react";
 import { useMemo } from "react";
 
+import { imageIcon } from "@/components/shared/image-icon";
 import { WindowPanel } from "@/design-system";
 import { useEntitiesByType } from "@/features/entities/data";
 import { QUEST_EVENT_STYLE } from "@/features/entities/registry";
-import { cn } from "@/lib/utils";
+import { QuestStatusIcon } from "@/features/entities/components/quest-status-icon";
 
 // Ordine di rilevanza nelle tessere del resoconto.
 const TILE_ORDER = ["ACTIVE", "NEXT", "AVAILABLE", "COMPLETED", "FAILED"] as const;
+
+// Icona illustrata del box (arte in /public/icons).
+const ChronicleIcon = imageIcon("/icons/pergamena.png");
 
 /**
  * Box epico riassuntivo dell'andamento delle missioni della compagnia:
@@ -55,9 +58,7 @@ export function QuestOverviewBox() {
       <div className="relative">
         {/* Intestazione */}
         <div className="flex items-center gap-3">
-          <span className="flex size-12 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-gold/15 text-gold shadow-[0_0_26px_rgba(212,175,55,0.25)]">
-            <ScrollText className="size-6" />
-          </span>
+          <ChronicleIcon className="size-16 shrink-0 drop-shadow-[0_3px_12px_rgba(0,0,0,0.55)] sm:size-20" />
           <div>
             <h2 className="text-gold-gradient font-heading text-2xl font-bold tracking-wider">
               Cronaca delle Imprese
@@ -92,20 +93,12 @@ export function QuestOverviewBox() {
         <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
           {TILE_ORDER.map((status) => {
             const style = QUEST_EVENT_STYLE[status];
-            const Icon = style.icon;
             return (
               <div
                 key={status}
                 className="flex flex-col items-center gap-1.5 rounded-xl border border-gold/15 bg-night/40 p-3 text-center"
               >
-                <span
-                  className={cn(
-                    "flex size-9 items-center justify-center rounded-lg",
-                    style.iconWrap
-                  )}
-                >
-                  <Icon className="size-5" />
-                </span>
+                <QuestStatusIcon status={status} className="size-10" />
                 <span className="font-heading text-2xl font-bold text-foreground">
                   {counts[status]}
                 </span>

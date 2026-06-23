@@ -79,12 +79,12 @@ export function ConsoleNav({
             className={cn(
               "group/plaque relative flex shrink-0 items-center gap-2 rounded-md px-3 py-2 text-left text-sm transition-all md:w-full",
               isActive
-                ? "bg-gradient-to-r from-gold/20 via-gold/8 to-transparent text-gold-bright shadow-[inset_0_1px_0_rgba(212,168,40,0.18)]"
+                ? "bg-gradient-to-r from-gold/20 via-gold/8 to-transparent text-gold-bright shadow-[inset_0_1px_0_rgba(212,175,55,0.18)]"
                 : "text-foreground/55 hover:bg-stone-highlight/40 hover:text-foreground"
             )}
           >
             {isActive && (
-              <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-gold-bright shadow-[0_0_8px_rgba(212,168,40,0.75)]" />
+              <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-gold-bright shadow-[0_0_8px_rgba(212,175,55,0.75)]" />
             )}
             {section.icon && (
               <span className="flex size-4 shrink-0 items-center justify-center [&_svg]:size-4">
@@ -210,7 +210,7 @@ export function ConsoleSegmented<T extends string>({
             className={cn(
               "flex-1 rounded-[6px] px-3 py-1.5 text-sm font-medium transition-all",
               isActive
-                ? "bg-gradient-to-b from-gold/25 to-gold/10 text-gold-bright shadow-[inset_0_1px_0_rgba(212,168,40,0.25),0_0_12px_rgba(184,144,24,0.18)]"
+                ? "bg-gradient-to-b from-gold/25 to-gold/10 text-gold-bright shadow-[inset_0_1px_0_rgba(212,175,55,0.25),0_0_12px_rgba(200,167,93,0.18)]"
                 : "text-muted-foreground hover:text-foreground"
             )}
           >

@@ -108,7 +108,7 @@ function buildConfig(event: CelebrationEvent): EventConfig {
         durationMs: 3500,
         particleCount: 32,
         particleColors: ["#c9a227", "#f7e8a0", "#fbbf24", "#fff9e0", "#d4af37"],
-        glowColor: "rgba(201,162,39,0.45)",
+        glowColor: "rgba(212,175,55,0.45)",
         cardBorderClass: "border-gold/65",
         cardBgClass: "from-[#130f02] via-stone-mid to-[#0a0c0f]",
         backdropClass: "bg-black/55",
@@ -133,7 +133,7 @@ function buildConfig(event: CelebrationEvent): EventConfig {
 
     case "item-acquired": {
       const rarityMap: Record<string, Partial<EventConfig>> = {
-        LEGENDARY: { particleColors: ["#c9a227", "#f7e8a0", "#fbbf24", "#fff"], glowColor: "rgba(201,162,39,0.5)", cardBorderClass: "border-gold/70", cardBgClass: "from-[#120d00] via-stone-mid to-[#0a0c0f]" },
+        LEGENDARY: { particleColors: ["#c9a227", "#f7e8a0", "#fbbf24", "#fff"], glowColor: "rgba(212,175,55,0.5)", cardBorderClass: "border-gold/70", cardBgClass: "from-[#120d00] via-stone-mid to-[#0a0c0f]" },
         ARTIFACT:  { particleColors: ["#c43146", "#ff8a9b", "#fecdd3", "#fff"], glowColor: "rgba(196,49,70,0.5)", cardBorderClass: "border-crimson-bright/65", cardBgClass: "from-[#120003] via-stone-mid to-[#0a0c0f]" },
         MAGIC:     { particleColors: ["#9b59b6", "#c39bd3", "#ede9fe", "#fff"], glowColor: "rgba(155,89,182,0.4)", cardBorderClass: "border-purple-500/65", cardBgClass: "from-[#0d0012] via-stone-mid to-[#0a0c0f]" },
         RARE:      { particleColors: ["#4d72c9", "#7fa3e6", "#bfdbfe", "#fff"], glowColor: "rgba(77,114,201,0.4)", cardBorderClass: "border-arcane-bright/65", cardBgClass: "from-[#010718] via-stone-mid to-[#0a0c0f]" },
@@ -143,7 +143,7 @@ function buildConfig(event: CelebrationEvent): EventConfig {
         durationMs: 2400,
         particleCount: 22,
         particleColors: overrides.particleColors ?? ["#c9a227", "#fff"],
-        glowColor: overrides.glowColor ?? "rgba(201,162,39,0.35)",
+        glowColor: overrides.glowColor ?? "rgba(212,175,55,0.35)",
         cardBorderClass: overrides.cardBorderClass ?? "border-gold/60",
         cardBgClass: overrides.cardBgClass ?? "from-stone-surface to-stone-mid",
         backdropClass: "bg-black/48",

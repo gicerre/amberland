@@ -292,7 +292,7 @@ export function AppSidebar({ onSearch }: { onSearch?: () => void }) {
         className="pointer-events-none absolute inset-0 opacity-[0.025]"
         style={{
           backgroundImage:
-            "repeating-linear-gradient(45deg, rgba(201,162,39,0.5) 0px, transparent 1px, transparent 6px, rgba(201,162,39,0.5) 7px)",
+            "repeating-linear-gradient(45deg, rgba(212,175,55,0.5) 0px, transparent 1px, transparent 6px, rgba(212,175,55,0.5) 7px)",
           backgroundSize: "10px 10px",
         }}
       />

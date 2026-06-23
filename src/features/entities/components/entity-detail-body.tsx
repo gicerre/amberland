@@ -37,6 +37,7 @@ import {
   QUEST_STATUS_BADGES,
   QUEST_STATUS_OPTIONS,
 } from "../registry";
+import { QuestStatusIcon } from "./quest-status-icon";
 
 /* ────────────────────────────────────────────────────────────
  * Tipi condivisi (mirror di entity-view.tsx)
@@ -150,6 +151,7 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
           <p className="font-heading text-[9px] font-bold tracking-[0.3em] text-muted-foreground uppercase">
             Stato dell&rsquo;incarico
           </p>
+          <QuestStatusIcon status={status} className="size-14 drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]" />
           <Badge variant="outline" className={cn("px-5 py-2 font-heading text-sm font-bold uppercase tracking-wider", statusBadge)}>
             {statusLabel}
           </Badge>

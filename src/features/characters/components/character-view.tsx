@@ -53,7 +53,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { FrameCard, frameImageStyle, getAsset } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
-import { EntityTypeBanner } from "@/features/entities/components/entity-type-banner";
 import { QuickLinks } from "@/features/entities/components/quick-links";
 import { RelationPanel } from "@/features/entities/components/relation-panel";
 import { NoteLinksPanel } from "@/features/party/diary/note-links-panel";
@@ -217,9 +216,6 @@ export function CharacterView({ entity }: { entity: Entity }) {
 
   return (
     <div className="space-y-6">
-      {/* Banner identificativo della tipologia */}
-      <EntityTypeBanner entity={entity} />
-
       {/* Breadcrumb */}
       <FantasyBreadcrumb
         steps={[

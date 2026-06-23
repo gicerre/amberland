@@ -44,7 +44,7 @@ export function PartyHeaderPanel() {
 
   return (
     <WindowPanel
-      variant="03"
+      variant="04"
       className="h-full bg-gradient-to-b from-gold/10 to-night/60"
       contentClassName="flex flex-col items-center gap-3 text-center"
     >

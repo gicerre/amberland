@@ -30,6 +30,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/auth-provider";
 import { QUEST_EVENT_STYLE } from "@/features/entities/registry";
+import { QuestStatusIcon } from "@/features/entities/components/quest-status-icon";
 import {
   isFavorite,
   useFavorites,
@@ -286,15 +287,10 @@ function DiaryPage({
         <div className="mb-2 flex items-start justify-between gap-2">
           <div className="flex min-w-0 items-start gap-2">
             {evt && (
-              <span
-                className={cn(
-                  "mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md",
-                  evt.iconWrap
-                )}
-                title={`Quest: ${evt.label}`}
-              >
-                <evt.icon className="size-3.5" />
-              </span>
+              <QuestStatusIcon
+                status={note.questStatus}
+                className="mt-0.5 size-6 shrink-0"
+              />
             )}
             <h3 className="font-heading text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-gold-bright">
               {note.title}

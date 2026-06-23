@@ -12,6 +12,8 @@ import {
   type FieldValues,
 } from "react-hook-form"
 
+import { TriangleAlertIcon } from "lucide-react"
+
 import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 
@@ -94,7 +96,7 @@ function FormLabel({
     <Label
       data-slot="form-label"
       data-error={!!error}
-      className={cn("data-[error=true]:text-destructive", className)}
+      className={cn("data-[error=true]:text-crimson-bright", className)}
       htmlFor={formItemId}
       {...props}
     />
@@ -145,10 +147,14 @@ function FormMessage({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="form-message"
       id={formMessageId}
-      className={cn("text-destructive text-sm", className)}
+      className={cn(
+        "flex items-center gap-1.5 text-sm font-medium text-crimson-bright",
+        className
+      )}
       {...props}
     >
-      {body}
+      <TriangleAlertIcon className="size-3.5 shrink-0" />
+      <span>{body}</span>
     </p>
   )
 }

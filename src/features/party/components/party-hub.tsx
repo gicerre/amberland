@@ -1,9 +1,9 @@
 "use client";
 
-import { Backpack, BookText, Swords, Users } from "lucide-react";
 import { useState } from "react";
 
 import { HubShell, type HubSection } from "@/components/shared/hub-shell";
+import { imageIcon } from "@/components/shared/image-icon";
 
 import { BagSection } from "../bag/bag-section";
 import { DiaryBook } from "../diary/diary-book";
@@ -18,24 +18,30 @@ import { QuestOverviewBox } from "./quest-overview-box";
  * grandi card (Personaggi, Borsa Conservante, Diario di Campagna).
  * ============================================================ */
 
+// Icone custom (arte in /public/icons).
+const PartyIcon = imageIcon("/icons/dragon.png");
+const CharactersIcon = imageIcon("/icons/helmet.png");
+const BagIcon = imageIcon("/icons/box.png");
+const DiaryIcon = imageIcon("/icons/book.png");
+
 const SECTIONS: HubSection[] = [
   {
     value: "personaggi",
     label: "Personaggi",
     description: "La hall degli eroi",
-    icon: Users,
+    icon: CharactersIcon,
   },
   {
     value: "borsa",
     label: "Borsa Conservante",
     description: "Il deposito condiviso",
-    icon: Backpack,
+    icon: BagIcon,
   },
   {
     value: "diario",
     label: "Diario di Campagna",
     description: "Le cronache della compagnia",
-    icon: BookText,
+    icon: DiaryIcon,
   },
 ];
 
@@ -46,11 +52,14 @@ export function PartyHub() {
     <HubShell
       title="Il Party"
       subtitle="Il registro ufficiale della compagnia: eroi, tesori e cronache condivise."
-      icon={Swords}
+      icon={PartyIcon}
       headerPanel={<PartyHeaderPanel />}
       sections={SECTIONS}
       active={active}
       onSelect={setActive}
+      bareIcons
+      bannerImage="/images/bg_party.webp"
+      cardImage="/images/texture_boxes.webp"
     >
       <div className="space-y-6">
         <QuestOverviewBox />

@@ -71,12 +71,12 @@ export function SvgAssetBase({
  *  globals.css (--gold, --gold-bright, --iron-mid, --crimson, --foreground,
  *  --stone-highlight). */
 const COLOR_HEX: Record<AssetColor, string> = {
-  primary: "#b89018",
-  accent: "#d4a828",
-  secondary: "#2c2e3e",
-  danger: "#680e1c",
-  neutral: "#dcd0b0",
-  muted: "#191a26",
+  primary: "#c8a75d",
+  accent: "#d4af37",
+  secondary: "#3a4150",
+  danger: "#b91c1c",
+  neutral: "#d7ccb4",
+  muted: "#262d3a",
 };
 
 function svgDataUri(asset: AssetDefinition, hex: string): string {

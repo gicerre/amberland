@@ -19,6 +19,8 @@ import type { Entity } from "@/types/entities";
 import type { Note } from "@/types/notes";
 
 import { useEntityNotes, useNoteMutations, useNotes } from "./data";
+import { QuestStatusIcon } from "@/features/entities/components/quest-status-icon";
+
 import { NoteDetailDialog, NoteEditorDialog } from "./note-dialogs";
 
 /**
@@ -88,15 +90,10 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
                 )}
               >
                 {evt ? (
-                  <span
-                    className={cn(
-                      "flex size-5 shrink-0 items-center justify-center rounded",
-                      evt.iconWrap
-                    )}
-                    title={`Missione: ${evt.label}`}
-                  >
-                    <evt.icon className="size-3" />
-                  </span>
+                  <QuestStatusIcon
+                    status={note.questStatus}
+                    className="size-5 shrink-0"
+                  />
                 ) : isPersonal ? (
                   <Lock className="size-4 shrink-0 text-sky-300/80" />
                 ) : (

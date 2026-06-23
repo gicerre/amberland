@@ -38,6 +38,7 @@ export function ImageUpload({
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [urlDraft, setUrlDraft] = useState("");
+  const [dragOver, setDragOver] = useState(false);
 
   const handleFile = async (file: File | undefined) => {
     if (!file) return;
@@ -123,7 +124,25 @@ export function ImageUpload({
                 type="button"
                 disabled={uploading}
                 onClick={() => inputRef.current?.click()}
-                className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-gold/30 bg-night/30 text-muted-foreground transition-colors hover:border-gold/60 hover:text-gold disabled:opacity-60"
+                onDragOver={(event) => {
+                  event.preventDefault();
+                  if (!uploading) setDragOver(true);
+                }}
+                onDragLeave={(event) => {
+                  event.preventDefault();
+                  setDragOver(false);
+                }}
+                onDrop={(event) => {
+                  event.preventDefault();
+                  setDragOver(false);
+                  void handleFile(event.dataTransfer.files?.[0]);
+                }}
+                className={cn(
+                  "flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-muted-foreground shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)] transition-all disabled:opacity-60",
+                  dragOver
+                    ? "scale-[1.01] border-gold/70 bg-gold/10 text-gold-bright shadow-[0_0_22px_rgba(200,167,93,0.30),inset_0_0_30px_rgba(200,167,93,0.10)]"
+                    : "border-gold/30 bg-black/40 hover:border-gold/60 hover:text-gold"
+                )}
               >
                 {uploading ? (
                   <>
@@ -132,8 +151,17 @@ export function ImageUpload({
                   </>
                 ) : (
                   <>
-                    <ImagePlus className="size-6" />
-                    <span className="text-sm">Carica un&apos;immagine</span>
+                    <ImagePlus
+                      className={cn(
+                        "size-6 transition-transform",
+                        dragOver && "scale-110"
+                      )}
+                    />
+                    <span className="text-sm">
+                      {dragOver
+                        ? "Rilascia qui l'immagine"
+                        : "Carica o trascina un'immagine"}
+                    </span>
                     <span className="text-xs opacity-70">
                       PNG, JPG o WebP — max 10 MB
                     </span>

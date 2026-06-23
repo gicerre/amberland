@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useRef } from "react";
-import type { LucideIcon } from "lucide-react";
 
 import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { WindowPanel } from "@/design-system";
@@ -16,11 +15,14 @@ import { cn } from "@/lib/utils";
  * Desktop: grandi card di navigazione (invariate).
  * ============================================================ */
 
+/** Icona di sezione: componente lucide o wrapper immagine (PNG). */
+export type HubIcon = React.ComponentType<{ className?: string }>;
+
 export interface HubSection {
   value: string;
   label: string;
   description: string;
-  icon: LucideIcon;
+  icon: HubIcon;
 }
 
 const SWIPE_THRESHOLD = 55;
@@ -34,15 +36,24 @@ export function HubShell({
   active,
   onSelect,
   children,
+  bareIcons = false,
+  bannerImage,
+  cardImage,
 }: {
   title: string;
   subtitle: string;
-  icon: LucideIcon;
+  icon: HubIcon;
   headerPanel?: React.ReactNode;
   sections: HubSection[];
   active: string;
   onSelect: (value: string) => void;
   children: React.ReactNode;
+  /** Icone illustrate (PNG): niente riquadro, più grandi. */
+  bareIcons?: boolean;
+  /** Immagine di sfondo (scurita) del banner del titolo. */
+  bannerImage?: string;
+  /** Texture di sfondo delle card di navigazione (si scurisce verso il basso). */
+  cardImage?: string;
 }) {
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -77,15 +88,28 @@ export function HubShell({
       {/* Banner + pannello header */}
       <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1fr_minmax(0,20rem)] lg:items-stretch">
         <WindowPanel
-          variant="03"
+          variant="06"
           className="min-w-0 bg-gradient-to-br from-gold/12 via-card to-night/60"
           contentClassName="flex flex-col justify-center p-5 sm:p-8"
         >
+          {bannerImage && (
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-cover bg-center"
+              style={{
+                backgroundImage: `linear-gradient(to right, rgba(6,7,10,0.92), rgba(6,7,10,0.62) 55%, rgba(6,7,10,0.42)), url(${bannerImage})`,
+              }}
+            />
+          )}
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.14),transparent_60%)]" />
           <div className="relative flex items-center gap-4">
-            <span className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-gold/15 text-gold shadow-[0_0_30px_rgba(212,175,55,0.2)]">
-              <Icon className="size-7" />
-            </span>
+            {bareIcons ? (
+              <Icon className="size-24 shrink-0 drop-shadow-[0_3px_14px_rgba(0,0,0,0.6)] sm:size-32" />
+            ) : (
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-gold/15 text-gold shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                <Icon className="size-7" />
+              </span>
+            )}
             <div>
               <h1 className="text-gold-gradient font-heading text-2xl font-bold tracking-wider sm:text-4xl">
                 {title}
@@ -123,7 +147,8 @@ export function HubShell({
                 )}
                 <SectionIcon
                   className={cn(
-                    "size-5 transition-colors",
+                    "transition-colors",
+                    bareIcons ? "size-8" : "size-5",
                     isActive ? "text-gold" : "text-muted-foreground/70"
                   )}
                 />
@@ -151,24 +176,46 @@ export function HubShell({
               key={section.value}
               type="button"
               onClick={() => onSelect(section.value)}
+              style={
+                cardImage
+                  ? {
+                      backgroundImage: `linear-gradient(to bottom, rgba(11,13,18,0.28) 0%, rgba(8,9,13,0.72) 55%, rgba(6,7,10,0.95) 100%), url(${cardImage})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }
+                  : undefined
+              }
               className={cn(
                 "group relative flex flex-col items-center gap-3 overflow-hidden rounded-2xl border p-6 text-center transition-all",
                 isActive
-                  ? "border-gold/60 bg-gradient-to-b from-gold/15 to-transparent shadow-[0_0_28px_rgba(212,175,55,0.18)]"
-                  : "border-gold/20 bg-card/60 hover:-translate-y-0.5 hover:border-gold/45 hover:bg-gold/5 hover:shadow-[0_0_24px_rgba(212,175,55,0.12)]"
+                  ? "border-gold/60 shadow-[0_0_28px_rgba(212,175,55,0.18)]"
+                  : "border-gold/20 hover:-translate-y-0.5 hover:border-gold/45 hover:shadow-[0_0_24px_rgba(212,175,55,0.12)]",
+                !cardImage &&
+                  (isActive
+                    ? "bg-gradient-to-b from-gold/15 to-transparent"
+                    : "bg-card/60 hover:bg-gold/5")
               )}
             >
               {isActive && <CornerOrnaments className="size-4 border-gold/50" />}
-              <span
-                className={cn(
-                  "flex size-16 items-center justify-center rounded-2xl border transition-colors",
-                  isActive
-                    ? "border-gold/50 bg-gold/15 text-gold"
-                    : "border-gold/25 bg-night/40 text-muted-foreground group-hover:text-gold"
-                )}
-              >
-                <SectionIcon className="size-8" />
-              </span>
+              {bareIcons ? (
+                <SectionIcon
+                  className={cn(
+                    "size-20 drop-shadow-[0_3px_12px_rgba(0,0,0,0.55)] transition-transform duration-200 group-hover:scale-105",
+                    isActive ? "text-gold" : "text-muted-foreground group-hover:text-gold"
+                  )}
+                />
+              ) : (
+                <span
+                  className={cn(
+                    "flex size-16 items-center justify-center rounded-2xl border transition-colors",
+                    isActive
+                      ? "border-gold/50 bg-gold/15 text-gold"
+                      : "border-gold/25 bg-night/40 text-muted-foreground group-hover:text-gold"
+                  )}
+                >
+                  <SectionIcon className="size-8" />
+                </span>
+              )}
               <span>
                 <span
                   className={cn(

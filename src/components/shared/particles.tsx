@@ -83,7 +83,7 @@ export function EmberParticles({
           }
 
           const flicker = ember.alpha * (0.7 + 0.3 * Math.sin(ember.pulse * 3));
-          const color = ember.gold ? "212,175,55" : "196,49,70";
+          const color = ember.gold ? "212,175,55" : "220,38,38";
           const gradient = context.createRadialGradient(
             ember.x,
             ember.y,

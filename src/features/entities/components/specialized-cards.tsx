@@ -9,19 +9,15 @@
  */
 
 import {
-  CheckCircle2,
   EyeOff,
   Flag,
   Gem,
   Heart,
   Lock,
   MapPin,
-  ScrollText,
   Shield,
   Skull,
   Sparkles,
-  Swords,
-  XCircle,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -44,6 +40,7 @@ import {
   CHARACTER_STATUS_LABELS,
 } from "@/features/characters/constants";
 import { EntityCard } from "./entity-card";
+import { QuestStatusIcon } from "./quest-status-icon";
 import {
   CREATURE_STATUS_BADGES,
   CREATURE_STATUS_OPTIONS,
@@ -126,8 +123,9 @@ export function QuestCard({ entity }: { entity: Entity }) {
 
         {/* Icona + status label */}
         <div className="mb-2 flex items-center justify-between gap-2">
-          <p className={cn("font-heading text-[9px] font-bold tracking-[0.25em] uppercase", labelColor)}>
-            ◆ {statusLabel}
+          <p className={cn("flex items-center gap-1.5 font-heading text-[9px] font-bold tracking-[0.25em] uppercase", labelColor)}>
+            <QuestStatusIcon status={status} className="size-4" />
+            {statusLabel}
           </p>
           {isMaster && isHiddenFromPlayers(entity) && (
             <span className="flex size-5 shrink-0 items-center justify-center rounded-full border border-amber-500/40 bg-background/80">
@@ -165,26 +163,13 @@ export function QuestCard({ entity }: { entity: Entity }) {
       </div>
 
       {/* Sigillo di stato — angolo in basso a destra */}
-      <QuestStatusIcon status={status} />
+      <div className="flex items-end p-3 pb-4">
+        <QuestStatusIcon
+          status={status}
+          className="size-10 opacity-25 transition-opacity group-hover:opacity-45"
+        />
+      </div>
     </Link>
-  );
-}
-
-function QuestStatusIcon({ status }: { status: string }) {
-  const icons: Record<string, { Icon: typeof Swords; cls: string }> = {
-    ACTIVE:    { Icon: Swords,       cls: "text-gold" },
-    NEXT:      { Icon: ScrollText,   cls: "text-amber-bright" },
-    COMPLETED: { Icon: CheckCircle2, cls: "text-emerald-bright" },
-    FAILED:    { Icon: XCircle,      cls: "text-red-400" },
-    AVAILABLE: { Icon: ScrollText,   cls: "text-muted-foreground" },
-    SECRET:    { Icon: EyeOff,       cls: "text-arcane-bright" },
-  };
-  const cfg = icons[status] ?? icons.AVAILABLE;
-  const { Icon, cls } = cfg;
-  return (
-    <div className="flex items-end p-3 pb-4">
-      <Icon className={cn("size-7 opacity-25 transition-opacity group-hover:opacity-40", cls)} />
-    </div>
   );
 }
 

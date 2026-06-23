@@ -41,7 +41,7 @@ export function BreadcrumbTab({
         className={cn(
           "size-full transition-[color,filter] duration-150",
           isCurrent
-            ? "text-gold/70 [filter:drop-shadow(0_0_6px_rgba(184,144,24,0.35))]"
+            ? "text-gold/70 [filter:drop-shadow(0_0_6px_rgba(200,167,93,0.35))]"
             : "text-gold/20 group-hover/tab:text-gold/40",
           shellClass
         )}

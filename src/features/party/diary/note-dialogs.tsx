@@ -31,10 +31,10 @@ import { useAuth } from "@/features/auth/auth-provider";
 import { useAllEntities } from "@/features/entities/data";
 import {
   ENTITY_REGISTRY,
-  QUEST_EVENT_STYLE,
   VISIBILITY_BADGES,
   VISIBILITY_LABELS,
 } from "@/features/entities/registry";
+import { QuestStatusIcon } from "@/features/entities/components/quest-status-icon";
 import {
   VISIBILITIES,
   type Entity,
@@ -207,13 +207,9 @@ export function NoteDetailDialog({
 
   const canEdit = isMaster || note.authorId === user?.uid;
 
-  const headerIcon =
-    note.questStatus && QUEST_EVENT_STYLE[note.questStatus]
-      ? (() => {
-          const Icon = QUEST_EVENT_STYLE[note.questStatus].icon;
-          return <Icon />;
-        })()
-      : undefined;
+  const headerIcon = note.questStatus ? (
+    <QuestStatusIcon status={note.questStatus} className="size-6" />
+  ) : undefined;
 
   return (
     <>

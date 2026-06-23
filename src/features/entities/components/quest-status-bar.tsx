@@ -10,6 +10,7 @@ import type { Entity } from "@/types/entities";
 
 import { useEntityMutations } from "../data";
 import { QUEST_STATUS_BADGES, QUEST_STATUS_OPTIONS } from "../registry";
+import { QuestStatusIcon } from "./quest-status-icon";
 
 /** Formatta una data (stringa ISO o Timestamp Firestore) in IT. */
 function formatDate(value: unknown): string | null {
@@ -97,12 +98,13 @@ export function QuestStatusBar({ entity }: { entity: Entity }) {
                   onClick={() => setStatus(option.value)}
                   disabled={update.isPending}
                   className={cn(
-                    "rounded-full border px-3 py-1 text-xs transition-colors",
+                    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs transition-colors",
                     active
                       ? cn("font-semibold", QUEST_STATUS_BADGES[option.value])
                       : "border-gold/20 text-muted-foreground hover:border-gold/45 hover:text-foreground"
                   )}
                 >
+                  <QuestStatusIcon status={option.value} className="size-4" />
                   {option.label}
                 </button>
               );

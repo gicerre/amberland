@@ -99,7 +99,7 @@ export default function HomePage() {
       >
         {/* <FrameCard
         glow
-        className="bg-[radial-gradient(ellipse_at_top_left,rgba(201,162,39,0.1),transparent_60%)]"
+        className="bg-[radial-gradient(ellipse_at_top_left,rgba(212,175,55,0.1),transparent_60%)]"
         contentClassName="p-8 sm:p-10"
       > */}
 
