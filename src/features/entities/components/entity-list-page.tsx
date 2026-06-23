@@ -18,9 +18,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { TomeHeading } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { cn } from "@/lib/utils";
 import type { Entity, EntityType } from "@/types/entities";
+
+/** Tipi con card "ritratto" (codex denso): 2 colonne anche su mobile. */
+const DENSE_TYPES = new Set<EntityType>([
+  "character",
+  "creature",
+  "faction",
+  "item",
+]);
 
 import { useEntitiesByType } from "../data";
 import { ENTITY_REGISTRY } from "../registry";
@@ -150,6 +159,13 @@ export function EntityListPage({
     return known.filter((group) => group.items.length > 0);
   }, [groupDef, filtered, customGroups]);
 
+  // Griglia adattiva: codex denso (2 col su mobile) per le card "ritratto",
+  // griglia ampia (1 col su mobile) per quest e schede generiche.
+  const dense = DENSE_TYPES.has(type);
+  const gridClass = dense
+    ? "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4"
+    : "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3";
+
   return (
     <div>
       <PageHeader
@@ -196,7 +212,7 @@ export function EntityListPage({
           </div>
         )}
 
-        <div className="ml-auto shrink-0 inline-flex rounded-lg border border-gold/20 bg-night/30 p-1">
+        <div className="ml-auto inline-flex shrink-0 rounded-lg border border-gold/20 bg-black/30 p-1 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]">
           <ViewToggle
             active={view === "card"}
             onClick={() => changeView("card")}
@@ -213,9 +229,15 @@ export function EntityListPage({
       </div>
 
       {isLoading ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, index) => (
-            <Skeleton key={index} className="h-60 rounded-xl bg-muted/60" />
+        <div className={gridClass}>
+          {Array.from({ length: dense ? 6 : 3 }).map((_, index) => (
+            <Skeleton
+              key={index}
+              className={cn(
+                "rounded-xl bg-muted/60",
+                dense ? "aspect-[3/4]" : "h-52"
+              )}
+            />
           ))}
         </div>
       ) : filtered.length === 0 ? (
@@ -239,15 +261,9 @@ export function EntityListPage({
         <div className="space-y-8">
           {groups.map((group) => (
             <section key={group.value}>
-              <h2 className="font-heading mb-3 flex items-center gap-2 text-lg font-semibold tracking-wider">
-                {group.label}
-                <span className="text-sm font-normal text-muted-foreground">
-                  ({group.items.length})
-                </span>
-              </h2>
+              <TomeHeading title={group.label} meta={group.items.length} />
               {view === "card" ? (
-                
-                <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div className={gridClass}>
                   {group.items.map((entity) => (
                     <SpecializedEntityCard
                       key={entity.id}
@@ -263,7 +279,7 @@ export function EntityListPage({
           ))}
         </div>
       ) : view === "card" ? (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <div className={gridClass}>
           {filtered.map((entity) => (
             <SpecializedEntityCard key={entity.id} entity={entity} showType={false} />
           ))}
@@ -355,10 +371,10 @@ function ViewToggle({
       aria-pressed={active}
       title={label}
       className={cn(
-        "flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors",
+        "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
         active
-          ? "bg-gold/20 text-gold-bright"
-          : "text-muted-foreground hover:text-foreground"
+          ? "bg-gradient-to-b from-gold/25 to-gold/10 text-gold-bright shadow-[inset_0_1px_0_rgba(212,175,55,0.2)]"
+          : "text-muted-foreground hover:bg-gold/5 hover:text-foreground"
       )}
     >
       {icon}
@@ -381,10 +397,10 @@ function FilterChip({
       type="button"
       onClick={onClick}
       className={cn(
-        "rounded-full border px-3 py-1 text-xs transition-colors",
+        "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all",
         active
-          ? "border-gold/60 bg-gold/15 font-semibold text-gold-bright"
-          : "border-gold/20 text-muted-foreground hover:border-gold/40 hover:text-foreground"
+          ? "border-gold/55 bg-gradient-to-b from-gold/25 to-gold/10 font-semibold text-gold-bright shadow-[inset_0_1px_0_rgba(212,175,55,0.25)]"
+          : "border-gold/20 bg-black/20 text-muted-foreground hover:border-gold/45 hover:text-foreground"
       )}
     >
       {label}

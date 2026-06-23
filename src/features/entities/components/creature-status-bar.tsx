@@ -38,10 +38,10 @@ export function CreatureStatusBar({ entity }: { entity: Entity }) {
               onClick={() => setStatus(option.value)}
               disabled={update.isPending}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs transition-colors",
+                "rounded-full border px-3.5 py-2 text-xs transition-colors",
                 active
                   ? cn("font-semibold", CREATURE_STATUS_BADGES[option.value])
-                  : "border-gold/20 text-muted-foreground hover:border-gold/45 hover:text-foreground"
+                  : "border-gold/20 bg-black/20 text-muted-foreground hover:border-gold/45 hover:text-foreground"
               )}
             >
               {option.label}

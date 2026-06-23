@@ -1,27 +1,33 @@
 "use client";
 
 import {
+  BookText,
   Eye,
   EyeOff,
   Heart,
+  Images,
   MoreHorizontal,
+  Package,
   Pencil,
   Plus,
+  ScrollText,
   Skull,
   Sparkles,
   Trash2,
+  User,
   UserCog,
   Users,
+  Wand2,
   X,
   ZoomIn,
+  type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FantasyBreadcrumb } from "@/components/shared/fantasy-breadcrumb";
-import { SectionDivider } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { useLightbox } from "@/components/shared/lightbox";
 import { RichTextRenderer } from "@/components/shared/rich-text-lazy";
@@ -81,7 +87,25 @@ import {
 } from "../constants";
 import { makeHistoryEntry, useCharacterMutations } from "../data";
 import { CharacterFormSheet } from "./character-form-sheet";
-import { CharacterSheetDisplay } from "./sheet-display";
+import {
+  AbilityMedallions,
+  BiographyTome,
+  ClassesRow,
+  CombatPanel,
+  CompanionsSection,
+  HpBar,
+  IdentityDetails,
+  InventoryDisplay,
+  MagicDisplay,
+  QuickStats,
+  SheetHeading,
+  SkillsPanel,
+  sheetHasBio,
+  sheetHasInventory,
+  sheetHasMagic,
+} from "./sheet-display";
+
+type TabId = "panoramica" | "inventario" | "magie" | "biografia" | "galleria";
 
 /** Pagina di dettaglio dedicata di un personaggio (PC o NPC). */
 export function CharacterView({ entity }: { entity: Entity }) {
@@ -97,6 +121,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [tab, setTab] = useState<TabId>("panoramica");
 
   const isOwner = Boolean(entity.ownerId && entity.ownerId === user?.uid);
   const canEdit = isMaster || isOwner;
@@ -111,16 +136,18 @@ export function CharacterView({ entity }: { entity: Entity }) {
   // La scheda: per i PC sul doc, per gli NPC nei dati riservati (master).
   const sheet = isPC ? entity.sheet : privateData?.reservedSheet;
 
-  // Razza/classe: pubbliche dai campi; per gli NPC nascosti il Master le
-  // vede comunque dai dati riservati.
   const race =
     String(entity.fields.race ?? "") ||
     (isMaster ? (privateData?.reservedRace ?? "") : "");
   const klass =
     String(entity.fields.class ?? "") ||
     (isMaster ? (privateData?.reservedClass ?? "") : "");
-  const level = entity.fields.level;
+  const level = Number(entity.fields.level ?? 0);
   const alignment = String(entity.fields.alignment ?? "");
+
+  const totalLevel = sheet
+    ? sheet.classes.reduce((sum, entry) => sum + (entry.level || 0), 0) || level
+    : level;
 
   const tokenUrl = sheet?.tokenUrl ?? "";
   const altPortraits = sheet?.altPortraits ?? [];
@@ -131,22 +158,48 @@ export function CharacterView({ entity }: { entity: Entity }) {
     ...appearanceImages,
   ].filter(Boolean);
   const galleryOffset = entity.imageUrl ? 1 : 0;
-  const appearanceOffset =
-    (entity.imageUrl ? 1 : 0) + entity.gallery.length;
+  const appearanceOffset = (entity.imageUrl ? 1 : 0) + entity.gallery.length;
 
-  const stats = [
-    { label: "Tipo", value: CHARACTER_KIND_LABELS[kind] },
-    { label: "Razza", value: race },
-    {
+  // Fatti d'identità (chip nell'Hero).
+  const facts = [
+    race && { label: "Razza", value: race },
+    klass && {
       label: "Classe",
-      value: klass && level ? `${klass} ${level}` : klass,
+      value: totalLevel ? `${klass} ${totalLevel}` : klass,
     },
-    { label: "Allineamento", value: alignment },
-    isMaster || isOwner ? { label: "Proprietario", value: ownerName } : null,
-  ].filter(
-    (item): item is { label: string; value: string } =>
-      item !== null && Boolean(item.value)
-  );
+    alignment && { label: "Allineamento", value: alignment },
+    sheet?.background && { label: "Background", value: sheet.background },
+    (isMaster || isOwner) && ownerName
+      ? { label: "Giocatore", value: ownerName }
+      : null,
+  ].filter(Boolean) as { label: string; value: string }[];
+
+  const hasGallery = entity.gallery.length > 0 || appearanceImages.length > 0;
+  const hasMasterArea =
+    isMaster &&
+    (!isEmptyRichText(privateData?.masterNotes as RichTextValue) ||
+      !isEmptyRichText(privateData?.secrets as RichTextValue));
+  const hasHistory = (entity.history?.length ?? 0) > 0 || canEdit;
+  const hasBioTab =
+    (sheet ? sheetHasBio(sheet) : false) || hasHistory || hasMasterArea;
+
+  // Tab disponibili in base ai contenuti reali.
+  const tabs = useMemo(() => {
+    const list: { id: TabId; label: string; icon: LucideIcon }[] = [
+      { id: "panoramica", label: "Panoramica", icon: ScrollText },
+    ];
+    if (sheet && sheetHasInventory(sheet))
+      list.push({ id: "inventario", label: "Inventario", icon: Package });
+    if (sheet && sheetHasMagic(sheet))
+      list.push({ id: "magie", label: "Magie", icon: Wand2 });
+    if (hasBioTab)
+      list.push({ id: "biografia", label: "Biografia", icon: BookText });
+    if (hasGallery)
+      list.push({ id: "galleria", label: "Galleria", icon: Images });
+    return list;
+  }, [sheet, hasBioTab, hasGallery]);
+
+  const activeTab = tabs.some((t) => t.id === tab) ? tab : "panoramica";
 
   const handleDelete = () =>
     remove.mutate(entity, {
@@ -156,9 +209,6 @@ export function CharacterView({ entity }: { entity: Entity }) {
       },
     });
 
-  // Voci azione condivise tra barra desktop e menu overflow mobile: definite
-  // una sola volta per garantire che i permessi (RBAC) restino identici nelle
-  // due viste responsive.
   const statusItems = CHARACTER_STATUSES.map((value) => (
     <DropdownMenuItem
       key={value}
@@ -204,19 +254,76 @@ export function CharacterView({ entity }: { entity: Entity }) {
         </DropdownMenuItem>
       )}
       <DropdownMenuSeparator />
-      <DropdownMenuItem
-        variant="destructive"
-        onSelect={() => setDeleteOpen(true)}
-      >
+      <DropdownMenuItem variant="destructive" onSelect={() => setDeleteOpen(true)}>
         <Trash2 className="size-4" />
         Elimina
       </DropdownMenuItem>
     </>
   ) : null;
 
+  const actions = canEdit ? (
+    <div className="flex shrink-0 items-center gap-2">
+      {kind === "NPC" && !npcComplete && isMaster && (
+        <Button
+          variant="outline"
+          size="sm"
+          className="hidden sm:inline-flex"
+          onClick={() => convertToFull.mutate(entity)}
+          disabled={convertToFull.isPending}
+        >
+          <Sparkles className="size-4" />
+          Completa scheda
+        </Button>
+      )}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="sm" className="hidden sm:inline-flex">
+            <Heart className="size-4" />
+            Stato
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuLabel>Imposta stato</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {statusItems}
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <Button size="sm" onClick={() => setEditOpen(true)}>
+        <Pencil className="size-4" />
+        <span className="hidden sm:inline">Modifica</span>
+      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="outline" size="icon-sm" aria-label="Altre azioni">
+            <MoreHorizontal />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          {kind === "NPC" && !npcComplete && isMaster && (
+            <DropdownMenuItem
+              onSelect={() => convertToFull.mutate(entity)}
+              disabled={convertToFull.isPending}
+            >
+              <Sparkles className="size-4" />
+              Completa scheda
+            </DropdownMenuItem>
+          )}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Heart className="size-4" />
+              Stato
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>{statusItems}</DropdownMenuSubContent>
+          </DropdownMenuSub>
+          {adminItems && <DropdownMenuSeparator />}
+          {adminItems}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  ) : null;
+
   return (
-    <div className="space-y-6">
-      {/* Breadcrumb */}
+    <div className="space-y-5">
       <FantasyBreadcrumb
         steps={[
           { label: "Mondo", href: "/mondo" },
@@ -228,166 +335,103 @@ export function CharacterView({ entity }: { entity: Entity }) {
         ]}
       />
 
-      {/* Hero */}
-      <header>
-        {entity.imageUrl && (
+      {/* ════════ HERO — Character Identity Card ════════ */}
+      <header className="space-y-4">
+        {entity.imageUrl ? (
           <button
             type="button"
             onClick={() => openLightbox(allImages, 0, entity.name)}
             aria-label={`Apri ${entity.name} a schermo intero`}
-            className="group relative mb-6 block w-full cursor-zoom-in overflow-hidden rounded-xl"
+            className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl"
           >
             <FantasyImage
               src={entity.imageUrl}
               alt={entity.name}
-              className={cn("h-64 sm:h-80 lg:h-96", isDead && "grayscale")}
+              className={cn("h-60 sm:h-80 lg:h-96", isDead && "grayscale")}
               sizes="(max-width: 1024px) 100vw, 896px"
               priority
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-            <span className="pointer-events-none absolute right-3 bottom-3 z-30 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/35 to-transparent" />
+            <span className="pointer-events-none absolute top-3 right-3 z-30 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
               <ZoomIn className="size-4.5" />
             </span>
+            {/* Nome + sigilli sovrapposti (sopra la cornice) */}
+            <div className="absolute inset-x-0 bottom-0 z-30 p-5 text-left sm:p-7">
+              <h1 className="text-gold-gradient flex items-center gap-2 font-heading text-2xl font-bold tracking-wider drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-4xl">
+                {entity.name}
+                {isDead && <Skull className="size-6 text-red-400" />}
+              </h1>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <HeroBadges
+                  kind={kind}
+                  status={status}
+                  npcComplete={npcComplete}
+                  isMaster={isMaster}
+                  visibility={entity.visibility}
+                />
+              </div>
+            </div>
+            {totalLevel > 0 && <LevelCrest level={totalLevel} />}
             <FrameOverlay asset={getAsset("window_08")} borderWidth="1.5rem" />
           </button>
-        )}
-
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="text-gold-gradient font-heading text-3xl font-bold tracking-wider sm:text-4xl">
+        ) : (
+          // Senza ritratto: targa d'identità con placeholder.
+          <div className="flex items-center gap-4 rounded-2xl border border-gold/20 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-5">
+            <span className="flex size-16 shrink-0 items-center justify-center rounded-xl border border-gold/25 bg-night/40 text-gold/50">
+              <User className="size-8" />
+            </span>
+            <div className="min-w-0">
+              <h1 className="text-gold-gradient flex items-center gap-2 font-heading text-2xl font-bold tracking-wider sm:text-3xl">
                 {entity.name}
+                {isDead && <Skull className="size-5 text-red-400" />}
               </h1>
-              {isDead && <Skull className="size-6 text-red-400" />}
-            </div>
-            <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
-              <Badge variant="outline" className={CHARACTER_KIND_BADGES[kind]}>
-                {CHARACTER_KIND_LABELS[kind]}
-              </Badge>
-              <Badge
-                variant="outline"
-                className={CHARACTER_STATUS_BADGES[status]}
-              >
-                {CHARACTER_STATUS_LABELS[status]}
-              </Badge>
-              {kind === "NPC" && !npcComplete && (
-                <Badge
-                  variant="outline"
-                  className="border-zinc-500/50 bg-zinc-500/10 text-zinc-300"
-                >
-                  {NPC_TYPE_LABELS.SIMPLE}
-                </Badge>
-              )}
-              {isMaster && (
-                <Badge
-                  variant="outline"
-                  className={VISIBILITY_BADGES[entity.visibility]}
-                >
-                  {entity.visibility === "PUBLIC" ? (
-                    <Eye className="size-3" />
-                  ) : (
-                    <EyeOff className="size-3" />
-                  )}
-                  {VISIBILITY_LABELS[entity.visibility]}
-                </Badge>
-              )}
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <HeroBadges
+                  kind={kind}
+                  status={status}
+                  npcComplete={npcComplete}
+                  isMaster={isMaster}
+                  visibility={entity.visibility}
+                />
+              </div>
             </div>
           </div>
+        )}
 
-          {canEdit && (
-            <div className="flex items-center gap-2">
-              {/* ── Desktop (≥sm): barra azioni estesa con etichette ── */}
-              <div className="hidden items-center gap-2 sm:flex">
-                {kind === "NPC" && !npcComplete && isMaster && (
-                  <Button
-                    variant="outline"
-                    onClick={() => convertToFull.mutate(entity)}
-                    disabled={convertToFull.isPending}
+        {/* Striscia d'identità: fatti + HP + azioni */}
+        <div className="rounded-2xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-4 shadow-[0_8px_30px_-14px_rgba(0,0,0,0.7)] sm:p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            {facts.length > 0 ? (
+              <div className="flex min-w-0 flex-wrap gap-2">
+                {facts.map((fact) => (
+                  <span
+                    key={fact.label}
+                    className="inline-flex items-baseline gap-1.5 rounded-lg border border-gold/15 bg-night/40 px-3 py-1.5"
                   >
-                    <Sparkles className="size-4" />
-                    Completa scheda
-                  </Button>
-                )}
-
-                {/* Stato rapido */}
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline">
-                      <Heart className="size-4" />
-                      Stato
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel>Imposta stato</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {statusItems}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Button onClick={() => setEditOpen(true)}>
-                  <Pencil className="size-4" />
-                  
-                </Button>
-
-                {adminItems && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        aria-label="Altre azioni"
-                      >
-                        <MoreHorizontal />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56">
-                      {adminItems}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+                    <span className="text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                      {fact.label}
+                    </span>
+                    <span className="font-heading text-sm font-semibold text-gold-bright">
+                      {fact.value}
+                    </span>
+                  </span>
+                ))}
               </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                Nessun dettaglio d&rsquo;identità ancora registrato.
+              </p>
+            )}
+            {actions}
+          </div>
 
-              {/* ── Mobile (<sm): azione primaria + overflow consolidato ── */}
-              <div className="flex items-center gap-2 sm:hidden">
-                <Button onClick={() => setEditOpen(true)} className="min-h-11">
-                  <Pencil className="size-4" />
-                  <span className="sm:inline hidden">Modifica</span>
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="size-11"
-                      aria-label="Altre azioni"
-                    >
-                      <MoreHorizontal />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    {kind === "NPC" && !npcComplete && isMaster && (
-                      <DropdownMenuItem
-                        onSelect={() => convertToFull.mutate(entity)}
-                        disabled={convertToFull.isPending}
-                      >
-                        <Sparkles className="size-4" />
-                        Completa scheda
-                      </DropdownMenuItem>
-                    )}
-                    <DropdownMenuSub>
-                      <DropdownMenuSubTrigger>
-                        <Heart className="size-4" />
-                        Stato
-                      </DropdownMenuSubTrigger>
-                      <DropdownMenuSubContent>
-                        {statusItems}
-                      </DropdownMenuSubContent>
-                    </DropdownMenuSub>
-                    {adminItems && <DropdownMenuSeparator />}
-                    {adminItems}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+          {sheet && (sheet.maxHp > 0 || sheet.currentHp > 0) && (
+            <div className="mt-4">
+              <HpBar
+                current={sheet.currentHp}
+                max={sheet.maxHp}
+                temp={sheet.tempHp}
+              />
             </div>
           )}
         </div>
@@ -396,153 +440,201 @@ export function CharacterView({ entity }: { entity: Entity }) {
       {/* Collegamenti rapidi */}
       <QuickLinks entity={entity} />
 
-      {/* Statistiche identità */}
-      {stats.length > 0 && (
-        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          {stats.map((stat) => (
-            <div
-              key={stat.label}
-              className="rounded-lg border border-gold/15 bg-card/60 px-4 py-3"
-            >
-              <dt className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
-                {stat.label}
-              </dt>
-              <dd className="mt-1 font-heading font-semibold text-gold-bright">
-                {stat.value}
-              </dd>
-            </div>
-          ))}
-        </dl>
-      )}
+      {/* ════════ QUICK STATS (sotto l'Hero, sempre visibili) ════════ */}
+      {sheet && <QuickStats sheet={sheet} />}
 
-      {/* Descrizione */}
-      {!isEmptyRichText(entity.description as RichTextValue) ? (
-        <div className="parchment rounded-xl p-6 sm:p-8">
-          <RichTextRenderer
-            content={entity.description as RichTextValue}
-            className="text-base leading-relaxed sm:text-lg"
-          />
+      {/* ════════ TABS sticky ════════ */}
+      {tabs.length > 1 && (
+        <div className="sticky top-12 z-30 -mx-1 rounded-xl border border-gold/15 bg-stone-mid/95 px-1.5 py-1.5 backdrop-blur supports-backdrop-filter:bg-stone-mid/80 sm:top-13 lg:top-2">
+          <div className="flex gap-1 overflow-x-auto">
+            {tabs.map((t) => {
+              const isActive = t.id === activeTab;
+              const Icon = t.icon;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setTab(t.id)}
+                  aria-current={isActive}
+                  className={cn(
+                    "flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition-all",
+                    isActive
+                      ? "bg-gradient-to-b from-gold/25 to-gold/10 text-gold-bright shadow-[inset_0_1px_0_rgba(212,175,55,0.25)]"
+                      : "text-muted-foreground hover:bg-gold/5 hover:text-foreground"
+                  )}
+                >
+                  <Icon className="size-4" />
+                  {t.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      ) : (
-        canEdit && (
-          <div className="rounded-xl border border-dashed border-gold/20 p-6 text-center text-sm text-muted-foreground">
-            Nessuna descrizione.{" "}
-            <button
-              type="button"
-              onClick={() => setEditOpen(true)}
-              className="text-gold underline-offset-2 hover:underline"
-            >
-              Scrivila ora
-            </button>
-            .
-          </div>
-        )
       )}
 
-      {/* Scheda D&D completa (PC: dal doc; NPC: riservata, solo Master) */}
-      {sheet && (
-        <CharacterSheetDisplay
-          sheet={sheet}
-          ownerName={String(entity.fields.ownerName ?? "")}
-        />
-      )}
-
-      {/* Galleria */}
-      {entity.gallery.length > 0 && (
-        <section>
-          <SectionTitle title="Galleria" />
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-            {entity.gallery.map((url, index) => (
-              <button
-                key={`${url}-${index}`}
-                type="button"
-                onClick={() =>
-                  openLightbox(allImages, galleryOffset + index, entity.name)
-                }
-                className="group relative aspect-video cursor-zoom-in overflow-hidden rounded-lg border border-gold/20 transition-all hover:border-gold/50"
-              >
-                <Image
-                  src={url}
-                  alt={`${entity.name} — immagine ${index + 1}`}
-                  fill
-                  sizes="(max-width: 640px) 50vw, 25vw"
-                  className="object-cover transition-transform group-hover:scale-105"
-                />
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Token e ritratti alternativi */}
-      {appearanceImages.length > 0 && (
-        <section>
-          <SectionTitle title="Token e ritratti" />
-          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-            {appearanceImages.map((url, index) => (
-              <button
-                key={`${url}-${index}`}
-                type="button"
-                onClick={() =>
-                  openLightbox(allImages, appearanceOffset + index, entity.name)
-                }
-                className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-lg border border-gold/20 transition-all hover:border-gold/50"
-              >
-                <Image
-                  src={url}
-                  alt={`${entity.name} — ritratto ${index + 1}`}
-                  fill
-                  sizes="(max-width: 640px) 33vw, 16vw"
-                  className="object-cover transition-transform group-hover:scale-105"
-                />
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Relazioni con il mondo */}
-      <RelationPanel entity={entity} />
-
-      {/* Note collegate */}
-      <NoteLinksPanel entity={entity} />
-
-      {/* Storico / progressione */}
-      <HistorySection entity={entity} canEdit={canEdit} />
-
-      {/* Area riservata al Master */}
-      {isMaster &&
-        (!isEmptyRichText(privateData?.masterNotes as RichTextValue) ||
-          !isEmptyRichText(privateData?.secrets as RichTextValue)) && (
-          <FrameCard color="danger" className="bg-crimson/10" contentClassName="p-5">
-            <h2 className="font-heading mb-3 flex items-center gap-2 text-lg font-semibold tracking-wider text-red-200">
-              <UserCog className="size-4.5" />
-              Area riservata al Master
-            </h2>
-            {!isEmptyRichText(privateData?.masterNotes as RichTextValue) && (
-              <div className="mb-4">
-                <p className="mb-1 text-xs font-semibold tracking-[0.2em] text-red-300/80 uppercase">
-                  Note
-                </p>
-                <RichTextRenderer
-                  content={privateData?.masterNotes as RichTextValue}
-                  className="text-[15px] leading-relaxed text-foreground/90"
-                />
+      {/* ════════ TAB: PANORAMICA ════════ */}
+      {activeTab === "panoramica" && (
+        <div className="animate-[console-page-in_260ms_ease-out_both] space-y-6">
+          {!isEmptyRichText(entity.description as RichTextValue) ? (
+            <div className="parchment rounded-xl p-5 sm:p-7">
+              <RichTextRenderer
+                content={entity.description as RichTextValue}
+                className="text-base leading-relaxed sm:text-lg"
+              />
+            </div>
+          ) : (
+            canEdit && (
+              <div className="rounded-xl border border-dashed border-gold/20 p-6 text-center text-sm text-muted-foreground">
+                Nessuna descrizione.{" "}
+                <button
+                  type="button"
+                  onClick={() => setEditOpen(true)}
+                  className="text-gold underline-offset-2 hover:underline"
+                >
+                  Scrivila ora
+                </button>
+                .
               </div>
-            )}
-            {!isEmptyRichText(privateData?.secrets as RichTextValue) && (
-              <div>
-                <p className="mb-1 text-xs font-semibold tracking-[0.2em] text-red-300/80 uppercase">
-                  Segreti
-                </p>
-                <RichTextRenderer
-                  content={privateData?.secrets as RichTextValue}
-                  className="text-[15px] leading-relaxed text-foreground/90"
-                />
+            )
+          )}
+
+          {sheet && (
+            <>
+              <AbilityMedallions sheet={sheet} />
+              <CombatPanel sheet={sheet} />
+              {sheet.classes.length > 1 && (
+                <section>
+                  <SheetHeading icon={Sparkles} title="Classi" />
+                  <ClassesRow sheet={sheet} />
+                </section>
+              )}
+              <SkillsPanel sheet={sheet} />
+              <CompanionsSection sheet={sheet} ownerName={ownerName} />
+            </>
+          )}
+
+          <RelationPanel entity={entity} />
+          <NoteLinksPanel entity={entity} />
+        </div>
+      )}
+
+      {/* ════════ TAB: INVENTARIO ════════ */}
+      {activeTab === "inventario" && sheet && (
+        <div className="animate-[console-page-in_260ms_ease-out_both]">
+          <InventoryDisplay sheet={sheet} />
+        </div>
+      )}
+
+      {/* ════════ TAB: MAGIE ════════ */}
+      {activeTab === "magie" && sheet && (
+        <div className="animate-[console-page-in_260ms_ease-out_both]">
+          <MagicDisplay sheet={sheet} />
+        </div>
+      )}
+
+      {/* ════════ TAB: BIOGRAFIA ════════ */}
+      {activeTab === "biografia" && (
+        <div className="animate-[console-page-in_260ms_ease-out_both] space-y-6">
+          {sheet && (
+            <>
+              <IdentityDetails sheet={sheet} />
+              <BiographyTome sheet={sheet} />
+            </>
+          )}
+          <HistorySection entity={entity} canEdit={canEdit} />
+          {hasMasterArea && (
+            <FrameCard color="danger" className="bg-crimson/10" contentClassName="p-5">
+              <h2 className="font-heading mb-3 flex items-center gap-2 text-lg font-semibold tracking-wider text-red-200">
+                <UserCog className="size-4.5" />
+                Area riservata al Master
+              </h2>
+              {!isEmptyRichText(privateData?.masterNotes as RichTextValue) && (
+                <div className="mb-4">
+                  <p className="mb-1 text-xs font-semibold tracking-[0.2em] text-red-300/80 uppercase">
+                    Note
+                  </p>
+                  <RichTextRenderer
+                    content={privateData?.masterNotes as RichTextValue}
+                    className="text-[15px] leading-relaxed text-foreground/90"
+                  />
+                </div>
+              )}
+              {!isEmptyRichText(privateData?.secrets as RichTextValue) && (
+                <div>
+                  <p className="mb-1 text-xs font-semibold tracking-[0.2em] text-red-300/80 uppercase">
+                    Segreti
+                  </p>
+                  <RichTextRenderer
+                    content={privateData?.secrets as RichTextValue}
+                    className="text-[15px] leading-relaxed text-foreground/90"
+                  />
+                </div>
+              )}
+            </FrameCard>
+          )}
+        </div>
+      )}
+
+      {/* ════════ TAB: GALLERIA ════════ */}
+      {activeTab === "galleria" && (
+        <div className="animate-[console-page-in_260ms_ease-out_both] space-y-6">
+          {entity.gallery.length > 0 && (
+            <section>
+              <SheetHeading icon={Images} title="Galleria" />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                {entity.gallery.map((url, index) => (
+                  <button
+                    key={`${url}-${index}`}
+                    type="button"
+                    onClick={() =>
+                      openLightbox(allImages, galleryOffset + index, entity.name)
+                    }
+                    className="group relative aspect-video cursor-zoom-in overflow-hidden rounded-lg border border-gold/20 transition-all hover:border-gold/50"
+                  >
+                    <Image
+                      src={url}
+                      alt={`${entity.name} — immagine ${index + 1}`}
+                      fill
+                      sizes="(max-width: 640px) 50vw, 25vw"
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  </button>
+                ))}
               </div>
-            )}
-          </FrameCard>
-        )}
+            </section>
+          )}
+
+          {appearanceImages.length > 0 && (
+            <section>
+              <SheetHeading icon={User} title="Token e ritratti" />
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+                {appearanceImages.map((url, index) => (
+                  <button
+                    key={`${url}-${index}`}
+                    type="button"
+                    onClick={() =>
+                      openLightbox(
+                        allImages,
+                        appearanceOffset + index,
+                        entity.name
+                      )
+                    }
+                    className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-lg border border-gold/20 transition-all hover:border-gold/50"
+                  >
+                    <Image
+                      src={url}
+                      alt={`${entity.name} — ritratto ${index + 1}`}
+                      fill
+                      sizes="(max-width: 640px) 33vw, 16vw"
+                      className="object-cover transition-transform group-hover:scale-105"
+                    />
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      )}
 
       {/* Editor + conferma eliminazione */}
       {canEdit && (
@@ -566,13 +658,61 @@ export function CharacterView({ entity }: { entity: Entity }) {
   );
 }
 
-function SectionTitle({ title }: { title: string }) {
+/* ── Sigilli (badge) dell'Hero ─────────────────────────────────────── */
+
+function HeroBadges({
+  kind,
+  status,
+  npcComplete,
+  isMaster,
+  visibility,
+}: {
+  kind: CharacterKind;
+  status: CharacterStatus;
+  npcComplete: boolean;
+  isMaster: boolean;
+  visibility: Entity["visibility"];
+}) {
   return (
-    <div className="mb-4 flex items-center gap-4">
-      <h2 className="font-heading text-xl font-semibold tracking-wider text-foreground">
-        {title}
-      </h2>
-      <SectionDivider className="flex-1" />
+    <>
+      <Badge variant="outline" className={CHARACTER_KIND_BADGES[kind]}>
+        {CHARACTER_KIND_LABELS[kind]}
+      </Badge>
+      <Badge variant="outline" className={CHARACTER_STATUS_BADGES[status]}>
+        {CHARACTER_STATUS_LABELS[status]}
+      </Badge>
+      {kind === "NPC" && !npcComplete && (
+        <Badge
+          variant="outline"
+          className="border-zinc-500/50 bg-zinc-500/10 text-zinc-300"
+        >
+          {NPC_TYPE_LABELS.SIMPLE}
+        </Badge>
+      )}
+      {isMaster && (
+        <Badge variant="outline" className={VISIBILITY_BADGES[visibility]}>
+          {visibility === "PUBLIC" ? (
+            <Eye className="size-3" />
+          ) : (
+            <EyeOff className="size-3" />
+          )}
+          {VISIBILITY_LABELS[visibility]}
+        </Badge>
+      )}
+    </>
+  );
+}
+
+/** Stemma del livello, in alto a destra del ritratto. */
+function LevelCrest({ level }: { level: number }) {
+  return (
+    <div className="absolute top-4 left-4 z-30 flex flex-col items-center rounded-xl border border-gold/40 bg-background/70 px-3 py-1.5 backdrop-blur-sm">
+      <span className="font-heading text-[9px] font-bold tracking-[0.2em] text-gold/70 uppercase">
+        Livello
+      </span>
+      <span className="font-heading text-2xl leading-none font-bold text-gold-bright">
+        {level}
+      </span>
     </div>
   );
 }
@@ -625,13 +765,13 @@ function HistorySection({
 
   return (
     <section>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <SectionTitle title="Storico" />
+      <div className="flex items-center justify-between gap-3">
+        <SheetHeading icon={ScrollText} title="Storico" />
         {canEdit && !adding && (
           <Button
             size="sm"
             variant="outline"
-            className="shrink-0"
+            className="-mt-2 shrink-0"
             onClick={() => setAdding(true)}
           >
             <Plus className="size-3.5" />

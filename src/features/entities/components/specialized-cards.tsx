@@ -9,6 +9,7 @@
  */
 
 import {
+  Coins,
   EyeOff,
   Flag,
   Gem,
@@ -18,6 +19,7 @@ import {
   Shield,
   Skull,
   Sparkles,
+  Trophy,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -46,7 +48,6 @@ import {
   CREATURE_STATUS_OPTIONS,
   ITEM_CATEGORY_BADGES,
   ITEM_CATEGORY_OPTIONS,
-  QUEST_STATUS_BADGES,
   QUEST_STATUS_OPTIONS,
   isHiddenFromPlayers,
   isLockedEntity,
@@ -104,7 +105,12 @@ export function QuestCard({ entity }: { entity: Entity }) {
   );
   const preview = objectivesText ? objectivesText.slice(0, 90) + (objectivesText.length > 90 ? "…" : "") : null;
 
-  const badgeClass = QUEST_STATUS_BADGES[status] ?? "";
+  const rewardsText = richTextToPlainText(
+    entity.fields.rewards as Parameters<typeof richTextToPlainText>[0]
+  );
+  const rewardPreview = rewardsText
+    ? rewardsText.slice(0, 60) + (rewardsText.length > 60 ? "…" : "")
+    : null;
 
   return (
     <Link
@@ -149,17 +155,28 @@ export function QuestCard({ entity }: { entity: Entity }) {
           </p>
         )}
 
-        {/* Tag e badge in fondo */}
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3">
-          <Badge variant="outline" className={cn("text-[9px]", badgeClass)}>
-            {statusLabel}
-          </Badge>
-          {entity.tags.slice(0, 2).map((tag) => (
-            <Badge key={tag} variant="outline" className="border-gold/18 text-[9px] text-muted-foreground">
-              {tag}
-            </Badge>
-          ))}
-        </div>
+        {/* Ricompensa — ciò che il party guadagna */}
+        {rewardPreview && (
+          <p className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-bright/90">
+            <Trophy className="size-3 shrink-0" />
+            <span className="line-clamp-1">{rewardPreview}</span>
+          </p>
+        )}
+
+        {/* Tag in fondo */}
+        {entity.tags.length > 0 && (
+          <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-3">
+            {entity.tags.slice(0, 3).map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="border-gold/18 text-[9px] text-muted-foreground"
+              >
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Sigillo di stato — angolo in basso a destra */}
@@ -579,8 +596,9 @@ export function ItemCard({ entity }: { entity: Entity }) {
         {/* Meta: valore + sintonia */}
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           {value !== null && value > 0 && (
-            <span className="flex items-center gap-0.5 text-[11px] text-gold/70">
-              🪙 {value.toLocaleString("it-IT")} mo
+            <span className="flex items-center gap-1 text-[11px] text-gold/70">
+              <Coins className="size-3" />
+              {value.toLocaleString("it-IT")} mo
             </span>
           )}
           {attunement && (

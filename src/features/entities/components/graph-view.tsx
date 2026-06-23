@@ -195,8 +195,8 @@ export function GraphView() {
         context.moveTo(a.x, a.y);
         context.lineTo(b.x, b.y);
         context.strokeStyle = edge.hierarchy
-          ? "rgba(212,175,55,0.25)"
-          : "rgba(196,49,70,0.35)";
+          ? "rgba(212,175,55,0.28)"
+          : "rgba(220,38,38,0.42)";
         context.lineWidth = edge.hierarchy ? 1 : 1.4;
         context.setLineDash(edge.hierarchy ? [4, 4] : []);
         context.stroke();
@@ -330,7 +330,8 @@ export function GraphView() {
   }, [entities]);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Filtri per tipo (sigilli) */}
       <div className="flex flex-wrap gap-1.5">
         {presentTypes.map((type) => {
           const config = ENTITY_REGISTRY[type];
@@ -340,15 +341,19 @@ export function GraphView() {
               key={type}
               type="button"
               onClick={() => toggleType(type)}
+              aria-pressed={!hidden}
               className={cn(
-                "flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-all",
+                "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
                 hidden
-                  ? "border-gold/15 text-muted-foreground/50 opacity-60"
-                  : "border-gold/30 text-foreground/85"
+                  ? "border-gold/12 bg-black/10 text-muted-foreground/50"
+                  : "border-gold/30 bg-black/25 text-foreground/85 hover:border-gold/50"
               )}
             >
               <span
-                className="size-2.5 rounded-full"
+                className={cn(
+                  "size-2.5 rounded-full transition-opacity",
+                  hidden && "opacity-30"
+                )}
                 style={{ backgroundColor: config.accent }}
               />
               {config.plural}
@@ -357,14 +362,28 @@ export function GraphView() {
         })}
       </div>
 
-      <div className="relative overflow-hidden rounded-xl border border-gold/20 bg-[radial-gradient(ellipse_at_center,rgba(19,28,49,0.6),rgba(10,12,18,0.95))]">
+      {/* Tela della ragnatela */}
+      <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-[radial-gradient(ellipse_at_center,rgba(30,42,74,0.55),rgba(6,7,10,0.96))] shadow-[0_12px_40px_-14px_rgba(0,0,0,0.8)]">
         <canvas
           ref={canvasRef}
           className="h-[65svh] w-full touch-none"
           aria-label="Grafo delle entità del regno"
         />
-        <p className="pointer-events-none absolute bottom-3 left-3 text-xs text-muted-foreground/70">
-          Trascina per spostare · rotella per lo zoom · click su un nodo per aprirlo
+
+        {/* Legenda dei fili */}
+        <div className="pointer-events-none absolute top-3 left-3 flex flex-col gap-1.5 rounded-lg border border-gold/15 bg-background/70 px-3 py-2 backdrop-blur-sm">
+          <span className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span className="inline-block h-0 w-5 border-t border-dashed border-gold/60" />
+            Geografia
+          </span>
+          <span className="flex items-center gap-2 text-[11px] text-muted-foreground">
+            <span className="inline-block h-px w-5 bg-crimson-bright" />
+            Legame
+          </span>
+        </div>
+
+        <p className="pointer-events-none absolute right-3 bottom-3 left-3 text-right text-[11px] text-muted-foreground/70 sm:left-auto">
+          Trascina per esplorare · rotella per lo zoom · tocca un nodo per aprirlo
         </p>
       </div>
     </div>
