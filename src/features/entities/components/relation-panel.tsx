@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   ConsoleField,
-  frameImageStyle,
+  FrameOverlay,
   getAsset,
   ImmersiveModal,
 } from "@/design-system";
@@ -82,11 +82,8 @@ export function RelationPanel({ entity }: { entity: Entity }) {
   if (!isMaster && (resolved ?? []).length === 0) return null;
 
   return (
-    <div
-      className="overflow-hidden rounded-xl border border-gold/25 p-5"
-      style={frameImageStyle(getAsset("window_04"), "primary", "1.5rem")}
-    >
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <div className="relative overflow-hidden rounded-xl p-7">
+      <div className="relative z-0 mb-4 flex items-center justify-between gap-3">
         <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
           <Link2 className="size-4.5 text-gold" />
           Entità correlate
@@ -162,6 +159,7 @@ export function RelationPanel({ entity }: { entity: Entity }) {
           from={entity}
         />
       )}
+      <FrameOverlay asset={getAsset("window_04")} borderWidth="1.5rem" />
     </div>
   );
 }

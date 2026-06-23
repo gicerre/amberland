@@ -9,8 +9,8 @@ import { Button } from "@/components/ui/button";
 import { EmberParticles } from "@/components/shared/particles";
 
 import { getAsset } from "../assets/registry";
-import { frameImageStyle } from "./svg-asset";
 import type { AssetColor } from "./svg-asset";
+import { FrameOverlay } from "./frame-overlay";
 import { DividerAsset } from "./assets";
 
 // Larghezza della colonna di contenuto per i form NON a console (flush=false).
@@ -91,7 +91,6 @@ export function ImmersiveModal({
         <DialogPrimitive.Content
           {...(description ? {} : { "aria-describedby": undefined })}
           style={{
-            ...frameImageStyle(asset, color, "1.55rem"),
             backgroundColor: "#0a0b10",
             backgroundImage:
               "linear-gradient(157deg, rgba(27,20,48,0.55) 0%, rgba(11,12,17,0.92) 55%, rgba(6,6,10,0.97) 100%), url('/textures/obsidian.webp')",
@@ -121,8 +120,9 @@ export function ImmersiveModal({
             className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(200,167,93,0.10),transparent_60%)]"
           />
 
-          {/* Contenuto reale, sopra l'atmosfera. */}
-          <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+          {/* Contenuto reale, sopra l'atmosfera. Padding extra per staccare
+              header/corpo/footer dalla cornice overlay su tutti i lati. */}
+          <div className="relative z-10 flex min-h-0 flex-1 flex-col p-2 pb-3 sm:p-3 sm:pb-4">
             <header className="shrink-0 px-6 pt-5 pb-3">
               <div className="flex items-start gap-3 pr-8">
                 {icon && (
@@ -178,11 +178,14 @@ export function ImmersiveModal({
             )}
           </div>
 
+          {/* Cornice come overlay decorativo sopra il contenuto. */}
+          <FrameOverlay asset={asset} color={color} borderWidth="1.55rem" className="z-30" />
+
           <DialogPrimitive.Close asChild>
             <Button
               variant="ghost"
               size="icon-sm"
-              className="absolute top-3 right-3 z-20"
+              className="absolute top-3 right-3 z-40"
             >
               <XIcon />
               <span className="sr-only">Chiudi</span>

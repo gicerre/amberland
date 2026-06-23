@@ -49,7 +49,7 @@ export function QuestOverviewBox() {
 
   return (
     <WindowPanel
-      variant="03"
+      variant="06"
       className="bg-gradient-to-br from-gold/15 via-card to-night/70"
       contentClassName="p-5 sm:p-6"
     >

@@ -51,6 +51,9 @@ export { WindowPanel } from "./components/window-panel";
 
 export { FrameCard } from "./components/frame-card";
 
+export { FrameOverlay } from "./components/frame-overlay";
+export type { FrameOverlayProps } from "./components/frame-overlay";
+
 export { ImmersiveModal } from "./components/immersive-modal";
 export type { ImmersiveModalProps } from "./components/immersive-modal";
 

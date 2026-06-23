@@ -51,7 +51,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FrameCard, frameImageStyle, getAsset } from "@/design-system";
+import { FrameCard, FrameOverlay, getAsset } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { QuickLinks } from "@/features/entities/components/quick-links";
 import { RelationPanel } from "@/features/entities/components/relation-panel";
@@ -235,8 +235,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
             type="button"
             onClick={() => openLightbox(allImages, 0, entity.name)}
             aria-label={`Apri ${entity.name} a schermo intero`}
-            className="group relative mb-6 block w-full cursor-zoom-in"
-            style={frameImageStyle(getAsset("window_08"), "primary", "1.5rem")}
+            className="group relative mb-6 block w-full cursor-zoom-in overflow-hidden rounded-xl"
           >
             <FantasyImage
               src={entity.imageUrl}
@@ -246,9 +245,10 @@ export function CharacterView({ entity }: { entity: Entity }) {
               priority
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-            <span className="pointer-events-none absolute right-3 bottom-3 z-10 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+            <span className="pointer-events-none absolute right-3 bottom-3 z-30 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
               <ZoomIn className="size-4.5" />
             </span>
+            <FrameOverlay asset={getAsset("window_08")} borderWidth="1.5rem" />
           </button>
         )}
 

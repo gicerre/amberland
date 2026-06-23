@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { Badge } from "@/components/ui/badge";
-import { frameImageStyle, getAsset } from "@/design-system";
+import { FrameOverlay, getAsset } from "@/design-system";
 import { cn } from "@/lib/utils";
 import type { EntityPublicCard } from "@/types/entities";
 
@@ -32,10 +32,7 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
 
       <header>
         {portrait && (
-          <div
-            className="relative mb-6"
-            style={frameImageStyle(getAsset("window_08"), "primary", "1.5rem")}
-          >
+          <div className="relative mb-6 overflow-hidden rounded-xl">
             <FantasyImage
               src={portrait}
               alt={card.name}
@@ -45,6 +42,7 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
               priority
             />
             <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
+            <FrameOverlay asset={getAsset("window_08")} borderWidth="1.5rem" />
           </div>
         )}
 

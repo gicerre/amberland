@@ -90,7 +90,7 @@ export function HubShell({
         <WindowPanel
           variant="06"
           className="min-w-0 bg-gradient-to-br from-gold/12 via-card to-night/60"
-          contentClassName="flex flex-col justify-center p-5 sm:p-8"
+          contentClassName="flex flex-col justify-center p-6 sm:p-8"
         >
           {bannerImage && (
             <div

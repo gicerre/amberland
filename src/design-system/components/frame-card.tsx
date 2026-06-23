@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import type { AssetFamily } from "../assets/registry";
 import { getAsset, pickFromFamily } from "../assets/registry";
 import type { AssetColor } from "./svg-asset";
-import { frameImageStyle } from "./svg-asset";
+import { FrameOverlay } from "./frame-overlay";
 
 export interface FrameCardProps extends Omit<React.ComponentProps<"div">, "style"> {
   /** Variante esplicita dell'asset (es. "03" → "frame_square_03"). Default: "03". */
@@ -39,11 +39,23 @@ export function FrameCard({
 
   return (
     <div
-      className={cn(glow && "[filter:drop-shadow(0_0_24px_rgba(212,175,55,0.18))]", className)}
-      style={frameImageStyle(asset, color, borderWidth)}
+      className={cn(
+        "relative",
+        glow && "[filter:drop-shadow(0_0_24px_rgba(212,175,55,0.18))]",
+        className
+      )}
       {...props}
     >
-      <div className={cn("p-6", contentClassName)}>{children}</div>
+      {/* Contenuto: riempie l'area; padding di default (sovrascrivibile) per
+          staccare il contenuto dalla cornice overlay. */}
+      <div className={cn("relative z-0 p-7", contentClassName)}>{children}</div>
+      {/* Cornice come overlay decorativo sopra il contenuto. */}
+      <FrameOverlay
+        asset={asset}
+        category="frame-square"
+        color={color}
+        borderWidth={borderWidth}
+      />
     </div>
   );
 }
