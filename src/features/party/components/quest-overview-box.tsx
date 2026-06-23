@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo } from "react";
+import { ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { imageIcon } from "@/components/shared/image-icon";
 import { WindowPanel } from "@/design-system";
 import { useEntitiesByType } from "@/features/entities/data";
 import { QUEST_EVENT_STYLE } from "@/features/entities/registry";
 import { QuestStatusIcon } from "@/features/entities/components/quest-status-icon";
+import { cn } from "@/lib/utils";
 
 // Ordine di rilevanza nelle tessere del resoconto.
 const TILE_ORDER = ["ACTIVE", "NEXT", "AVAILABLE", "COMPLETED", "FAILED"] as const;
@@ -21,6 +23,8 @@ const ChronicleIcon = imageIcon("/icons/pergamena.png");
  */
 export function QuestOverviewBox() {
   const { data: quests } = useEntitiesByType("quest");
+  // Mobile: parte chiuso (solo intestazione + barra). Desktop: sempre aperto.
+  const [open, setOpen] = useState(false);
 
   const { counts, total, completed, pct } = useMemo(() => {
     const c: Record<string, number> = {
@@ -59,7 +63,7 @@ export function QuestOverviewBox() {
         {/* Intestazione */}
         <div className="flex items-center gap-3">
           <ChronicleIcon className="size-16 shrink-0 drop-shadow-[0_3px_12px_rgba(0,0,0,0.55)] sm:size-20" />
-          <div>
+          <div className="min-w-0 flex-1">
             <h2 className="text-gold-gradient font-heading text-2xl font-bold tracking-wider">
               Cronaca delle Imprese
             </h2>
@@ -67,6 +71,18 @@ export function QuestOverviewBox() {
               L&rsquo;andamento delle missioni della compagnia.
             </p>
           </div>
+          {/* Toggle collapse — solo mobile */}
+          <button
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            aria-expanded={open}
+            aria-label={open ? "Comprimi" : "Espandi il dettaglio"}
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-night/40 text-gold transition-colors hover:border-gold/50 sm:hidden"
+          >
+            <ChevronDown
+              className={cn("size-5 transition-transform", open && "rotate-180")}
+            />
+          </button>
         </div>
 
         {/* Barra di completamento */}
@@ -89,8 +105,13 @@ export function QuestOverviewBox() {
           </div>
         </div>
 
-        {/* Tessere per stato */}
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-5">
+        {/* Tessere per stato — mobile: collassabili, solo icona + numero. */}
+        <div
+          className={cn(
+            "mt-5 grid grid-cols-3 gap-3 sm:grid-cols-5",
+            !open && "hidden sm:grid"
+          )}
+        >
           {TILE_ORDER.map((status) => {
             const style = QUEST_EVENT_STYLE[status];
             return (
@@ -102,7 +123,8 @@ export function QuestOverviewBox() {
                 <span className="font-heading text-2xl font-bold text-foreground">
                   {counts[status]}
                 </span>
-                <span className="text-[11px] tracking-wide text-muted-foreground">
+                {/* Etichetta nascosta su mobile (solo icona + numero). */}
+                <span className="hidden text-[11px] tracking-wide text-muted-foreground sm:block">
                   {style.label}
                 </span>
               </div>

@@ -135,8 +135,10 @@ export function HubShell({
                 key={section.value}
                 type="button"
                 onClick={() => onSelect(section.value)}
+                aria-label={section.label}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 rounded-lg px-2 py-2.5 transition-all duration-200",
+                  "relative flex flex-col items-center gap-1 rounded-lg px-2 transition-all duration-200",
+                  bareIcons ? "py-3" : "py-2.5",
                   isActive
                     ? "bg-gold/18 text-gold-bright shadow-[0_0_12px_rgba(212,175,55,0.12)]"
                     : "text-muted-foreground"
@@ -148,18 +150,21 @@ export function HubShell({
                 <SectionIcon
                   className={cn(
                     "transition-colors",
-                    bareIcons ? "size-8" : "size-5",
+                    bareIcons ? "size-11" : "size-5",
                     isActive ? "text-gold" : "text-muted-foreground/70"
                   )}
                 />
-                <span
-                  className={cn(
-                    "font-heading text-[10px] font-bold tracking-wide leading-none",
-                    isActive ? "text-gold-bright" : "text-muted-foreground"
-                  )}
-                >
-                  {section.label}
-                </span>
+                {/* In modalità icone illustrate: solo icona, niente etichetta. */}
+                {!bareIcons && (
+                  <span
+                    className={cn(
+                      "font-heading text-[10px] font-bold tracking-wide leading-none",
+                      isActive ? "text-gold-bright" : "text-muted-foreground"
+                    )}
+                  >
+                    {section.label}
+                  </span>
+                )}
               </button>
             );
           })}
