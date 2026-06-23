@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { imageIcon } from "@/components/shared/image-icon";
@@ -48,6 +49,14 @@ export function QuestOverviewBox() {
       pct: tot > 0 ? Math.round((done / tot) * 100) : 0,
     };
   }, [quests]);
+
+  const activeList = useMemo(
+    () =>
+      (quests ?? [])
+        .filter((quest) => String(quest.fields.status ?? "") === "ACTIVE")
+        .slice(0, 6),
+    [quests]
+  );
 
   if (total === 0) return null;
 
@@ -105,31 +114,57 @@ export function QuestOverviewBox() {
           </div>
         </div>
 
-        {/* Tessere per stato — mobile: collassabili, solo icona + numero. */}
-        <div
-          className={cn(
-            "mt-5 grid grid-cols-3 gap-3 sm:grid-cols-5",
-            !open && "hidden sm:grid"
+        {/* Corpo collassabile (mobile): tessere + imprese in corso. */}
+        <div className={cn("mt-5 space-y-5", !open && "hidden sm:block")}>
+          {/* Tessere per stato — solo icona + numero su mobile. */}
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+            {TILE_ORDER.map((status) => {
+              const style = QUEST_EVENT_STYLE[status];
+              return (
+                <div
+                  key={status}
+                  className="flex flex-col items-center gap-1.5 rounded-xl border border-gold/15 bg-night/40 p-3 text-center"
+                >
+                  <QuestStatusIcon status={status} className="size-10" />
+                  <span className="font-heading text-2xl font-bold text-foreground">
+                    {counts[status]}
+                  </span>
+                  {/* Etichetta nascosta su mobile (solo icona + numero). */}
+                  <span className="hidden text-[11px] tracking-wide text-muted-foreground sm:block">
+                    {style.label}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Imprese in corso — accesso rapido alle quest attive. */}
+          {activeList.length > 0 && (
+            <div>
+              <p className="mb-2 flex items-center gap-1.5 font-heading text-xs font-bold tracking-[0.18em] text-gold/60 uppercase">
+                <QuestStatusIcon status="ACTIVE" className="size-4" />
+                Imprese in corso
+              </p>
+              <ul className="space-y-1">
+                {activeList.map((quest) => (
+                  <li key={quest.id}>
+                    <Link
+                      href={`/entita/${quest.id}`}
+                      className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-1.5 transition-colors hover:border-gold/20 hover:bg-gold/8"
+                    >
+                      <QuestStatusIcon
+                        status="ACTIVE"
+                        className="size-7 shrink-0"
+                      />
+                      <span className="min-w-0 flex-1 truncate text-sm text-foreground group-hover:text-gold-bright">
+                        {quest.name}
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
-        >
-          {TILE_ORDER.map((status) => {
-            const style = QUEST_EVENT_STYLE[status];
-            return (
-              <div
-                key={status}
-                className="flex flex-col items-center gap-1.5 rounded-xl border border-gold/15 bg-night/40 p-3 text-center"
-              >
-                <QuestStatusIcon status={status} className="size-10" />
-                <span className="font-heading text-2xl font-bold text-foreground">
-                  {counts[status]}
-                </span>
-                {/* Etichetta nascosta su mobile (solo icona + numero). */}
-                <span className="hidden text-[11px] tracking-wide text-muted-foreground sm:block">
-                  {style.label}
-                </span>
-              </div>
-            );
-          })}
         </div>
       </div>
     </WindowPanel>

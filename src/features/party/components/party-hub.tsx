@@ -7,7 +7,6 @@ import { imageIcon } from "@/components/shared/image-icon";
 
 import { BagSection } from "../bag/bag-section";
 import { DiaryBook } from "../diary/diary-book";
-import { ActiveQuestsReminder } from "./active-quests-reminder";
 import { PartyCharacters } from "./party-characters";
 import { PartyHeaderPanel } from "./party-header-panel";
 import { QuestOverviewBox } from "./quest-overview-box";
@@ -63,7 +62,6 @@ export function PartyHub() {
     >
       <div className="space-y-6">
         <QuestOverviewBox />
-        <ActiveQuestsReminder />
         {active === "personaggi" && <PartyCharacters />}
         {active === "borsa" && <BagSection />}
         {active === "diario" && <DiaryBook scope="party" />}

@@ -15,6 +15,7 @@ const QUEST_STATUS_IMG: Record<string, string> = {
   ACTIVE: "/icons/attiva.png",
   COMPLETED: "/icons/completata.png",
   FAILED: "/icons/fallita.png",
+  WORLD: "/icons/world.png",
 };
 
 /** Renderizza l'icona dello stato quest: PNG custom o fallback lucide (SECRET). */
