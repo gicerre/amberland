@@ -22,6 +22,7 @@ import {
 } from "@/features/entities/registry";
 import { cn } from "@/lib/utils";
 import { ENTITY_TYPES, type EntityType } from "@/types/entities";
+import { imageIcon } from "@/components/shared/image-icon";
 
 /* ───────────────────────── PAGE ───────────────────────── */
 
@@ -59,9 +60,15 @@ export default function MasterPage() {
   const total = (entities ?? []).length;
   const hiddenCount = (entities ?? []).filter(isHiddenFromPlayers).length;
 
+  const BookIcon = imageIcon("/icons/book.png");
+  const EyeOff = imageIcon("/icons/eye_off.png");
+  const Lock = imageIcon("/icons/lock.png");
+  const HandsIcon = imageIcon("/icons/hands.png");
+  
+
   // Panoramica del regno (info critiche del DM, a colpo d'occhio).
   const overview: StatItem[] = [
-    { icon: BookOpen, label: "Voci totali", value: total },
+    { icon: BookIcon, label: "Voci totali", value: total },
     {
       icon: EyeOff,
       label: "Nascoste",
@@ -70,7 +77,7 @@ export default function MasterPage() {
     },
     { icon: Lock, label: "Bloccate", value: locked.length },
     {
-      icon: Sparkles,
+      icon: HandsIcon,
       label: "Pronte",
       value: readyToReveal.length,
       accent: readyToReveal.length > 0 ? "emerald" : "gold",
@@ -167,8 +174,8 @@ export default function MasterPage() {
                 className="fantasy-stripe-top relative overflow-hidden rounded-2xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-4 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)]"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-night/40 text-gold">
-                    <Icon className="size-6" />
+                  <span className="flex size-30 shrink-0 items-center justify-center rounded-lg">
+                    <Icon className="size-25" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-heading text-xs tracking-wide text-muted-foreground">

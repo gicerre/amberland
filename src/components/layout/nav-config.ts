@@ -12,16 +12,18 @@ import {
   Shield,
   Skull,
   Swords,
+  SwordsIcon,
   User,
   type LucideIcon,
 } from "lucide-react";
 
 import type { Role } from "@/types/models";
+import { imageIcon } from "../shared/image-icon";
 
 export interface NavEntry {
   label: string;
   href: string;
-  icon: LucideIcon;
+  icon: ReturnType<typeof imageIcon> | LucideIcon;
   /** Voce con albero dinamico dell'atlante (mondi → luoghi). */
   worldTree?: boolean;
   /** Se presente, la voce è visibile solo a questi ruoli. */
@@ -36,7 +38,7 @@ export interface NavGroup {
   id: string;
   label: string;
   /** Icona del gruppo — usata nella bottom nav mobile. */
-  icon: LucideIcon;
+  icon: ReturnType<typeof imageIcon> | LucideIcon;
   entries: NavEntry[];
   /** Se presente, il gruppo è visibile solo a questi ruoli. */
   roles?: Role[];
@@ -49,17 +51,20 @@ export interface NavGroup {
  * Ogni gruppo corrisponde a una tab della bottom nav mobile
  * e a una sezione visiva nella sidebar desktop.
  */
+
+const DragonIcon = imageIcon("/icons/dragon.png");
+
 export const NAV_GROUPS: NavGroup[] = [
   {
     id: "party",
     label: "Party",
-    icon: Swords,
+    icon: DragonIcon,
     activePaths: ["/party"],
     entries: [
       {
         label: "Il Party",
         href: "/party",
-        icon: Swords,
+        icon: DragonIcon,
         featured: true,
         tagline: "Il cuore del gruppo",
       },

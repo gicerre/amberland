@@ -85,12 +85,9 @@ function NavLink({
         {/* Striscia superiore dorata */}
         <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
         <span className={cn(
-          "flex size-9 shrink-0 items-center justify-center rounded-lg border transition-all",
-          active
-            ? "border-gold/50 bg-gold/20 shadow-[inset_0_0_12px_rgba(212,175,55,0.15),0_0_12px_rgba(212,175,55,0.2)]"
-            : "border-gold/30 bg-gold/10 group-hover:border-gold/45 group-hover:bg-gold/15"
+          "flex size-20 ml-3 shrink-0 items-center justify-center rounded-lg transition-all",
         )}>
-          <Icon className="size-5 text-gold" />
+          <Icon className="size-20 ml-5 mr-5 text-gold" />
         </span>
         <span className="flex flex-col">
           <span className="font-heading text-[14px] font-bold tracking-wide text-gold-bright">

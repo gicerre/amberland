@@ -4,6 +4,7 @@ import { ChevronDown, type LucideIcon } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { imageIcon } from "@/components/shared/image-icon";
 
 /* ============================================================
  * IL LINGUAGGIO DEL TOMO
@@ -202,7 +203,7 @@ export function TomePanel({
  * ────────────────────────────────────────────────────────── */
 
 export interface StatItem {
-  icon?: LucideIcon;
+  icon?: ReturnType<typeof imageIcon> | LucideIcon;
   label: React.ReactNode;
   value: React.ReactNode;
   sub?: React.ReactNode;
@@ -224,7 +225,7 @@ export function StatTile({
         className
       )}
     >
-      {Icon && <Icon className="size-4 text-gold/70" />}
+      {Icon && <Icon className="size-20 text-gold/70" />}
       <span
         className={cn(
           "font-heading text-xl leading-none font-bold",

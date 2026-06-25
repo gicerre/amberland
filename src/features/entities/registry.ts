@@ -32,6 +32,7 @@ import {
   CHARACTER_STATUS_LABELS,
   CHARACTER_STATUS_OPTIONS,
 } from "@/features/characters/constants";
+import { imageIcon } from "@/components/shared/image-icon";
 
 /* ============================================================
  * Registro dei tipi di entità — unico punto di verità.
@@ -59,7 +60,7 @@ export interface EntityTypeConfig {
   type: EntityType;
   label: string;
   plural: string;
-  icon: LucideIcon;
+  icon: ReturnType<typeof imageIcon> | LucideIcon;
   /** Classi badge (liste, pagina, ricerca). */
   badgeClass: string;
   /** Colore nodo nella vista grafo. */
@@ -191,12 +192,24 @@ function optionLabel(
   return options.find((option) => option.value === value)?.label;
 }
 
+const WorldIcon = imageIcon("/icons/world.png");
+const CharacterIcon = imageIcon("/icons/characters.png");
+const RegionIcon = imageIcon("/icons/region.png");
+const CityIcon = imageIcon("/icons/city.png");
+const LocationIcon = imageIcon("/icons/location.png");
+const QuestIcon = imageIcon("/icons/quest.png");
+const FactionIcon = imageIcon("/icons/faction.png");
+const ObjectsIcon = imageIcon("/icons/objects.png");
+const BeastsIcon = imageIcon("/icons/beasts.png");
+const EventsIcon = imageIcon("/icons/events.png");
+const SessionIcon = imageIcon("/icons/session.png");
+
 export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
   world: {
     type: "world",
     label: "Mondo",
     plural: "Mondi",
-    icon: Globe,
+    icon: WorldIcon,
     badgeClass: "border-gold/50 bg-gold/15 text-gold-bright",
     accent: "#d4af37",
     parentType: null,
@@ -211,7 +224,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "region",
     label: "Regione",
     plural: "Regioni",
-    icon: Map,
+    icon:  RegionIcon,
     badgeClass: "border-emerald-500/50 bg-emerald-500/10 text-emerald-300",
     accent: "#5b9c6a",
     parentType: "world",
@@ -226,7 +239,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "city",
     label: "Città",
     plural: "Città",
-    icon: Castle,
+    icon: CityIcon,
     badgeClass: "border-sky-500/50 bg-sky-500/10 text-sky-300",
     accent: "#4f86c6",
     parentType: "region",
@@ -242,7 +255,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "location",
     label: "Luogo",
     plural: "Luoghi",
-    icon: MapPin,
+    icon: LocationIcon,
     badgeClass: "border-teal-500/50 bg-teal-500/10 text-teal-300",
     accent: "#3a9d9b",
     parentType: "city",
@@ -274,7 +287,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "character",
     label: "Personaggio",
     plural: "Personaggi",
-    icon: User,
+    icon: CharacterIcon,
     badgeClass: "border-parchment/40 bg-parchment/10 text-parchment",
     accent: "#e8dcc0",
     parentType: null,
@@ -322,7 +335,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "faction",
     label: "Fazione",
     plural: "Fazioni",
-    icon: Flag,
+    icon: FactionIcon,
     badgeClass: "border-crimson-bright/50 bg-crimson/20 text-red-300",
     accent: "#c43146",
     parentType: null,
@@ -366,7 +379,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "quest",
     label: "Quest",
     plural: "Quest",
-    icon: ScrollText,
+    icon: QuestIcon,
     badgeClass: "border-purple-500/50 bg-purple-500/10 text-purple-300",
     accent: "#9b59b6",
     parentType: null,
@@ -390,7 +403,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "item",
     label: "Oggetto",
     plural: "Oggetti",
-    icon: Gem,
+    icon: ObjectsIcon,
     badgeClass: "border-orange-500/50 bg-orange-500/10 text-orange-300",
     accent: "#e67e22",
     parentType: null,
@@ -424,7 +437,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "creature",
     label: "Creatura",
     plural: "Bestiario",
-    icon: Skull,
+    icon: BeastsIcon,
     badgeClass: "border-rose-500/50 bg-rose-500/10 text-rose-300",
     accent: "#b03a2e",
     parentType: null,
@@ -490,7 +503,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "event",
     label: "Evento",
     plural: "Eventi",
-    icon: CalendarDays,
+    icon: EventsIcon,
     badgeClass: "border-yellow-500/50 bg-yellow-500/10 text-yellow-300",
     accent: "#f1c40f",
     parentType: null,
@@ -509,7 +522,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     type: "session",
     label: "Sessione",
     plural: "Sessioni",
-    icon: BookOpen,
+    icon: SessionIcon,
     badgeClass: "border-indigo-400/50 bg-indigo-500/10 text-indigo-300",
     accent: "#6c7ae0",
     parentType: null,
