@@ -113,11 +113,11 @@ export default function HomePage() {
         title={`Bentornato, ${profile?.username ?? "viandante"}`}
         subtitle={role ? ROLE_GREETINGS[role] : undefined}
         actions={
-          <>
+          <div className="hidden md:inline-flex items-center gap-3">
             <StatChip icon={ActiveIcon} value={stats.active} label="in corso" />
             <StatChip icon={CharactersIcon} value={stats.characters} label="personaggi" />
             <StatChip icon={WorldIcon} value={stats.places} label="luoghi" />
-          </>
+          </div>
         }
       />
 
@@ -246,7 +246,9 @@ function StatChip({
     <span className="inline-flex items-center gap-2 rounded-lg border border-gold/20 bg-black/30 px-3 py-1.5">
       <Icon className="size-10 text-gold/70" />
       <strong className="text-gold">{value}</strong>
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-muted-foreground">
+        {label}
+      </span>
     </span>
   );
 }
