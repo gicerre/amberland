@@ -4,6 +4,7 @@ import { Heart, Shield, Skull, Sparkles, User } from "lucide-react";
 import Link from "next/link";
 
 import { FantasyImage } from "@/components/shared/fantasy-image";
+import { FALLEN_FILTER } from "@/components/shared/immersive-hero";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { WindowPanel } from "@/design-system";
@@ -64,7 +65,7 @@ export function PcHeaderPanel() {
           src={token}
           alt={pc.name}
           fallbackIcon={User}
-          className={cn("size-28", isDead && "grayscale")}
+          className={cn("size-28", isDead && FALLEN_FILTER)}
           sizes="112px"
         />
         {isDead && (

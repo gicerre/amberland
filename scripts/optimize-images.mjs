@@ -16,6 +16,15 @@ const jobs = [
   { src: "img/Citta del Nord.png", out: "public/images/world/citta-del-nord.webp", width: 1600, quality: 72 },
   { src: "img/Citta del Porto.png", out: "public/images/world/citta-del-porto.webp", width: 1600, quality: 72 },
 
+  // ── Sfondi delle hero-box di lista ──────────────────────────────────────
+  { src: "img/atlante_dei_mondi.jpg", out: "public/images/atlante-dei-mondi.webp", width: 1600, quality: 76 },
+  { src: "img/albo_delle_imprese.jpg", out: "public/images/albo-delle-imprese.webp", width: 1600, quality: 76 },
+  { src: "img/personaggi.jpg", out: "public/images/personaggi.webp", width: 1600, quality: 76 },
+  { src: "img/fazioni.jpg", out: "public/images/fazioni.webp", width: 1600, quality: 76 },
+  { src: "img/oggetti.jpg", out: "public/images/oggetti.webp", width: 1600, quality: 76 },
+  { src: "img/bestiario.jpg", out: "public/images/bestiario.webp", width: 1600, quality: 76 },
+  { src: "img/home.jpg", out: "public/images/home.webp", width: 1600, quality: 76 },
+
   // ── Texture design-sys → public/textures ────────────────────────────────
   // Pietra / Ossidiana (body background, pannelli principali)
   { src: "design-sys/textures/obsidian-texture.jpg",            out: "public/textures/obsidian.webp",              width: 1024, quality: 80 },

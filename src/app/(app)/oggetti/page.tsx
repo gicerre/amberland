@@ -10,6 +10,11 @@ export default function ItemsPage() {
       subtitle="Tesori, reliquie e manufatti: il catalogo del bottino e dei perni della trama."
       emptyTitle="La sala del tesoro è vuota"
       emptyDescription="Nemmeno una moneta consunta. Le ricchezze del regno attendono di essere catalogate."
+      hero={{
+        eyebrow: "Tesori e reliquie",
+        accent: "#e67e22",
+        src: "/images/oggetti.webp",
+      }}
     />
   );
 }

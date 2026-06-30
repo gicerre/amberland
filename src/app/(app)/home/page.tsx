@@ -1,27 +1,19 @@
 "use client";
 
-import {
-  BookMarked,
-  Shield,
-  Swords
-} from "lucide-react";
+import { Swords } from "lucide-react";
 import Link from "next/link";
 import { useMemo } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { SectionDivider } from "@/components/shared/fantasy-card";
 import { imageIcon } from "@/components/shared/image-icon";
+import { ListPageHero } from "@/components/shared/list-page-hero";
 import { richTextToPlainText } from "@/components/shared/rich-text-utils";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/auth-provider";
 import { QuestStatusIcon } from "@/features/entities/components/quest-status-icon";
 import { useAllEntities } from "@/features/entities/data";
-import {
-  ENTITY_REGISTRY,
-  QUEST_STATUS_BADGES,
-  QUEST_STATUS_OPTIONS,
-} from "@/features/entities/registry";
+import { ENTITY_REGISTRY } from "@/features/entities/registry";
 import { cn, formatDate, timestampToDate } from "@/lib/utils";
 import type { Entity } from "@/types/entities";
 import type { Role } from "@/types/models";
@@ -36,7 +28,6 @@ const DragonIcon = imageIcon("/icons/dragon_icon.png");
 const CrownIcon = imageIcon("/icons/crown.png");
 const ActiveIcon = imageIcon("/icons/attiva.png");
 const CharactersIcon = imageIcon("/icons/characters.png");
-const GateIcon = imageIcon("/icons/gate.png");
 const CalamaioIcon = imageIcon("/icons/calamaio.png");
 const ShieldIcon = imageIcon("/icons/shield.png");
 
@@ -113,46 +104,22 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* ───── HERO ───── */}
-      <section className="relative overflow-hidden rounded-2xl border border-gold/20 px-6 py-8 shadow-[0_12px_40px_-14px_rgba(0,0,0,0.8)]">
-
-        <div className="absolute inset-0 bg-[url('/images/bg_party.webp')] bg-cover bg-center opacity-30" />
-        <div className="absolute inset-0 bg-gradient-to-br from-gold/10 via-stone-mid/60 to-night/90" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(212,175,55,0.18),transparent_60%)]" />
-        <span className="fantasy-stripe-top absolute inset-0" />
-
-        <div className="relative flex flex-col lg:flex-row gap-8 lg:items-center lg:justify-between">
-
-          {/* GATE */}
-          <div className="flex justify-center lg:justify-start">
-            <div className="relative">
-              <div className="absolute inset-0 size-44 rounded-full bg-gold/10 blur-2xl" />
-              <GateIcon className="relative size-44 text-gold drop-shadow-[0_0_30px_rgba(212,175,55,0.4)]" />
-            </div>
-          </div>
-
-          {/* TEXT */}
-          <div className="flex-1">
-            <p className="font-heading text-[10px] tracking-[0.4em] text-gold/60 uppercase">
-              ◆ Le cronache continuano ◆
-            </p>
-
-            <h1 className="mt-2 font-heading text-3xl sm:text-4xl text-gold-gradient font-bold">
-              Bentornato, {profile?.username ?? "viandante"}
-            </h1>
-
-            <p className="mt-3 max-w-2xl italic text-muted-foreground">
-              {role ? ROLE_GREETINGS[role] : ""}
-            </p>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              <StatChip icon={ActiveIcon} value={stats.active} label="in corso" />
-              <StatChip icon={CharactersIcon} value={stats.characters} label="personaggi" />
-              <StatChip icon={WorldIcon} value={stats.places} label="luoghi" />
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* ───── HERO immersivo ───── */}
+      <ListPageHero
+        src="/images/home.webp"
+        alt="Bentornato in Amberland"
+        accent="#d4af37"
+        eyebrow="◆ Le cronache continuano ◆"
+        title={`Bentornato, ${profile?.username ?? "viandante"}`}
+        subtitle={role ? ROLE_GREETINGS[role] : undefined}
+        actions={
+          <>
+            <StatChip icon={ActiveIcon} value={stats.active} label="in corso" />
+            <StatChip icon={CharactersIcon} value={stats.characters} label="personaggi" />
+            <StatChip icon={WorldIcon} value={stats.places} label="luoghi" />
+          </>
+        }
+      />
 
       {/* ───── PANELS ───── */}
       <div className="grid gap-6 lg:grid-cols-3">

@@ -8,6 +8,11 @@ export default function CharactersPage() {
       restrictKind="NPC"
       title="Personaggi"
       subtitle="PNG, alleati e rivali: i volti che popolano le cronache del regno."
+      hero={{
+        eyebrow: "I volti del regno",
+        accent: "#e8dcc0",
+        src: "/images/personaggi.webp",
+      }}
     />
   );
 }

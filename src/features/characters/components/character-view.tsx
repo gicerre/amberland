@@ -19,7 +19,6 @@ import {
   Users,
   Wand2,
   X,
-  ZoomIn,
   type LucideIcon,
 } from "lucide-react";
 import Image from "next/image";
@@ -28,7 +27,7 @@ import { useMemo, useState } from "react";
 
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { FantasyBreadcrumb } from "@/components/shared/fantasy-breadcrumb";
-import { FantasyImage } from "@/components/shared/fantasy-image";
+import { ImmersiveHero } from "@/components/shared/immersive-hero";
 import { useLightbox } from "@/components/shared/lightbox";
 import { RichTextRenderer } from "@/components/shared/rich-text-lazy";
 import {
@@ -57,7 +56,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { FrameCard, FrameOverlay, getAsset } from "@/design-system";
+import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { QuickLinks } from "@/features/entities/components/quick-links";
 import { RelationPanel } from "@/features/entities/components/relation-panel";
@@ -66,7 +65,11 @@ import {
   useEntityMutations,
   useEntityPrivate,
 } from "@/features/entities/data";
-import { VISIBILITY_BADGES, VISIBILITY_LABELS } from "@/features/entities/registry";
+import {
+  ENTITY_REGISTRY,
+  VISIBILITY_BADGES,
+  VISIBILITY_LABELS,
+} from "@/features/entities/registry";
 import { cn } from "@/lib/utils";
 import {
   CHARACTER_HISTORY_TYPES,
@@ -324,6 +327,23 @@ export function CharacterView({ entity }: { entity: Entity }) {
 
   return (
     <div className="space-y-5">
+      {/* ════════ HERO — ritratto a banner pieno, in cima ════════ */}
+      <div className="relative left-1/2 -mt-4 w-screen -translate-x-1/2 sm:-mt-6 lg:-mt-10 lg:w-[calc(100vw-18rem)]">
+        <ImmersiveHero
+          src={entity.imageUrl}
+          alt={entity.name}
+          accent={ENTITY_REGISTRY.character.accent}
+          fallen={isDead}
+          priority
+          className="rounded-none border-0"
+          onOpen={
+            allImages.length
+              ? () => openLightbox(allImages, 0, entity.name)
+              : undefined
+          }
+        />
+      </div>
+
       <FantasyBreadcrumb
         steps={[
           { label: "Mondo", href: "/mondo" },
@@ -335,107 +355,68 @@ export function CharacterView({ entity }: { entity: Entity }) {
         ]}
       />
 
-      {/* ════════ HERO — Character Identity Card ════════ */}
-      <header className="space-y-4">
-        {entity.imageUrl ? (
-          <button
-            type="button"
-            onClick={() => openLightbox(allImages, 0, entity.name)}
-            aria-label={`Apri ${entity.name} a schermo intero`}
-            className="group relative block w-full cursor-zoom-in overflow-hidden rounded-2xl"
-          >
-            <FantasyImage
-              src={entity.imageUrl}
-              alt={entity.name}
-              className={cn("h-60 sm:h-80 lg:h-96", isDead && "grayscale")}
-              sizes="(max-width: 1024px) 100vw, 896px"
-              priority
+      {/* Intestazione: nome, livello e sigilli (estratti dal ritratto) + azioni */}
+      <header className="flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="text-gold-gradient flex items-center gap-2 font-heading text-3xl font-bold tracking-wider sm:text-4xl">
+            {entity.name}
+            {isDead && <Skull className="size-6 text-red-400" />}
+          </h1>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {totalLevel > 0 && (
+              <Badge
+                variant="outline"
+                className="border-gold/40 bg-gold/15 font-heading text-gold-bright"
+              >
+                Livello {totalLevel}
+              </Badge>
+            )}
+            <HeroBadges
+              kind={kind}
+              status={status}
+              npcComplete={npcComplete}
+              isMaster={isMaster}
+              visibility={entity.visibility}
             />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/35 to-transparent" />
-            <span className="pointer-events-none absolute top-3 right-3 z-30 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-              <ZoomIn className="size-4.5" />
-            </span>
-            {/* Nome + sigilli sovrapposti (sopra la cornice) */}
-            <div className="absolute inset-x-0 bottom-0 z-30 p-5 text-left sm:p-7">
-              <h1 className="text-gold-gradient flex items-center gap-2 font-heading text-2xl font-bold tracking-wider drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-4xl">
-                {entity.name}
-                {isDead && <Skull className="size-6 text-red-400" />}
-              </h1>
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <HeroBadges
-                  kind={kind}
-                  status={status}
-                  npcComplete={npcComplete}
-                  isMaster={isMaster}
-                  visibility={entity.visibility}
-                />
-              </div>
-            </div>
-            {totalLevel > 0 && <LevelCrest level={totalLevel} />}
-            <FrameOverlay asset={getAsset("window_08")} borderWidth="1.5rem" />
-          </button>
-        ) : (
-          // Senza ritratto: targa d'identità con placeholder.
-          <div className="flex items-center gap-4 rounded-2xl border border-gold/20 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-5">
-            <span className="flex size-16 shrink-0 items-center justify-center rounded-xl border border-gold/25 bg-night/40 text-gold/50">
-              <User className="size-8" />
-            </span>
-            <div className="min-w-0">
-              <h1 className="text-gold-gradient flex items-center gap-2 font-heading text-2xl font-bold tracking-wider sm:text-3xl">
-                {entity.name}
-                {isDead && <Skull className="size-5 text-red-400" />}
-              </h1>
-              <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                <HeroBadges
-                  kind={kind}
-                  status={status}
-                  npcComplete={npcComplete}
-                  isMaster={isMaster}
-                  visibility={entity.visibility}
-                />
-              </div>
-            </div>
           </div>
+        </div>
+        {actions}
+      </header>
+
+      {/* Striscia d'identità: fatti + HP */}
+      <div className="rounded-2xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-4 shadow-[0_8px_30px_-14px_rgba(0,0,0,0.7)] sm:p-5">
+        {facts.length > 0 ? (
+          <div className="flex min-w-0 flex-wrap gap-2">
+            {facts.map((fact) => (
+              <span
+                key={fact.label}
+                className="inline-flex items-baseline gap-1.5 rounded-lg border border-gold/15 bg-night/40 px-3 py-1.5"
+              >
+                <span className="text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
+                  {fact.label}
+                </span>
+                <span className="font-heading text-sm font-semibold text-gold-bright">
+                  {fact.value}
+                </span>
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground italic">
+            Nessun dettaglio d&rsquo;identità ancora registrato.
+          </p>
         )}
 
-        {/* Striscia d'identità: fatti + HP + azioni */}
-        <div className="rounded-2xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-4 shadow-[0_8px_30px_-14px_rgba(0,0,0,0.7)] sm:p-5">
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            {facts.length > 0 ? (
-              <div className="flex min-w-0 flex-wrap gap-2">
-                {facts.map((fact) => (
-                  <span
-                    key={fact.label}
-                    className="inline-flex items-baseline gap-1.5 rounded-lg border border-gold/15 bg-night/40 px-3 py-1.5"
-                  >
-                    <span className="text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
-                      {fact.label}
-                    </span>
-                    <span className="font-heading text-sm font-semibold text-gold-bright">
-                      {fact.value}
-                    </span>
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground italic">
-                Nessun dettaglio d&rsquo;identità ancora registrato.
-              </p>
-            )}
-            {actions}
+        {sheet && (sheet.maxHp > 0 || sheet.currentHp > 0) && (
+          <div className="mt-4">
+            <HpBar
+              current={sheet.currentHp}
+              max={sheet.maxHp}
+              temp={sheet.tempHp}
+            />
           </div>
-
-          {sheet && (sheet.maxHp > 0 || sheet.currentHp > 0) && (
-            <div className="mt-4">
-              <HpBar
-                current={sheet.currentHp}
-                max={sheet.maxHp}
-                temp={sheet.tempHp}
-              />
-            </div>
-          )}
-        </div>
-      </header>
+        )}
+      </div>
 
       {/* Collegamenti rapidi */}
       <QuickLinks entity={entity} />
@@ -700,20 +681,6 @@ function HeroBadges({
         </Badge>
       )}
     </>
-  );
-}
-
-/** Stemma del livello, in alto a destra del ritratto. */
-function LevelCrest({ level }: { level: number }) {
-  return (
-    <div className="absolute top-4 left-4 z-30 flex flex-col items-center rounded-xl border border-gold/40 bg-background/70 px-3 py-1.5 backdrop-blur-sm">
-      <span className="font-heading text-[9px] font-bold tracking-[0.2em] text-gold/70 uppercase">
-        Livello
-      </span>
-      <span className="font-heading text-2xl leading-none font-bold text-gold-bright">
-        {level}
-      </span>
-    </div>
   );
 }
 

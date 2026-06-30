@@ -39,6 +39,7 @@ export function HubShell({
   bareIcons = false,
   bannerImage,
   cardImage,
+  hideBanner = false,
 }: {
   title: string;
   subtitle: string;
@@ -54,6 +55,8 @@ export function HubShell({
   bannerImage?: string;
   /** Texture di sfondo delle card di navigazione (si scurisce verso il basso). */
   cardImage?: string;
+  /** Nasconde il banner del titolo (es. quando sopra c'è una hero immersiva). */
+  hideBanner?: boolean;
 }) {
   const touchStartX = useRef<number | null>(null);
   const touchStartY = useRef<number | null>(null);
@@ -85,44 +88,51 @@ export function HubShell({
 
   return (
     <div className="space-y-5">
-      {/* Banner + pannello header */}
-      <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1fr_minmax(0,20rem)] lg:items-stretch">
-        <WindowPanel
-          variant="06"
-          className="min-w-0 bg-gradient-to-br from-gold/12 via-card to-night/60"
-          contentClassName="flex flex-col justify-center p-6 sm:p-8"
-        >
-          {bannerImage && (
-            <div
-              aria-hidden
-              className="pointer-events-none absolute inset-0 bg-cover bg-center"
-              style={{
-                backgroundImage: `linear-gradient(to right, rgba(6,7,10,0.92), rgba(6,7,10,0.62) 55%, rgba(6,7,10,0.42)), url(${bannerImage})`,
-              }}
-            />
-          )}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.14),transparent_60%)]" />
-          <div className="relative flex items-center gap-4">
-            {bareIcons ? (
-              <Icon className="size-24 shrink-0 drop-shadow-[0_3px_14px_rgba(0,0,0,0.6)] sm:size-32" />
-            ) : (
-              <span className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-gold/15 text-gold shadow-[0_0_30px_rgba(212,175,55,0.2)]">
-                <Icon className="size-7" />
-              </span>
+      {/* Banner + pannello header (il banner può essere nascosto quando sopra
+          c'è già una testata immersiva) */}
+      {hideBanner ? (
+        headerPanel ? (
+          <div className="lg:ml-auto lg:max-w-sm">{headerPanel}</div>
+        ) : null
+      ) : (
+        <div className="grid gap-4 sm:gap-5 lg:grid-cols-[1fr_minmax(0,20rem)] lg:items-stretch">
+          <WindowPanel
+            variant="06"
+            className="min-w-0 bg-gradient-to-br from-gold/12 via-card to-night/60"
+            contentClassName="flex flex-col justify-center p-6 sm:p-8"
+          >
+            {bannerImage && (
+              <div
+                aria-hidden
+                className="pointer-events-none absolute inset-0 bg-cover bg-center"
+                style={{
+                  backgroundImage: `linear-gradient(to right, rgba(6,7,10,0.92), rgba(6,7,10,0.62) 55%, rgba(6,7,10,0.42)), url(${bannerImage})`,
+                }}
+              />
             )}
-            <div>
-              <h1 className="text-gold-gradient font-heading text-2xl font-bold tracking-wider sm:text-4xl">
-                {title}
-              </h1>
-              <p className="mt-1 text-sm text-muted-foreground sm:text-base">
-                {subtitle}
-              </p>
+            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.14),transparent_60%)]" />
+            <div className="relative flex items-center gap-4">
+              {bareIcons ? (
+                <Icon className="size-24 shrink-0 drop-shadow-[0_3px_14px_rgba(0,0,0,0.6)] sm:size-32" />
+              ) : (
+                <span className="flex size-14 shrink-0 items-center justify-center rounded-xl border border-gold/40 bg-gold/15 text-gold shadow-[0_0_30px_rgba(212,175,55,0.2)]">
+                  <Icon className="size-7" />
+                </span>
+              )}
+              <div>
+                <h1 className="text-gold-gradient font-heading text-2xl font-bold tracking-wider sm:text-4xl">
+                  {title}
+                </h1>
+                <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                  {subtitle}
+                </p>
+              </div>
             </div>
-          </div>
-        </WindowPanel>
+          </WindowPanel>
 
-        {headerPanel}
-      </div>
+          {headerPanel}
+        </div>
+      )}
 
       {/* Nav mobile: pill-tab orizzontale compatto */}
       <div className="sm:hidden">

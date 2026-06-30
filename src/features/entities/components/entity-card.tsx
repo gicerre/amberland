@@ -5,12 +5,14 @@ import Link from "next/link";
 
 import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
+import { FALLEN_FILTER } from "@/components/shared/immersive-hero";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/features/auth/auth-provider";
 import { cn } from "@/lib/utils";
 import type { Entity } from "@/types/entities";
 
 import { ENTITY_REGISTRY, isHiddenFromPlayers, isLockedEntity } from "../registry";
+import { imageIcon } from "@/components/shared/image-icon";
 
 /**
  * Card universale di un'entità: immagine, tipo, meta dinamiche e tag.
@@ -31,6 +33,7 @@ export function EntityCard({
   const accent = config.accent;
   const meta = config.cardMeta?.(entity) ?? {};
   const isDead = entity.type === "character" && entity.fields.isDead === true;
+
 
   return (
     <Link
@@ -54,7 +57,7 @@ export function EntityCard({
         src={entity.imageUrl}
         alt={entity.name}
         fallbackIcon={Icon}
-        className={cn("h-40", isDead && "grayscale")}
+        className={cn("h-40", isDead && FALLEN_FILTER)}
         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
       />
 

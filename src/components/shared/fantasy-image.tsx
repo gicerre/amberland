@@ -3,6 +3,7 @@ import Image from "next/image";
 
 import { optimizeCloudinary } from "@/lib/upload/image-service";
 import { cn } from "@/lib/utils";
+import { imageIcon } from "./image-icon";
 
 interface FantasyImageProps {
   src?: string | null;
@@ -11,7 +12,7 @@ interface FantasyImageProps {
   sizes?: string;
   priority?: boolean;
   /** Icona mostrata quando manca l'immagine. */
-  fallbackIcon?: LucideIcon;
+  fallbackIcon?:  ReturnType<typeof imageIcon> | LucideIcon;
   /**
    * Ancoraggio del ritaglio (object-position). Default "top": le copertine
    * mostrano sempre la parte ALTA dell'immagine invece di tagliarla.

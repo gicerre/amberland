@@ -25,6 +25,7 @@ import Link from "next/link";
 
 import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
+import { FALLEN_FILTER, FallenOverlay } from "@/components/shared/immersive-hero";
 import { richTextToPlainText } from "@/components/shared/rich-text-utils";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/features/auth/auth-provider";
@@ -233,15 +234,18 @@ export function CharacterCard({ entity }: { entity: Entity }) {
       )}
 
       {/* Ritratto in formato portrait 3:4 */}
-      <div className="relative aspect-[3/4] overflow-hidden">
+      <div className="relative isolate aspect-[3/4] overflow-hidden">
         <FantasyImage
           src={entity.imageUrl}
           alt={entity.name}
           fallbackIcon={isPC ? Sparkles : Shield}
-          className={cn("size-full", isDead && "grayscale")}
+          className={cn("size-full", isDead && FALLEN_FILTER)}
           sizes="(max-width: 640px) 50vw, 33vw"
           position="top"
         />
+
+        {/* Trattamento dark-horror per i caduti */}
+        {isDead && <FallenOverlay />}
 
         {/* Gradiente bottom-up sull'immagine */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-mid via-stone-mid/30 to-transparent" />

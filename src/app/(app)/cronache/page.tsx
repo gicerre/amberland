@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
-import { PageHeader } from "@/components/shared/page-header";
+import { ListPageHero } from "@/components/shared/list-page-hero";
 import { richTextToPlainText } from "@/components/shared/rich-text-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,9 +50,12 @@ export default function ChroniclesPage() {
 
   return (
     <div>
-      <PageHeader
+      {/* TODO sfondo: src="/images/cronache.webp" */}
+      <ListPageHero
+        eyebrow="Ciò che è stato"
         title="Cronache"
         subtitle="La storia del mondo e il diario del party: ciò che è stato, inciso per sempre."
+        accent="#f1c40f"
       />
 
       <Tabs defaultValue="eventi">

@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 
 import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
+import { FALLEN_FILTER, FallenOverlay } from "@/components/shared/immersive-hero";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
@@ -262,15 +263,18 @@ function PartyCharacterCard({
       <span className="pointer-events-none absolute inset-0 rounded-xl bg-gold/[0.03]" />
 
       {/* Portrait 3:4 */}
-      <div className="relative aspect-[3/4] overflow-hidden">
+      <div className="relative isolate aspect-[3/4] overflow-hidden">
         <FantasyImage
           src={portrait}
           alt={card.name}
           fallbackIcon={Users}
-          className={cn("size-full", card.isDead && "grayscale")}
+          className={cn("size-full", card.isDead && FALLEN_FILTER)}
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
           position="top"
         />
+
+        {/* Trattamento dark-horror per i caduti */}
+        {card.isDead && <FallenOverlay />}
 
         {/* Gradiente bottom-up */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-mid via-stone-mid/30 to-transparent" />

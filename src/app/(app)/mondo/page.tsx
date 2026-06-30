@@ -6,14 +6,16 @@ import { useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { SectionDivider } from "@/components/shared/fantasy-card";
+import { ImmersiveHero } from "@/components/shared/immersive-hero";
 import { EmberParticles } from "@/components/shared/particles";
 import { PageHeader } from "@/components/shared/page-header";
+import { Starfield } from "@/components/shared/starfield";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/auth-provider";
 import { useEntitiesByType } from "@/features/entities/data";
-import { EntityCard } from "@/features/entities/components/entity-card";
 import { QuickCreateDialog } from "@/features/entities/components/quick-create-dialog";
+import { WorldPortalCard } from "@/features/entities/components/world-portal-card";
 
 /**
  * Atlante del regno: onboarding alla prima visita (nessun mondo),
@@ -88,38 +90,62 @@ export default function WorldOverviewPage() {
   }
 
   // ---------- Atlante ----------
+  const actions = (
+    <div className="flex items-center gap-2">
+      <Button variant="outline" asChild>
+        <Link href="/grafo">
+          <Network className="size-4" />
+          Vista rete
+        </Link>
+      </Button>
+      {isMaster && (
+        <Button onClick={() => setCreateOpen(true)}>
+          <Plus className="size-4" />
+          Nuovo mondo
+        </Button>
+      )}
+    </div>
+  );
+
   return (
     <div>
-      <PageHeader
-        title="Mondo"
-        subtitle="L'atlante vivente della campagna: mondi, regioni, città e luoghi, intrecciati con personaggi e storie."
-        actions={
-          <div className="flex items-center gap-2">
-            <Button variant="outline" asChild>
-              <Link href="/grafo">
-                <Network className="size-4" />
-                Vista rete
-              </Link>
-            </Button>
-            {isMaster && (
-              <Button onClick={() => setCreateOpen(true)}>
-                <Plus className="size-4" />
-                Nuovo mondo
-              </Button>
-            )}
+      {/* ════════ Hero immersivo a piena larghezza, con titolo sovrapposto ════════ */}
+      <div className="relative left-1/2 -mt-4 mb-8 w-screen -translate-x-1/2 sm:-mt-6 lg:-mt-10 lg:w-[calc(100vw-18rem)]">
+        <ImmersiveHero
+          src="/images/atlante-dei-mondi.webp"
+          alt="Atlante dei Mondi"
+          accent="#d4af37"
+          priority
+          className="rounded-none border-0"
+        >
+          <div className="max-w-3xl">
+            <p className="font-heading text-[11px] font-semibold tracking-[0.45em] text-arcane-bright/90 uppercase sm:text-xs">
+              Le terre conosciute
+            </p>
+            <h1 className="text-gold-gradient mt-3 font-heading text-4xl font-black tracking-wider drop-shadow-[0_2px_20px_rgba(0,0,0,0.85)] sm:text-5xl lg:text-6xl">
+              L&rsquo;Atlante dei Mondi
+            </h1>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-parchment-dark/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-base">
+              Ogni mondo è una soglia. Oltrepassala per scoprire regioni, città,
+              luoghi, fazioni e le storie che li intrecciano.
+            </p>
           </div>
-        }
-      />
+          {actions}
+        </ImmersiveHero>
+      </div>
 
-      <div className="grid gap-6 sm:grid-cols-2">
-        {worlds.map((world, index) => (
-          <EntityCard
-            key={world.id}
-            entity={world}
-            showType={false}
-            className={index === 0 && worlds.length % 2 === 1 ? "sm:col-span-2" : ""}
-          />
-        ))}
+      {/* ════════ Griglia dei portali su campo stellato ════════ */}
+      <div className="relative -mx-2 px-2 py-4 sm:-mx-4 sm:px-4">
+        <Starfield className="rounded-3xl" />
+        <div className="relative z-10 grid gap-6 sm:grid-cols-2">
+          {worlds.map((world, index) => (
+            <WorldPortalCard
+              key={world.id}
+              entity={world}
+              featured={index === 0 && worlds.length % 2 === 1}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="mt-10">

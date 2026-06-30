@@ -9,7 +9,6 @@ import {
   Plus,
   ScrollText,
   Trash2,
-  ZoomIn,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -19,11 +18,8 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/shared/confirm-dialog";
 import { EmptyState } from "@/components/shared/empty-state";
 import { FantasyBreadcrumb } from "@/components/shared/fantasy-breadcrumb";
-import {
-  CornerOrnaments,
-  SectionDivider,
-} from "@/components/shared/fantasy-card";
-import { FantasyImage } from "@/components/shared/fantasy-image";
+import { SectionDivider } from "@/components/shared/fantasy-card";
+import { ImmersiveHero } from "@/components/shared/immersive-hero";
 import { useLightbox } from "@/components/shared/lightbox";
 import { RichTextRenderer } from "@/components/shared/rich-text-lazy";
 import {
@@ -40,7 +36,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FrameCard, FrameOverlay, getAsset } from "@/design-system";
+import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { CharacterView } from "@/features/characters/components/character-view";
 import { PublicCharacterView } from "@/features/characters/components/public-character-view";
@@ -221,6 +217,25 @@ export function EntityView({ id }: { id: string }) {
 
   return (
     <div className="space-y-6">
+      {/* Hero "paesaggio immersivo" — banner separato in cima, a piena
+          larghezza dell'area contenuti (oltre la sidebar su desktop).
+          Annulla i padding del contenitore; il contenuto sotto resta nel
+          suo contenitore con il posizionamento attuale. */}
+      <div className="relative left-1/2 -mt-4 w-screen -translate-x-1/2 sm:-mt-6 lg:-mt-10 lg:w-[calc(100vw-18rem)]">
+        <ImmersiveHero
+          src={entity.imageUrl}
+          alt={entity.name}
+          accent={config.accent}
+          priority
+          className="rounded-none border-0"
+          onOpen={
+            allImages.length
+              ? () => openLightbox(allImages, 0, entity.name)
+              : undefined
+          }
+        />
+      </div>
+
       {/* Posizione nel mondo (geografiche) o breadcrumb semplice */}
       {isGeographic ? (
         <GeoTrail chain={chain ?? []} current={entity} />
@@ -260,32 +275,8 @@ export function EntityView({ id }: { id: string }) {
         </div>
       )}
 
-      {/* Hero */}
-      <header>
-        {entity.imageUrl && (
-          <button
-            type="button"
-            onClick={() => openLightbox(allImages, 0, entity.name)}
-            aria-label={`Apri ${entity.name} a schermo intero`}
-            className="group relative mb-6 block w-full cursor-zoom-in overflow-hidden rounded-xl"
-          >
-            <FantasyImage
-              src={entity.imageUrl}
-              alt={entity.name}
-              className="h-64 sm:h-80 lg:h-96"
-              sizes="(max-width: 1024px) 100vw, 896px"
-              priority
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-            <CornerOrnaments className="z-30 size-4 border-gold/60" />
-            <span className="pointer-events-none absolute right-3 bottom-3 z-30 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
-              <ZoomIn className="size-4.5" />
-            </span>
-            <FrameOverlay asset={getAsset("window_04")} borderWidth="1.5rem" />
-          </button>
-        )}
-
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      {/* Intestazione: titolo, sigilli, azioni */}
+      <header className="flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2.5">
               <h1 className="text-gold-gradient font-heading text-3xl font-bold tracking-wider sm:text-4xl">
@@ -368,7 +359,6 @@ export function EntityView({ id }: { id: string }) {
               </div>
             </div>
           )}
-        </div>
       </header>
 
       {/* Presa in carico (solo quest) */}

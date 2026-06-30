@@ -1,12 +1,11 @@
 "use client";
 
-import { ChevronRight, Lock, Skull, Swords, Users } from "lucide-react";
+import { ChevronRight, Lock, Skull, Swords } from "lucide-react";
 import Link from "next/link";
 
-import { FantasyImage } from "@/components/shared/fantasy-image";
+import { ImmersiveHero } from "@/components/shared/immersive-hero";
 import { Badge } from "@/components/ui/badge";
-import { FrameOverlay, getAsset } from "@/design-system";
-import { cn } from "@/lib/utils";
+import { ENTITY_REGISTRY } from "@/features/entities/registry";
 import type { EntityPublicCard } from "@/types/entities";
 
 import {
@@ -22,6 +21,20 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
   const portrait = card.tokenUrl || card.imageUrl;
   return (
     <div className="space-y-8">
+      {/* Ritratto a banner pieno, in cima */}
+      {portrait && (
+        <div className="relative left-1/2 -mt-4 w-screen -translate-x-1/2 sm:-mt-6 lg:-mt-10 lg:w-[calc(100vw-18rem)]">
+          <ImmersiveHero
+            src={portrait}
+            alt={card.name}
+            accent={ENTITY_REGISTRY.character.accent}
+            fallen={card.isDead}
+            priority
+            className="rounded-none border-0"
+          />
+        </div>
+      )}
+
       <nav className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
         <Link href="/party" className="transition-colors hover:text-gold">
           Party
@@ -31,21 +44,6 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
       </nav>
 
       <header>
-        {portrait && (
-          <div className="relative mb-6 overflow-hidden rounded-xl">
-            <FantasyImage
-              src={portrait}
-              alt={card.name}
-              fallbackIcon={Users}
-              className={cn("h-64 sm:h-80", card.isDead && "grayscale")}
-              sizes="(max-width: 1024px) 100vw, 896px"
-              priority
-            />
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
-            <FrameOverlay asset={getAsset("window_08")} borderWidth="1.5rem" />
-          </div>
-        )}
-
         <div className="flex flex-wrap items-center gap-2.5">
           <h1 className="text-gold-gradient font-heading text-3xl font-bold tracking-wider sm:text-4xl">
             {card.name}

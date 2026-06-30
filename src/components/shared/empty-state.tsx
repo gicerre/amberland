@@ -1,9 +1,10 @@
 import { ScrollText, type LucideIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { imageIcon } from "./image-icon";
 
 interface EmptyStateProps {
-  icon?: LucideIcon;
+  icon?: ReturnType<typeof imageIcon> | LucideIcon;
   title: string;
   description?: string;
   action?: React.ReactNode;

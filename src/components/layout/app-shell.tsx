@@ -188,7 +188,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Contenuto principale */}
-        <main className="lg:pl-72">
+        <main className="overflow-x-clip lg:pl-72">
           <div className="mx-auto w-full max-w-6xl px-3 py-4 pb-20 sm:px-5 sm:py-6 sm:pb-24 lg:px-10 lg:py-10 lg:pb-10">
             <PageTransition key={pathname}>{children}</PageTransition>
           </div>

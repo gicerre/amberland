@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { ListPageHero } from "@/components/shared/list-page-hero";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,11 @@ interface EntityListPageProps {
   emptyDescription?: string;
   /** Nasconde il pulsante di creazione (es. pagina Party). */
   hideCreate?: boolean;
+  /**
+   * Se presente, mostra la testata immersiva (ImmersiveHero a piena larghezza)
+   * al posto del PageHeader. `src` è lo sfondo WebP (facoltativo per ora).
+   */
+  hero?: { eyebrow?: string; src?: string; accent?: string };
 }
 
 /**
@@ -76,6 +82,7 @@ export function EntityListPage({
   emptyTitle,
   emptyDescription,
   hideCreate = false,
+  hero,
 }: EntityListPageProps) {
   const config = ENTITY_REGISTRY[type];
   const { isMaster } = useAuth();
@@ -166,20 +173,32 @@ export function EntityListPage({
     ? "grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-5 lg:grid-cols-4"
     : "grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3";
 
+  const createButton =
+    isMaster && !hideCreate ? (
+      <Button onClick={() => setCreateOpen(true)}>
+        <Plus className="size-4" />
+        {config.label}
+      </Button>
+    ) : undefined;
+
   return (
     <div>
-      <PageHeader
-        title={title ?? config.plural}
-        subtitle={subtitle ?? config.flavor}
-        actions={
-          isMaster && !hideCreate ? (
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="size-4" />
-              {config.label}
-            </Button>
-          ) : undefined
-        }
-      />
+      {hero ? (
+        <ListPageHero
+          eyebrow={hero.eyebrow}
+          title={title ?? config.plural}
+          subtitle={subtitle ?? config.flavor}
+          src={hero.src}
+          accent={hero.accent}
+          actions={createButton}
+        />
+      ) : (
+        <PageHeader
+          title={title ?? config.plural}
+          subtitle={subtitle ?? config.flavor}
+          actions={createButton}
+        />
+      )}
 
       <div className="mb-6 flex flex-wrap items-center gap-2 sm:gap-3">
         <div className="relative w-full min-w-0 flex-1 sm:min-w-48 sm:max-w-xs">

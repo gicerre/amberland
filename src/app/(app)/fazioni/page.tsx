@@ -10,6 +10,11 @@ export default function FactionsPage() {
       subtitle="Regni, gilde, culti e casate: i poteri che muovono i fili del mondo."
       emptyTitle="Nessuna fazione conosciuta"
       emptyDescription="Nessun vessillo sventola ancora sulle cronache del regno."
+      hero={{
+        eyebrow: "Casate e poteri",
+        accent: "#c43146",
+        src: "/images/fazioni.webp",
+      }}
     />
   );
 }

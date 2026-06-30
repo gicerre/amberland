@@ -12,6 +12,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { ListPageHero } from "@/components/shared/list-page-hero";
 import { PageHeader } from "@/components/shared/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,8 @@ interface CharacterDashboardProps {
   partyOnly?: boolean;
   title?: string;
   subtitle?: string;
+  /** Se presente, mostra la testata immersiva al posto del PageHeader. */
+  hero?: { eyebrow?: string; src?: string; accent?: string };
 }
 
 /** Dashboard dei personaggi: ricerca, filtri, ordinamento, card/tabella. */
@@ -94,6 +97,7 @@ export function CharacterDashboard({
   partyOnly = false,
   title = "Personaggi",
   subtitle = "Eroi, alleati e rivali: i volti che popolano le cronache del regno.",
+  hero,
 }: CharacterDashboardProps = {}) {
   const { isMaster } = useAuth();
   const { data: characters, isLoading } = useCharacters();
@@ -230,20 +234,27 @@ export function CharacterDashboard({
         : "Il mio personaggio"
       : "Personaggio";
 
+  const createButton = canCreate ? (
+    <Button onClick={() => setCreateOpen(true)}>
+      <Plus className="size-4" />
+      {createLabel}
+    </Button>
+  ) : undefined;
+
   return (
     <div>
-      <PageHeader
-        title={title}
-        subtitle={subtitle}
-        actions={
-          canCreate ? (
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="size-4" />
-              {createLabel}
-            </Button>
-          ) : undefined
-        }
-      />
+      {hero ? (
+        <ListPageHero
+          eyebrow={hero.eyebrow}
+          title={title}
+          subtitle={subtitle}
+          src={hero.src}
+          accent={hero.accent}
+          actions={createButton}
+        />
+      ) : (
+        <PageHeader title={title} subtitle={subtitle} actions={createButton} />
+      )}
 
       {/* Barra strumenti */}
       <div className="mb-4 flex flex-wrap items-center gap-3">

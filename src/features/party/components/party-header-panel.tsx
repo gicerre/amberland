@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { FantasyImage } from "@/components/shared/fantasy-image";
+import { FALLEN_FILTER } from "@/components/shared/immersive-hero";
 import { ImageUpload } from "@/components/shared/image-upload";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -110,7 +111,7 @@ export function PartyHeaderPanel() {
                     src={entry.card.tokenUrl || entry.card.imageUrl}
                     alt={entry.card.name}
                     fallbackIcon={User}
-                    className={cn("size-full", entry.card.isDead && "grayscale")}
+                    className={cn("size-full", entry.card.isDead && FALLEN_FILTER)}
                     sizes="36px"
                   />
                 </Link>
