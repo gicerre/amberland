@@ -1,20 +1,16 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { motion, useReducedMotion } from "framer-motion";
 import { Link2, Loader2, X } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { FantasyImage } from "@/components/shared/fantasy-image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  ConsoleField,
-  FrameOverlay,
-  getAsset,
-  ImmersiveModal,
-} from "@/design-system";
+import { ConsoleField, ImmersiveModal } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { cn } from "@/lib/utils";
 import type { Entity, Relation } from "@/types/entities";
@@ -30,6 +26,146 @@ import { ENTITY_REGISTRY, RELATION_LABEL_SUGGESTIONS } from "../registry";
 interface ResolvedRelation {
   relation: Relation;
   other: Entity;
+}
+
+/** Hex (#rrggbb) → rgba(), per derivare bordi/bagliori dal colore-accento del tipo. */
+function withAlpha(hex: string, alpha: number): string {
+  const h = hex.replace("#", "");
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/**
+ * Tessera-legame: medaglione (ritratto dell'entità o sigillo araldico col
+ * colore del tipo), nome inciso ed etichetta del legame come iscrizione.
+ * Bordo e bagliore derivano dall'accento del tipo; l'hover simula il peso
+ * di una reliquia che si solleva (nessun rimbalzo — Design Constitution).
+ */
+function RelationTile({
+  relation,
+  other,
+  index,
+  isMaster,
+  onRemove,
+}: {
+  relation: Relation;
+  other: Entity;
+  index: number;
+  isMaster: boolean;
+  onRemove: () => void;
+}) {
+  const reduce = useReducedMotion();
+  const config = ENTITY_REGISTRY[other.type];
+  const Icon = config.icon;
+  const accent = config.accent;
+
+  const accentVars = {
+    "--accent": accent,
+    "--edge": withAlpha(accent, 0.28),
+    "--glow": withAlpha(accent, 0.32),
+    "--tint": withAlpha(accent, 0.12),
+  } as React.CSSProperties;
+
+  return (
+    <motion.li
+      style={accentVars}
+      className="group relative"
+      initial={reduce ? false : { opacity: 0, y: 14 }}
+      whileInView={reduce ? undefined : { opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{
+        duration: 0.5,
+        delay: Math.min(index * 0.045, 0.36),
+        ease: [0.22, 1, 0.36, 1],
+      }}
+    >
+      <Link
+        href={`/entita/${other.id}`}
+        className={cn(
+          "relative flex items-center gap-3.5 overflow-hidden rounded-lg p-2.5 pr-9",
+          "border border-[color:var(--edge)] bg-gradient-to-br from-stone-surface/90 to-stone-mid/70",
+          "shadow-[0_6px_22px_-12px_rgba(0,0,0,0.85)]",
+          "transition-[transform,box-shadow,border-color] duration-300",
+          "hover:-translate-y-0.5 hover:border-[color:var(--accent)]",
+          "hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.9),0_0_22px_var(--glow)]"
+        )}
+      >
+        {/* Filo verticale: il legame che corre lungo il bordo */}
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 w-[3px] opacity-70 transition-opacity duration-300 group-hover:opacity-100"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, var(--accent), transparent)",
+          }}
+        />
+        {/* Velo luminoso che scorre all'hover */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-gold/10 to-transparent transition-transform duration-700 ease-out group-hover:translate-x-full"
+        />
+
+        {/* Medaglione: ritratto o sigillo araldico */}
+        <span className="relative size-14 shrink-0">
+          <span
+            className="relative block size-full overflow-hidden rounded-full ring-1 ring-[color:var(--edge)] transition-all duration-300 group-hover:ring-[color:var(--accent)] group-hover:shadow-[0_0_14px_var(--glow)]"
+            style={{ backgroundColor: "var(--tint)" }}
+          >
+            {other.imageUrl ? (
+              <FantasyImage
+                src={other.imageUrl}
+                alt={other.name}
+                className="size-full transition-transform duration-500 group-hover:scale-110"
+                sizes="56px"
+                position="top"
+              />
+            ) : (
+              <span className="flex size-full items-center justify-center">
+                <Icon className="size-7 opacity-80" />
+              </span>
+            )}
+          </span>
+          {/* Vignetta interna del medaglione */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-black/40"
+          />
+        </span>
+
+        {/* Iscrizioni: legame · nome · tipo */}
+        <span className="min-w-0 flex-1">
+          {relation.label && (
+            <span
+              className="mb-0.5 inline-flex max-w-full items-center truncate rounded-full border border-[color:var(--edge)] px-2 py-px font-heading text-[9px] font-semibold tracking-[0.18em] text-[color:var(--accent)] uppercase"
+              style={{ backgroundColor: "var(--tint)" }}
+            >
+              {relation.label}
+            </span>
+          )}
+          <span className="block truncate font-heading text-[15px] font-semibold leading-snug text-foreground transition-colors group-hover:text-gold-bright">
+            {other.name}
+          </span>
+          <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Icon className="size-3 opacity-70" />
+            {config.label}
+          </span>
+        </span>
+      </Link>
+
+      {isMaster && (
+        <button
+          type="button"
+          aria-label="Spezza il legame"
+          onClick={onRemove}
+          className="absolute top-2 right-2 flex size-6 items-center justify-center rounded-full border border-transparent text-muted-foreground opacity-0 transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+        >
+          <X className="size-3.5" />
+        </button>
+      )}
+    </motion.li>
+  );
 }
 
 /**
@@ -81,13 +217,24 @@ export function RelationPanel({ entity }: { entity: Entity }) {
 
   if (!isMaster && (resolved ?? []).length === 0) return null;
 
+  const total = (resolved ?? []).length;
+
   return (
-    <div className="relative overflow-hidden rounded-xl p-7">
-      <div className="relative z-0 mb-4 flex items-center justify-between gap-3">
-        <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
-          <Link2 className="size-4.5 text-gold" />
-          Entità correlate
-        </h2>
+    <section className="fantasy-stripe-top relative overflow-hidden rounded-2xl border border-gold/15 bg-gradient-to-br from-gold/12 via-card to-night/70 p-5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)] sm:p-6">
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.14),transparent_60%)]"
+      />
+      <div className="relative z-0 mb-5 flex items-end justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
+            <Link2 className="size-4.5 text-gold" />
+            Entità correlate
+          </h2>
+          <p className="mt-0.5 text-xs text-muted-foreground/80 italic">
+            I fili che la legano al resto del mondo conosciuto.
+          </p>
+        </div>
         {isMaster && (
           <Button size="sm" variant="default" onClick={() => setAddOpen(true)}>
             <Link2 className="size-3.5" />
@@ -98,52 +245,45 @@ export function RelationPanel({ entity }: { entity: Entity }) {
 
       {isLoading ? (
         <Loader2 className="mx-auto my-6 size-5 animate-spin text-gold" />
-      ) : (resolved ?? []).length === 0 ? (
+      ) : total === 0 ? (
         <p className="py-4 text-center text-sm text-muted-foreground italic">
           Nessun collegamento… per ora. Ogni storia è una ragnatela di fili.
         </p>
       ) : (
-        <div className="space-y-4">
+        <div className="relative z-0 space-y-6">
           {groups.map(([type, items]) => {
             const config = ENTITY_REGISTRY[type as Entity["type"]];
             const Icon = config.icon;
+            const headerVars = {
+              "--accent": config.accent,
+              "--edge": withAlpha(config.accent, 0.4),
+            } as React.CSSProperties;
             return (
               <div key={type}>
-                <p className="mb-1.5 text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
-                  {config.plural}
-                </p>
-                <ul className="space-y-1">
-                  {items.map(({ relation, other }) => (
-                    <li
+                {/* Targa incisa del raggruppamento */}
+                <div
+                  style={headerVars}
+                  className="mb-2.5 flex items-center gap-3"
+                >
+                  <span className="flex shrink-0 items-center gap-2 font-heading text-xs font-semibold tracking-[0.2em] text-foreground/90 uppercase">
+                    <Icon className="size-4 text-[color:var(--accent)]" />
+                    {config.plural}
+                  </span>
+                  <span className="h-px flex-1 bg-gradient-to-r from-[color:var(--edge)] via-[color:var(--edge)]/40 to-transparent" />
+                  <span className="shrink-0 font-heading text-[11px] text-muted-foreground tabular-nums">
+                    {items.length}
+                  </span>
+                </div>
+                <ul className="grid gap-2.5 sm:grid-cols-2">
+                  {items.map(({ relation, other }, index) => (
+                    <RelationTile
                       key={relation.id}
-                      className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-1.5 transition-colors hover:border-gold/25 hover:bg-gold/5"
-                    >
-                      <Icon className="size-4 shrink-0 text-gold/70" />
-                      <Link
-                        href={`/entita/${other.id}`}
-                        className="min-w-0 flex-1 truncate font-medium text-foreground transition-colors hover:text-gold-bright"
-                      >
-                        {other.name}
-                      </Link>
-                      {relation.label && (
-                        <Badge
-                          variant="outline"
-                          className="shrink-0 border-gold/25 text-[10px] text-muted-foreground"
-                        >
-                          {relation.label}
-                        </Badge>
-                      )}
-                      {isMaster && (
-                        <button
-                          type="button"
-                          aria-label="Rimuovi collegamento"
-                          onClick={() => remove.mutate(relation.id)}
-                          className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
-                        >
-                          <X className="size-3.5" />
-                        </button>
-                      )}
-                    </li>
+                      relation={relation}
+                      other={other}
+                      index={index}
+                      isMaster={isMaster}
+                      onRemove={() => remove.mutate(relation.id)}
+                    />
                   ))}
                 </ul>
               </div>
@@ -159,8 +299,7 @@ export function RelationPanel({ entity }: { entity: Entity }) {
           from={entity}
         />
       )}
-      <FrameOverlay asset={getAsset("window_04")} borderWidth="1.5rem" />
-    </div>
+    </section>
   );
 }
 

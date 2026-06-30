@@ -1,6 +1,7 @@
 "use client";
 
-import { Castle, ChevronDown, Search } from "lucide-react";
+import { ChevronDown, Search } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -32,12 +33,15 @@ export function Brand({ className }: { className?: string }) {
       href="/party"
       className={cn("group flex items-center gap-3 px-2", className)}
     >
-      <span className="relative flex size-11 shrink-0 items-center justify-center">
-        {/* Cerchio esterno ornamentale */}
-        <span className="absolute inset-0 rounded-full border border-gold/40 bg-gradient-to-br from-gold/20 via-gold/5 to-transparent shadow-[0_0_24px_rgba(212,175,55,0.2)] transition-shadow group-hover:shadow-[0_0_32px_rgba(212,175,55,0.35)]" />
-        {/* Angolini interni */}
-        <span className="absolute inset-1.5 rounded-full border border-gold/20" />
-        <Castle className="relative size-5 text-gold drop-shadow-[0_0_6px_rgba(212,175,55,0.6)]" />
+      <span className="relative flex size-11 shrink-0 items-center justify-center drop-shadow-[0_0_10px_rgba(212,175,55,0.25)] transition-[filter] group-hover:drop-shadow-[0_0_16px_rgba(212,175,55,0.45)]">
+        <Image
+          src="/logo/logo.png"
+          alt="Emblema di Amberland"
+          width={44}
+          height={44}
+          priority
+          className="size-full object-contain"
+        />
       </span>
       <span className="flex flex-col">
         <span className="text-gold-gradient font-heading text-[17px] font-extrabold tracking-[0.22em]">

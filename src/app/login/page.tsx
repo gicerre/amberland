@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Castle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,9 +49,14 @@ export default function LoginPage() {
           contentClassName="p-8 sm:p-10"
         >
           <div className="mb-8 flex flex-col items-center text-center">
-            <span className="mb-4 flex size-14 items-center justify-center rounded-full border border-gold/50 bg-gold/10 shadow-[0_0_30px_rgba(212,175,55,0.2)]">
-              <Castle className="size-6 text-gold" />
-            </span>
+            <Image
+              src="/logo/logo.png"
+              alt="Emblema di Amberland"
+              width={88}
+              height={88}
+              priority
+              className="mb-4 size-20 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.3)]"
+            />
             <h1 className="text-gold-gradient font-heading text-2xl font-bold tracking-widest">
               VARCA I CANCELLI
             </h1>

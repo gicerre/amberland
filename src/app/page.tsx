@@ -58,34 +58,24 @@ export default function LandingPage() {
           Una campagna di Dungeons &amp; Dragons
         </motion.p>
 
-        <motion.h1
-          variants={item}
-          className="text-gold-gradient font-heading text-[clamp(2.25rem,10vw,8rem)] font-black tracking-[0.1em] drop-shadow-[0_0_40px_rgba(212,175,55,0.35)]"
-        >
-          AMBERLAND
-        </motion.h1>
-
-        <motion.div
-          variants={item}
-          className="mt-5 flex w-full max-w-md items-center gap-4"
-          aria-hidden
-        >
-          <span className="h-px flex-1 bg-gradient-to-r from-transparent to-gold/70" />
-          <span className="size-2 rotate-45 border border-gold/80 bg-gold/30" />
-          <span className="h-px flex-1 bg-gradient-to-l from-transparent to-gold/70" />
+        <motion.div variants={item}>
+          <Image
+            src="/logo/full_logo_name.png"
+            alt="Amberland — Le Cronache del Regno"
+            width={480}
+            height={560}
+            priority
+            sizes="(max-width: 640px) 70vw, 480px"
+            className="h-auto w-[clamp(15rem,55vw,30rem)] object-contain drop-shadow-[0_0_50px_rgba(212,175,55,0.3)]"
+          />
         </motion.div>
 
-        <motion.p
-          variants={item}
-          className="mt-5 font-heading text-base tracking-[0.45em] text-parchment/90 uppercase sm:text-lg"
-        >
-          Le Cronache del Regno
-        </motion.p>
-
-        <motion.div variants={item} className="mt-12">
-          <Link href={destination}><Button className="h-20 w-full font-heading text-base font-bold tracking-[0.15em] uppercase transition-transform hover:scale-[1.03] hover:brightness-110 sm:px-10 sm:tracking-[0.2em]">
-            <span className="m-20">Entra in Amberland</span>
-          </Button></Link>
+        <motion.div variants={item} className="mt-10 w-full max-w-xs sm:max-w-sm">
+          <Link href={destination} className="block">
+            <Button className="h-14 w-full px-6 font-heading text-sm font-bold tracking-[0.15em] uppercase transition-transform hover:scale-[1.03] hover:brightness-110 sm:h-16 sm:px-10 sm:text-base sm:tracking-[0.2em]">
+              Entra in Amberland
+            </Button>
+          </Link>
         </motion.div>
       </motion.div>
     </main>

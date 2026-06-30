@@ -1,0 +1,23 @@
+{
+  "name": "Amberland — Le Cronache del Regno",
+  "short_name": "Amberland",
+  "description": "Il portale ufficiale della campagna Dungeons & Dragons Amberland: missioni, mondo, party e cronache del regno.",
+  "icons": [
+    {
+      "src": "/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "theme_color": "#060608",
+  "background_color": "#060608",
+  "display": "standalone",
+  "start_url": "/"
+}

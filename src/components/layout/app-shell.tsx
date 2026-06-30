@@ -1,6 +1,7 @@
 "use client";
 
 import { Menu, Search } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -159,9 +160,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           {/* Brand centrato */}
           <Link
             href="/party"
-            className="text-gold-gradient absolute left-1/2 -translate-x-1/2 font-heading text-[15px] font-extrabold tracking-[0.22em]"
+            aria-label="Amberland"
+            className="absolute left-1/2 -translate-x-1/2"
           >
-            AMBERLAND
+            <Image
+              src="/logo/logo_name.png"
+              alt="Amberland"
+              width={150}
+              height={32}
+              priority
+              className="h-5 w-auto object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.25)]"
+            />
           </Link>
 
           <div className="flex items-center gap-1">

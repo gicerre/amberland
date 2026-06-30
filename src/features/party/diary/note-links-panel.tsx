@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { FrameOverlay, getAsset, ImmersiveModal } from "@/design-system";
+import { ImmersiveModal } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import {
   QUEST_EVENT_STYLE,
@@ -41,10 +41,21 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
   const linkOf = (noteId: string) => links.find((l) => l.noteId === noteId);
 
   return (
-    <div className="relative overflow-hidden rounded-xl p-7">
+    <section className="fantasy-stripe-top relative overflow-hidden rounded-2xl border border-amber-900/25 bg-gradient-to-br from-amber-900/10 via-card to-night/70 p-5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)] sm:p-6">
+      {/* Bagliore caldo di pergamena */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(200,167,93,0.12),transparent_60%)]"
+      />
+      {/* Righe del quaderno — segnale di "pagina di appunti" */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-[0.05] bg-[repeating-linear-gradient(0deg,transparent,transparent_27px,rgba(212,175,55,0.7)_28px)]"
+      />
+
       <div className="relative z-0 mb-4 flex items-center justify-between gap-3">
         <h2 className="font-heading flex items-center gap-2 text-lg font-semibold tracking-wider">
-          <BookText className="size-4.5 text-gold" />
+          <BookText className="size-4.5 text-amber-bright" />
           Note collegate
         </h2>
         {canContribute && (
@@ -62,11 +73,11 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
       </div>
 
       {notes.length === 0 ? (
-        <p className="py-4 text-center text-sm text-muted-foreground italic">
+        <p className="relative z-0 py-4 text-center text-sm text-muted-foreground italic">
           Nessuna nota collegata… ancora.
         </p>
       ) : (
-        <ul className="space-y-1.5">
+        <ul className="relative z-0 grid gap-2.5 sm:grid-cols-2">
           {notes.map((note) => {
             const link = linkOf(note.id);
             const canUnlink = isMaster || note.authorId === user?.uid;
@@ -80,53 +91,94 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
               <li
                 key={note.id}
                 className={cn(
-                  "group flex items-center gap-2 rounded-lg border px-2.5 py-1.5 transition-colors",
+                  "group relative overflow-hidden rounded-lg border shadow-[0_4px_16px_-10px_rgba(0,0,0,0.8)] transition-all duration-300 hover:-translate-y-0.5",
                   isPersonal
-                    ? "border-sky-700/40 bg-sky-950/25 hover:border-sky-600/60"
-                    : "border-transparent hover:border-gold/25 hover:bg-gold/5"
+                    ? "border-sky-700/40 bg-gradient-to-br from-sky-950/40 to-stone-mid/70 hover:border-sky-600/60 hover:shadow-[0_10px_26px_-12px_rgba(0,0,0,0.9),0_0_18px_rgba(56,189,248,0.18)]"
+                    : "border-amber-900/30 bg-gradient-to-br from-amber-950/25 via-stone-surface/90 to-stone-mid/70 hover:border-gold/45 hover:shadow-[0_10px_26px_-12px_rgba(0,0,0,0.9),0_0_18px_rgba(212,175,55,0.16)]"
                 )}
               >
-                {evt ? (
-                  <QuestStatusIcon
-                    status={note.questStatus}
-                    className="size-5 shrink-0"
-                  />
-                ) : isPersonal ? (
-                  <Lock className="size-4 shrink-0 text-sky-300/80" />
-                ) : (
-                  <BookText className="size-4 shrink-0 text-gold/70" />
-                )}
+                {/* Angolo piegato — un foglio appuntato */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute top-0 right-0 border-t-[16px] border-l-[16px] border-l-transparent transition-colors",
+                    isPersonal
+                      ? "border-t-sky-700/45 group-hover:border-t-sky-500/60"
+                      : "border-t-gold/25 group-hover:border-t-gold/45"
+                  )}
+                />
+
                 <button
                   type="button"
                   onClick={() => setActive(note)}
-                  className={cn(
-                    "min-w-0 flex-1 truncate text-left font-medium text-foreground",
-                    isPersonal ? "hover:text-sky-300" : "hover:text-gold-bright"
-                  )}
+                  className="flex w-full items-start gap-3 p-3 pr-9 text-left"
                 >
-                  {note.title}
+                  {/* Icona nel margine del foglio */}
+                  <span
+                    className={cn(
+                      "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border",
+                      isPersonal
+                        ? "border-sky-700/40 bg-sky-950/40"
+                        : "border-gold/25 bg-night/40"
+                    )}
+                  >
+                    {evt ? (
+                      <QuestStatusIcon
+                        status={note.questStatus}
+                        className="size-5"
+                      />
+                    ) : isPersonal ? (
+                      <Lock className="size-4 text-sky-300/80" />
+                    ) : (
+                      <BookText className="size-4 text-gold/70" />
+                    )}
+                  </span>
+
+                  <span className="min-w-0 flex-1">
+                    <span
+                      className={cn(
+                        "block truncate font-heading text-[15px] font-semibold leading-snug text-foreground transition-colors",
+                        isPersonal
+                          ? "group-hover:text-sky-300"
+                          : "group-hover:text-gold-bright"
+                      )}
+                    >
+                      {note.title}
+                    </span>
+                    {/* Riga di scrittura sotto il titolo */}
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "mt-1 mb-1.5 block h-px w-full",
+                        isPersonal
+                          ? "bg-gradient-to-r from-sky-700/40 to-transparent"
+                          : "bg-gradient-to-r from-gold/30 to-transparent"
+                      )}
+                    />
+                    {isPersonal ? (
+                      <Badge
+                        variant="outline"
+                        className="border-sky-700/50 bg-sky-950/40 text-[10px] text-sky-300"
+                      >
+                        Personale
+                      </Badge>
+                    ) : (
+                      <Badge
+                        variant="outline"
+                        className={`text-[10px] ${VISIBILITY_BADGES[note.visibility]}`}
+                      >
+                        {VISIBILITY_LABELS[note.visibility]}
+                      </Badge>
+                    )}
+                  </span>
                 </button>
-                {isPersonal ? (
-                  <Badge
-                    variant="outline"
-                    className="shrink-0 border-sky-700/50 bg-sky-950/40 text-[10px] text-sky-300"
-                  >
-                    Personale
-                  </Badge>
-                ) : (
-                  <Badge
-                    variant="outline"
-                    className={`shrink-0 text-[10px] ${VISIBILITY_BADGES[note.visibility]}`}
-                  >
-                    {VISIBILITY_LABELS[note.visibility]}
-                  </Badge>
-                )}
+
                 {canUnlink && link && (
                   <button
                     type="button"
                     aria-label="Scollega"
                     onClick={() => unlink.mutate(link)}
-                    className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
+                    className="absolute bottom-2 right-2 flex size-6 items-center justify-center rounded-full border border-transparent text-muted-foreground opacity-0 transition-all hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
                   >
                     <X className="size-3.5" />
                   </button>
@@ -155,8 +207,7 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
           onOpenChange={(open) => !open && setActive(null)}
         />
       )}
-      <FrameOverlay asset={getAsset("window_06")} borderWidth="1.5rem" />
-    </div>
+    </section>
   );
 }
 

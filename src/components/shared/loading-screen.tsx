@@ -1,4 +1,4 @@
-import { Castle } from "lucide-react";
+import Image from "next/image";
 
 import { cn } from "@/lib/utils";
 
@@ -11,9 +11,14 @@ export function LoadingScreen({ className }: { className?: string }) {
         className
       )}
     >
-      <div className="flex size-16 animate-pulse items-center justify-center rounded-full border border-gold/40 bg-gold/10 shadow-[0_0_40px_rgba(212,175,55,0.18)]">
-        <Castle className="size-7 text-gold" />
-      </div>
+      <Image
+        src="/logo/logo.png"
+        alt="Emblema di Amberland"
+        width={72}
+        height={72}
+        priority
+        className="size-16 animate-pulse object-contain drop-shadow-[0_0_40px_rgba(212,175,55,0.25)]"
+      />
       <p className="font-heading text-sm tracking-[0.3em] text-muted-foreground uppercase">
         Evocazione in corso…
       </p>
