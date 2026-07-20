@@ -157,3 +157,4 @@ dd pther icons
 add favico
 update layout of main UI
 fix home layout
+update pg sheet and chronicles
