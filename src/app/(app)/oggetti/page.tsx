@@ -12,7 +12,7 @@ export default function ItemsPage() {
       emptyDescription="Nemmeno una moneta consunta. Le ricchezze del regno attendono di essere catalogate."
       hero={{
         eyebrow: "Tesori e reliquie",
-        accent: "#e67e22",
+        accent: "var(--ember-bright)",
         src: "/images/oggetti.webp",
       }}
     />

@@ -3,11 +3,23 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 
+import { resolveCssColor } from "@/lib/color";
 import { cn } from "@/lib/utils";
 import { ENTITY_TYPES, type Entity, type EntityType } from "@/types/entities";
 
 import { useAllEntities, useAllRelations } from "../data";
 import { ENTITY_REGISTRY } from "../registry";
+
+/** Il canvas 2D non capisce `var(--token)`: risolve e memoizza gli accent. */
+const resolvedAccents = new Map<string, string>();
+function canvasAccent(type: EntityType): string {
+  let color = resolvedAccents.get(type);
+  if (!color) {
+    color = resolveCssColor(ENTITY_REGISTRY[type].accent);
+    resolvedAccents.set(type, color);
+  }
+  return color;
+}
 
 interface GraphNode {
   id: string;
@@ -67,6 +79,11 @@ export function GraphView() {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let width = 0;
     let height = 0;
+
+    // Il canvas non risolve var(): il font del body va letto dal computed style.
+    const labelFont =
+      getComputedStyle(canvas).getPropertyValue("--font-caudex").trim() ||
+      "Georgia, serif";
 
     const nodeMap = new Map<string, GraphNode>();
     nodes.forEach((entity, index) => {
@@ -196,7 +213,7 @@ export function GraphView() {
         context.lineTo(b.x, b.y);
         context.strokeStyle = edge.hierarchy
           ? "rgba(212,175,55,0.28)"
-          : "rgba(220,38,38,0.42)";
+          : "rgba(179,64,46,0.48)";
         context.lineWidth = edge.hierarchy ? 1 : 1.4;
         context.setLineDash(edge.hierarchy ? [4, 4] : []);
         context.stroke();
@@ -205,7 +222,7 @@ export function GraphView() {
 
       // Nodi
       for (const node of nodeMap.values()) {
-        const accent = ENTITY_REGISTRY[node.entity.type].accent;
+        const accent = canvasAccent(node.entity.type);
         const isHovered = hoveredId === node.id;
         const radius = node.entity.type === "world" ? 12 : 8;
 
@@ -220,12 +237,12 @@ export function GraphView() {
         context.arc(node.x, node.y, radius, 0, Math.PI * 2);
         context.fillStyle = accent;
         context.fill();
-        context.strokeStyle = "rgba(10,12,18,0.9)";
+        context.strokeStyle = "rgba(10,8,5,0.9)";
         context.lineWidth = 2;
         context.stroke();
 
         if (view.scale > 0.55 || isHovered) {
-          context.font = `${isHovered ? "600 " : ""}11px var(--font-crimson-pro), Georgia, serif`;
+          context.font = `${isHovered ? "600 " : ""}11px ${labelFont}`;
           context.fillStyle = isHovered
             ? "#f0d075"
             : "rgba(232,220,192,0.75)";
@@ -345,7 +362,7 @@ export function GraphView() {
               className={cn(
                 "flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
                 hidden
-                  ? "border-gold/12 bg-black/10 text-muted-foreground/50"
+                  ? "border-hairline bg-black/10 text-muted-foreground/50"
                   : "border-gold/30 bg-black/25 text-foreground/85 hover:border-gold/50"
               )}
             >
@@ -363,7 +380,7 @@ export function GraphView() {
       </div>
 
       {/* Tela della ragnatela */}
-      <div className="relative overflow-hidden rounded-2xl border border-gold/20 bg-[radial-gradient(ellipse_at_center,rgba(30,42,74,0.55),rgba(6,7,10,0.96))] shadow-[0_12px_40px_-14px_rgba(0,0,0,0.8)]">
+      <div className="relative overflow-hidden rounded-2xl border border-hairline-strong bg-[radial-gradient(ellipse_at_center,rgba(36,29,56,0.50),rgba(10,8,5,0.96))] shadow-[0_12px_40px_-14px_rgba(0,0,0,0.8)]">
         <canvas
           ref={canvasRef}
           className="h-[65svh] w-full touch-none"
@@ -371,7 +388,7 @@ export function GraphView() {
         />
 
         {/* Legenda dei fili */}
-        <div className="pointer-events-none absolute top-3 left-3 flex flex-col gap-1.5 rounded-lg border border-gold/15 bg-background/70 px-3 py-2 backdrop-blur-sm">
+        <div className="pointer-events-none absolute top-3 left-3 flex flex-col gap-1.5 rounded-lg border border-hairline bg-background/95 px-3 py-2">
           <span className="flex items-center gap-2 text-[11px] text-muted-foreground">
             <span className="inline-block h-0 w-5 border-t border-dashed border-gold/60" />
             Geografia

@@ -18,12 +18,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import { cn } from "@/lib/utils";
+
 import { loginSchema, type LoginValues } from "../schemas";
 import { loginWithUsername, translateAuthError } from "../service";
 
 export function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  // Cerimonia "sigillo rifiutato": catene che si scuotono sul modulo.
+  const [denied, setDenied] = useState(false);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
@@ -39,6 +43,8 @@ export function LoginForm() {
       toast.success("Bentornato in Amberland");
       router.replace(mustChangePassword ? "/cambia-password" : "/home");
     } catch (error) {
+      setDenied(true);
+      setTimeout(() => setDenied(false), 700);
       toast.error("Accesso negato", { description: translateAuthError(error) });
     }
   };
@@ -47,7 +53,13 @@ export function LoginForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className={cn(
+          "space-y-5",
+          denied && "animate-[chain-shake_600ms_ease-out]"
+        )}
+      >
         <FormField
           control={form.control}
           name="username"

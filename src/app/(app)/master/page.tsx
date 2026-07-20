@@ -1,10 +1,10 @@
 "use client";
 
-import { BookOpen, Eye, EyeOff, Lock, Network, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Eye, Network, Plus, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { PageHeader } from "@/components/shared/page-header";
+import { DeskPlaque } from "@/components/shared/desk-plaque";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +24,13 @@ import { cn } from "@/lib/utils";
 import { ENTITY_TYPES, type EntityType } from "@/types/entities";
 import { imageIcon } from "@/components/shared/image-icon";
 
+/* Icone narrative della panoramica: a livello di modulo, mai nel render
+   (UX_AUDIT_REDESIGN 3.4). */
+const BookIcon = imageIcon("/icons/book.png");
+const HiddenIcon = imageIcon("/icons/eye_off.png");
+const LockedIcon = imageIcon("/icons/lock.png");
+const HandsIcon = imageIcon("/icons/hands.png");
+
 /* ───────────────────────── PAGE ───────────────────────── */
 
 export default function MasterPage() {
@@ -32,6 +39,8 @@ export default function MasterPage() {
 
   const [createType, setCreateType] = useState<EntityType | null>(null);
   const [quickOpen, setQuickOpen] = useState(false);
+  // Cerimonia "il sigillo si spezza": la voce si frattura prima di rivelarsi.
+  const [breakingId, setBreakingId] = useState<string | null>(null);
 
   const counts = useMemo(() => {
     const map = new Map<EntityType, number>();
@@ -60,22 +69,16 @@ export default function MasterPage() {
   const total = (entities ?? []).length;
   const hiddenCount = (entities ?? []).filter(isHiddenFromPlayers).length;
 
-  const BookIcon = imageIcon("/icons/book.png");
-  const EyeOff = imageIcon("/icons/eye_off.png");
-  const Lock = imageIcon("/icons/lock.png");
-  const HandsIcon = imageIcon("/icons/hands.png");
-  
-
   // Panoramica del regno (info critiche del DM, a colpo d'occhio).
   const overview: StatItem[] = [
     { icon: BookIcon, label: "Voci totali", value: total },
     {
-      icon: EyeOff,
+      icon: HiddenIcon,
       label: "Nascoste",
       value: hiddenCount,
       accent: hiddenCount > 0 ? "amber" : "gold",
     },
-    { icon: Lock, label: "Bloccate", value: locked.length },
+    { icon: LockedIcon, label: "Bloccate", value: locked.length },
     {
       icon: HandsIcon,
       label: "Pronte",
@@ -86,9 +89,10 @@ export default function MasterPage() {
 
   return (
     <div className="space-y-7">
-      {/* ───────── HEADER ───────── */}
-      <PageHeader
-        title="Sala del Master"
+      {/* ───────── TARGA DELLO SCRITTOIO ───────── */}
+      <DeskPlaque
+        eyebrow="Strumenti del narratore"
+        title="Tavolo da Guerra del Master"
         subtitle="Da qui tessi le cronache: crea, collega e decidi cosa rivelare al party."
         actions={
           <div className="flex items-center gap-2">
@@ -124,9 +128,13 @@ export default function MasterPage() {
               return (
                 <li
                   key={entity.id}
-                  className="flex items-center gap-3 rounded-lg border border-amber-500/20 bg-night/40 px-3 py-2"
+                  className={cn(
+                    "flex items-center gap-3 rounded-lg border border-ember/25 bg-night/40 px-3 py-2",
+                    breakingId === entity.id &&
+                      "animate-[reveal-out_320ms_ease-in_both]"
+                  )}
                 >
-                  <Icon className="size-4 shrink-0 text-amber-300" />
+                  <Icon className="size-4 shrink-0 text-ember-bright" />
                   <Link
                     href={`/entita/${entity.id}`}
                     className="min-w-0 flex-1 truncate hover:text-gold-bright"
@@ -142,10 +150,16 @@ export default function MasterPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-9 border-amber-500/40 text-amber-200"
-                    onClick={() =>
-                      setVisibility.mutate({ entity, visibility: "PUBLIC" })
-                    }
+                    className="h-9 border-ember/40 text-ember-bright"
+                    disabled={breakingId === entity.id}
+                    onClick={() => {
+                      // Prima si spezza il sigillo, poi la voce si rivela.
+                      setBreakingId(entity.id);
+                      setTimeout(() => {
+                        setVisibility.mutate({ entity, visibility: "PUBLIC" });
+                        setBreakingId(null);
+                      }, 320);
+                    }}
                   >
                     <Eye className="size-3.5" />
                     Rivela
@@ -165,17 +179,18 @@ export default function MasterPage() {
           meta={`${hiddenCount} nascoste`}
         />
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {ENTITY_TYPES.map((type) => {
+          {ENTITY_TYPES.filter((type) => type !== "event").map((type) => {
             const config = ENTITY_REGISTRY[type];
             const Icon = config.icon;
             return (
               <div
                 key={type}
-                className="fantasy-stripe-top relative overflow-hidden rounded-2xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-4 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)]"
+                className="fantasy-stripe-top relative overflow-hidden rounded-2xl border border-hairline bg-gradient-to-b from-stone-surface to-stone-mid/80 p-4 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)]"
               >
                 <div className="flex items-center gap-3">
-                  <span className="flex size-30 shrink-0 items-center justify-center rounded-lg">
-                    <Icon className="size-25" />
+                  {/* Emblema narrativo 64px: non deve pesare più del dato (0.8) */}
+                  <span className="flex size-16 shrink-0 items-center justify-center rounded-lg">
+                    <Icon className="size-14" />
                   </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-heading text-xs tracking-wide text-muted-foreground">
@@ -186,15 +201,30 @@ export default function MasterPage() {
                     </p>
                   </div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-3 h-10 w-full"
-                  onClick={() => setCreateType(type)}
-                >
-                  <Plus className="size-3.5" />
-                  Aggiungi
-                </Button>
+                {config.hiddenInCreate ? (
+                  // Le Cronache hanno un flusso di scrittura dedicato.
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 h-10 w-full"
+                    asChild
+                  >
+                    <Link href="/cronache">
+                      <BookOpen className="size-3.5" />
+                      Apri il Libro
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 h-10 w-full"
+                    onClick={() => setCreateType(type)}
+                  >
+                    <Plus className="size-3.5" />
+                    Aggiungi
+                  </Button>
+                )}
               </div>
             );
           })}

@@ -26,13 +26,13 @@ export function PcHeaderPanel() {
 
   if (isLoading) {
     return (
-      <div className="h-full min-h-44 animate-pulse rounded-2xl border border-gold/20 bg-card/60" />
+      <div className="h-full min-h-44 animate-pulse rounded-2xl border border-hairline-strong bg-card/60" />
     );
   }
 
   if (!pc) {
     return (
-      <div className="flex h-full flex-col items-center justify-center gap-3 rounded-2xl border border-gold/25 bg-card/60 p-6 text-center">
+      <div className="flex h-full flex-col items-center justify-center gap-3 rounded-2xl border border-hairline-strong bg-card/60 p-6 text-center">
         <User className="size-8 text-gold/60" />
         <p className="text-sm text-muted-foreground">
           Nessun personaggio associato.
@@ -59,7 +59,7 @@ export function PcHeaderPanel() {
       {/* Token — elemento dominante */}
       <Link
         href={`/entita/${pc.id}`}
-        className="relative z-10 mt-1 block size-28 overflow-hidden rounded-2xl border-2 border-gold/50 shadow-[0_0_30px_rgba(212,175,55,0.25)] transition-transform hover:scale-105"
+        className="elev-1 relative z-10 mt-1 block size-28 overflow-hidden rounded-2xl border-2 border-gold/50 transition-all hover:border-gold/80"
       >
         <FantasyImage
           src={token}

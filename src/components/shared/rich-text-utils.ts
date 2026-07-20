@@ -21,6 +21,12 @@ export function richTextToPlainText(content: RichTextValue): string {
   const parts: string[] = [];
   const walk = (node: RichNode) => {
     if (typeof node.text === "string") parts.push(node.text);
+    // Le citazioni inline (@menzione) contano come testo: il nome
+    // dell'entità citata deve emergere in ricerca e anteprime.
+    if (node.type === "mention") {
+      const label = (node.attrs as { label?: unknown } | undefined)?.label;
+      if (typeof label === "string") parts.push(label);
+    }
     node.content?.forEach(walk);
   };
   walk(content);
@@ -29,4 +35,19 @@ export function richTextToPlainText(content: RichTextValue): string {
 
 export function isEmptyRichText(content: RichTextValue): boolean {
   return richTextToPlainText(content).length === 0;
+}
+
+/** Id delle entità citate inline (nodi mention) nel contenuto. */
+export function extractMentionIds(content: RichTextValue): string[] {
+  if (!content || typeof content === "string") return [];
+  const ids = new Set<string>();
+  const walk = (node: RichNode) => {
+    if (node.type === "mention") {
+      const id = (node.attrs as { id?: unknown } | undefined)?.id;
+      if (typeof id === "string" && id) ids.add(id);
+    }
+    node.content?.forEach(walk);
+  };
+  walk(content);
+  return [...ids];
 }

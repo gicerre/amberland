@@ -163,7 +163,7 @@ export function HpBar({
           ) : null}
         </span>
       </div>
-      <div className="h-3 overflow-hidden rounded-full border border-gold/20 bg-black/60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.6)]">
+      <div className="h-3 overflow-hidden rounded-full border border-hairline-strong bg-black/60 shadow-[inset_0_1px_3px_rgba(0,0,0,0.6)]">
         <div
           className={cn(
             "h-full rounded-full transition-[width] duration-500",
@@ -289,7 +289,7 @@ export function CombatPanel({ sheet }: { sheet: CharacterSheet }) {
         />
       </div>
       {weapon && (
-        <div className="mt-2.5 flex items-center gap-3 rounded-xl border border-gold/25 bg-gradient-to-r from-gold/10 to-transparent px-4 py-3">
+        <div className="mt-2.5 flex items-center gap-3 rounded-xl border border-hairline-strong bg-gradient-to-r from-gold/10 to-transparent px-4 py-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-gold/30 bg-night/40 text-gold">
             <Swords className="size-5" />
           </span>
@@ -328,7 +328,7 @@ export function ClassesRow({ sheet }: { sheet: CharacterSheet }) {
       {sheet.classes.map((entry) => (
         <div
           key={entry.id}
-          className="rounded-lg border border-gold/25 bg-gradient-to-b from-stone-surface to-stone-mid px-4 py-2"
+          className="rounded-lg border border-hairline-strong bg-gradient-to-b from-stone-surface to-stone-mid px-4 py-2"
         >
           <span className="font-heading font-semibold text-gold-bright">
             {entry.className || "Classe"} {entry.level}
@@ -410,7 +410,7 @@ export function SkillsPanel({ sheet }: { sheet: CharacterSheet }) {
                     "inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-sm",
                     expert
                       ? "border-gold/55 bg-gold/12 text-gold-bright"
-                      : "border-gold/25 bg-night/40 text-foreground/90"
+                      : "border-hairline-strong bg-night/40 text-foreground/90"
                   )}
                 >
                   {expert && <Star className="size-3 fill-gold text-gold" />}
@@ -430,7 +430,7 @@ export function SkillsPanel({ sheet }: { sheet: CharacterSheet }) {
           {profText.map(([label, value]) => (
             <div
               key={label}
-              className="rounded-lg border border-gold/12 bg-night/30 px-3 py-2"
+              className="rounded-lg border border-hairline bg-night/30 px-3 py-2"
             >
               <dt className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
                 {label}
@@ -449,9 +449,9 @@ export function SkillsPanel({ sheet }: { sheet: CharacterSheet }) {
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetContent
           side="right"
-          className="w-full border-gold/20 bg-popover sm:max-w-md"
+          className="w-full border-hairline-strong bg-popover sm:max-w-md"
         >
-          <SheetHeader className="border-b border-gold/15">
+          <SheetHeader className="border-b border-hairline">
             <SheetTitle className="text-gold-gradient flex items-center gap-2">
               <Gauge className="size-5 text-gold" />
               Tutte le competenze
@@ -475,7 +475,7 @@ export function SkillsPanel({ sheet }: { sheet: CharacterSheet }) {
                       className={cn(
                         "flex size-2 shrink-0 rounded-full",
                         expert
-                          ? "bg-gold shadow-[0_0_6px_rgba(212,175,55,0.7)]"
+                          ? "bg-gold-bright shadow-[inset_0_1px_0_rgba(255,255,255,0.4)]"
                           : proficientSkill
                             ? "bg-gold/60"
                             : "bg-iron-mid"
@@ -551,12 +551,12 @@ function EquipItemCard({
     <div
       className={cn(
         "flex items-center gap-3 rounded-xl border bg-gradient-to-b from-stone-surface to-stone-mid/80 p-3 transition-colors",
-        item.equipped ? "border-gold/45" : "border-gold/12"
+        item.equipped ? "border-gold/45" : "border-hairline"
       )}
     >
       <span
         className={cn(
-          "flex size-10 shrink-0 items-center justify-center rounded-lg border border-gold/20 bg-night/40",
+          "flex size-10 shrink-0 items-center justify-center rounded-lg border border-hairline-strong bg-night/40",
           EQUIP_STYLE[item.category]
         )}
       >
@@ -651,7 +651,7 @@ export function InventoryDisplay({ sheet }: { sheet: CharacterSheet }) {
             .map((coin) => (
               <div
                 key={coin}
-                className="flex items-center gap-1.5 rounded-lg border border-gold/20 bg-gradient-to-b from-stone-surface to-stone-mid px-3 py-1.5 text-sm"
+                className="flex items-center gap-1.5 rounded-lg border border-hairline-strong bg-gradient-to-b from-stone-surface to-stone-mid px-3 py-1.5 text-sm"
               >
                 <Coins className="size-3.5 text-gold/60" />
                 <strong className="text-gold-bright">{sheet.money[coin]}</strong>
@@ -823,7 +823,7 @@ export function IdentityDetails({ sheet }: { sheet: CharacterSheet }) {
           {details.map(([label, value]) => (
             <div
               key={label}
-              className="rounded-lg border border-gold/12 bg-night/30 px-3 py-2"
+              className="rounded-lg border border-hairline bg-night/30 px-3 py-2"
             >
               <dt className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
                 {label}
@@ -838,7 +838,7 @@ export function IdentityDetails({ sheet }: { sheet: CharacterSheet }) {
           <BookOpen className="size-4 text-gold/60" />
           <span className="text-sm text-muted-foreground">Lingue:</span>
           {sheet.languages.map((language) => (
-            <Badge key={language} variant="outline" className="border-gold/25">
+            <Badge key={language} variant="outline" className="border-hairline-strong">
               {language}
             </Badge>
           ))}
@@ -870,7 +870,7 @@ export function BiographyTome({ sheet }: { sheet: CharacterSheet }) {
       {pages.map((page) => (
         <article
           key={page.key}
-          className="fantasy-stripe-top relative overflow-hidden rounded-xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-5 shadow-[0_6px_24px_-12px_rgba(0,0,0,0.7)]"
+          className="fantasy-stripe-top relative overflow-hidden rounded-xl border border-hairline bg-gradient-to-b from-stone-surface to-stone-mid/80 p-5 shadow-[0_6px_24px_-12px_rgba(0,0,0,0.7)]"
         >
           <h3
             className={cn(

@@ -14,7 +14,7 @@ const STARS_B =
   "radial-gradient(1px 1px at 230px 100px, rgba(255,255,255,0.45), transparent)";
 
 const NEBULA =
-  "radial-gradient(ellipse at 25% 15%, rgba(124,92,255,0.10), transparent 55%)," +
+  "radial-gradient(ellipse at 25% 15%, rgba(157,138,201,0.09), transparent 55%)," +
   "radial-gradient(ellipse at 80% 75%, rgba(212,175,55,0.06), transparent 50%)";
 
 /**

@@ -279,7 +279,7 @@ export function CharacterDashboard({
           </SelectContent>
         </Select>
 
-        <div className="ml-auto inline-flex rounded-lg border border-gold/20 bg-night/30 p-1">
+        <div className="ml-auto inline-flex rounded-lg border border-hairline-strong bg-night/30 p-1">
           <ViewToggle
             active={view === "card"}
             onClick={() => setView("card")}
@@ -421,7 +421,7 @@ function CharacterTable({
   isMaster: boolean;
 }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-gold/15">
+    <div className="overflow-x-auto rounded-xl border border-hairline">
       <Table>
         <TableHeader>
           <TableRow>

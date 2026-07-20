@@ -1,5 +1,7 @@
 import type { Timestamp } from "firebase/firestore";
 
+import type { ChronicleData } from "./chronicles";
+
 /* ============================================================
  * Sistema Universale delle Entità — campagna Amberland
  *
@@ -20,6 +22,7 @@ export const ENTITY_TYPES = [
   "item",
   "creature",
   "event",
+  "chronicle",
   "session",
 ] as const;
 
@@ -177,6 +180,41 @@ export interface SpellSlot {
   used: number;
 }
 
+/* ── Stato vivo del personaggio: condizioni, effetti e risorse ── */
+
+export const CONDITION_KINDS = ["BUFF", "DEBUFF", "CONDITION"] as const;
+export type ConditionKind = (typeof CONDITION_KINDS)[number];
+
+/** Effetto temporaneo o condizione attiva (benedizione, veleno, prono…). */
+export interface ConditionEntry {
+  id: string;
+  name: string;
+  kind: ConditionKind;
+  /** Effetto meccanico/descrizione ("+1d4 ai tiri per colpire"). */
+  detail: string;
+  /** Origine (incantesimo, oggetto, mostro…). */
+  source: string;
+  /** Durata in testo libero ("3 turni", "fino a lungo riposo"). */
+  duration: string;
+}
+
+export const RESOURCE_RECHARGES = [
+  "SHORT_REST",
+  "LONG_REST",
+  "DAILY",
+  "MANUAL",
+] as const;
+export type ResourceRecharge = (typeof RESOURCE_RECHARGES)[number];
+
+/** Risorsa di classe/oggetto con carica (Ira, Ki, Punizione Divina…). */
+export interface ResourceEntry {
+  id: string;
+  name: string;
+  current: number;
+  max: number;
+  recharge: ResourceRecharge;
+}
+
 export interface SpellEntry {
   id: string;
   name: string;
@@ -211,6 +249,13 @@ export interface CharacterSheet {
   tempHp: number;
   initiative: number;
   speed: string;
+  // Stato vivo (Codex): progressione e ciò che è attivo ORA
+  xp: number;
+  inspiration: boolean;
+  /** Livelli di indebolimento 5e (0–6). */
+  exhaustion: number;
+  conditions: ConditionEntry[];
+  resources: ResourceEntry[];
   // Competenze
   proficiencyBonus: number;
   /** Caratteristiche con competenza nei tiri salvezza. */
@@ -286,6 +331,8 @@ export interface Entity {
   sheet?: CharacterSheet;
   /** Solo personaggi: timeline di progressione. */
   history?: CharacterHistoryEntry[];
+  /** Solo cronache: dati del Libro delle Cronache (vedi types/chronicles). */
+  chronicle?: ChronicleData;
   createdAt: Timestamp | null;
   updatedAt: Timestamp | null;
 }

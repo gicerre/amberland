@@ -108,12 +108,13 @@ export default function HomePage() {
       <ListPageHero
         src="/images/home.webp"
         alt="Bentornato in Amberland"
-        accent="#d4af37"
+        accent="var(--gold-bright)"
         eyebrow="◆ Le cronache continuano ◆"
         title={`Bentornato, ${profile?.username ?? "viandante"}`}
         subtitle={role ? ROLE_GREETINGS[role] : undefined}
         actions={
-          <div className="hidden md:inline-flex items-center gap-3">
+          /* Le tre cifre chiave restano visibili anche su mobile (audit 2.1) */
+          <div className="flex flex-wrap items-center justify-center gap-2 md:gap-3">
             <StatChip icon={ActiveIcon} value={stats.active} label="in corso" />
             <StatChip icon={CharactersIcon} value={stats.characters} label="personaggi" />
             <StatChip icon={WorldIcon} value={stats.places} label="luoghi" />
@@ -144,7 +145,7 @@ export default function HomePage() {
                 <li key={q.id}>
                   <Link
                     href={`/entita/${q.id}`}
-                    className="group flex items-center gap-3 rounded-lg px-2.5 py-2 border border-transparent hover:border-gold/25 hover:bg-gold/5"
+                    className="group flex items-center gap-3 rounded-lg px-2.5 py-2 border border-transparent hover:border-hairline-strong hover:bg-gold/5"
                   >
                     <QuestStatusIcon status={String(q.fields.status)} className="size-9" />
                     <div className="min-w-0">
@@ -176,7 +177,7 @@ export default function HomePage() {
                 const Icon = cfg.icon;
 
                 return (
-                  <li key={e.id} className="border-b border-gold/10 pb-3">
+                  <li key={e.id} className="border-b border-hairline pb-3">
                     <Link href={`/entita/${e.id}`} className="flex gap-2 group">
                       <Icon className="size-4 text-gold/60 group-hover:text-gold" />
                       <div className="min-w-0 flex-1">
@@ -203,7 +204,9 @@ export default function HomePage() {
           <SectionDivider className="flex-1" />
         </div>
 
-        <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-3">
+        {/* Portali delle sale (V3): max 3 colonne su mobile, label 12px
+            leggibili — mai 4 colonne con etichette 10px (audit 2.1). */}
+        <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-7">
           {visibleLinks.map((l) => {
             const Icon = l.icon;
 
@@ -211,14 +214,11 @@ export default function HomePage() {
               <Link
                 key={l.href}
                 href={l.href}
-                className="group relative aspect-square rounded-xl border border-gold/10 overflow-hidden"
+                className="group elev-1 relative aspect-square overflow-hidden rounded-xl border border-hairline bg-surface-1 transition-all hover:elev-2 hover:border-hairline-strong"
               >
-                <div className="absolute inset-0 bg-gradient-to-b from-stone-surface/80 via-stone-mid/70 to-night/80" />
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.10),transparent_60%)]" />
-
-                <div className="relative flex flex-col items-center justify-center h-full">
-                  <Icon className="size-16 text-gold/70 group-hover:text-gold group-hover:scale-110 transition" />
-                  <span className="mt-2 text-[10px] tracking-[0.16em] uppercase text-gold-bright/80">
+                <div className="relative flex h-full flex-col items-center justify-center">
+                  <Icon className="size-14 text-muted-foreground transition-colors group-hover:text-gold" />
+                  <span className="mt-2 text-xs font-medium text-foreground/85">
                     {l.label}
                   </span>
                 </div>
@@ -243,10 +243,10 @@ function StatChip({
   label: string;
 }) {
   return (
-    <span className="inline-flex items-center gap-2 rounded-lg border border-gold/20 bg-black/30 px-3 py-1.5">
-      <Icon className="size-10 text-gold/70" />
-      <strong className="text-gold">{value}</strong>
-      <span className="text-muted-foreground">
+    <span className="inline-flex items-center gap-2 rounded-full border border-hairline bg-surface-1/80 px-3.5 py-1.5">
+      <Icon className="size-5 text-muted-foreground" />
+      <strong className="font-heading tabular-nums text-parchment">{value}</strong>
+      <span className="text-sm text-muted-foreground">
         {label}
       </span>
     </span>
@@ -269,24 +269,26 @@ function HomePanel({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-2xl border border-gold/15 p-6 fantasy-stripe-top",
+        "elev-1 relative overflow-hidden rounded-2xl border border-hairline bg-surface-1 p-6",
         className
       )}
     >
+      {/* Artwork opzionale sotto uno scrim pieno: mai testo sulla texture */}
       {backgroundImage && (
-        <div
-          className="absolute inset-0 bg-cover bg-center opacity-30"
-          style={{ backgroundImage: `url(${backgroundImage})` }}
-        />
+        <>
+          <div
+            aria-hidden
+            className="absolute inset-0 bg-cover bg-center opacity-25"
+            style={{ backgroundImage: `url(${backgroundImage})` }}
+          />
+          <div aria-hidden className="absolute inset-0 bg-gradient-to-b from-surface-1/70 via-surface-1/85 to-surface-1" />
+        </>
       )}
-
-      <div className="absolute inset-0 bg-gradient-to-b from-stone-surface/80 via-stone-mid/70 to-night/90" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(212,175,55,0.12),transparent_60%)]" />
 
       <div className="relative">
         <header className="flex items-center gap-2 mb-4">
           <span className="text-gold">{icon}</span>
-          <h2 className="font-heading font-bold">{title}</h2>
+          <h2 className="font-heading font-bold text-parchment">{title}</h2>
         </header>
 
         {children}

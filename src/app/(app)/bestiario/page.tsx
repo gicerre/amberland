@@ -13,7 +13,7 @@ export default function BestiaryPage() {
       emptyDescription="Nessuna creatura è stata avvistata… o nessuno è sopravvissuto per raccontarlo."
       hero={{
         eyebrow: "Le terre selvagge",
-        accent: "#b03a2e",
+        accent: "var(--crimson)",
         src: "/images/bestiario.webp",
       }}
     />

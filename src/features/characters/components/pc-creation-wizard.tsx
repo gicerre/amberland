@@ -17,7 +17,6 @@ import {
 import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { ImageUpload } from "@/components/shared/image-upload";
 import { Badge } from "@/components/ui/badge";
@@ -265,9 +264,8 @@ export function PcCreationWizard({
 
         <Stepper current={step} onJump={(s) => s <= step && set("step", s)} />
 
-        <div className="mt-6 flex flex-col-reverse overflow-hidden rounded-2xl border border-gold/30 bg-card/80 shadow-[0_0_50px_rgba(0,0,0,0.35)] lg:grid lg:grid-cols-[44%_56%]">
+        <div className="mt-6 flex flex-col-reverse overflow-hidden rounded-2xl border border-gold/30 bg-card shadow-[inset_0_1px_0_rgba(232,201,121,0.15),0_24px_48px_-12px_rgba(0,0,0,0.85)] lg:grid lg:grid-cols-[44%_56%]">
           <div className="relative p-6 sm:p-8">
-            <CornerOrnaments className="size-4 border-gold/40" />
             <div
               key={step}
               className="animate-in fade-in-50 slide-in-from-bottom-2 space-y-5 duration-300"
@@ -361,10 +359,10 @@ function Stepper({
               className={cn(
                 "flex items-center gap-2 rounded-full border px-2.5 py-1.5 transition-all sm:px-3",
                 active
-                  ? "border-gold/60 bg-gold/15 shadow-[0_0_18px_rgba(212,175,55,0.2)]"
+                  ? "elev-1 border-gold/60 bg-gold/15"
                   : done
                     ? "border-gold/40 bg-gold/5 hover:bg-gold/10"
-                    : "border-gold/15 bg-night/30 opacity-70"
+                    : "border-hairline bg-night/30 opacity-70"
               )}
             >
               <span
@@ -415,7 +413,7 @@ function CharacterPreview({
   const primary = draft.classes[0]?.className ?? "";
   const sub = [draft.race, primary].filter(Boolean).join(" · ");
   return (
-    <div className="absolute inset-x-3 bottom-3 flex items-center gap-3 rounded-xl border border-gold/30 bg-background/80 p-3 backdrop-blur-sm">
+    <div className="absolute inset-x-3 bottom-3 flex items-center gap-3 rounded-xl border border-gold/30 bg-background/95 p-3">
       <span className="size-14 shrink-0 overflow-hidden rounded-lg border border-gold/40">
         <FantasyImage
           src={draft.imageUrl}
@@ -545,7 +543,7 @@ function StepOrigins({
       {draft.classes.map((entry, index) => (
         <div
           key={index}
-          className="space-y-3 rounded-lg border border-gold/15 bg-night/30 p-3"
+          className="space-y-3 rounded-lg border border-hairline bg-night/30 p-3"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold tracking-[0.15em] text-gold/70 uppercase">
@@ -712,7 +710,7 @@ function StepAbilities({
           return (
             <div
               key={ability}
-              className="flex items-center gap-3 rounded-lg border border-gold/15 bg-night/30 px-3 py-2"
+              className="flex items-center gap-3 rounded-lg border border-hairline bg-night/30 px-3 py-2"
             >
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{ABILITY_LABELS[ability]}</p>
@@ -790,17 +788,16 @@ function StepSummary({
         className={cn(
           "relative flex w-full items-center gap-4 overflow-hidden rounded-xl border-2 p-4 text-left transition-all",
           draft.joinParty
-            ? "border-gold/60 bg-gradient-to-r from-gold/20 via-gold/5 to-transparent shadow-[0_0_26px_rgba(212,175,55,0.22)]"
-            : "border-gold/20 bg-night/30"
+            ? "elev-1 border-gold/60 bg-gradient-to-r from-gold/20 via-gold/5 to-transparent"
+            : "border-hairline-strong bg-night/30"
         )}
       >
-        <CornerOrnaments className="size-3.5 border-gold/50" />
         <span
           className={cn(
             "flex size-12 shrink-0 items-center justify-center rounded-xl border transition-colors",
             draft.joinParty
               ? "border-gold/50 bg-gold/20 text-gold"
-              : "border-gold/20 bg-night/50 text-muted-foreground"
+              : "border-hairline-strong bg-night/50 text-muted-foreground"
           )}
         >
           <Swords className="size-6" />
@@ -820,7 +817,7 @@ function StepSummary({
             "relative h-7 w-12 shrink-0 rounded-full border transition-colors",
             draft.joinParty
               ? "border-gold/60 bg-gold/40"
-              : "border-gold/25 bg-night/60"
+              : "border-hairline-strong bg-night/60"
           )}
         >
           <span
@@ -832,7 +829,7 @@ function StepSummary({
         </span>
       </button>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-gold/15 bg-night/30 p-4 text-sm">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 rounded-lg border border-hairline bg-night/30 p-4 text-sm">
         {rows.map(([label, value]) => (
           <div key={label} className="contents">
             <dt className="text-muted-foreground">{label}</dt>
@@ -841,7 +838,7 @@ function StepSummary({
         ))}
       </dl>
 
-      <div className="space-y-1.5 rounded-lg border border-gold/15 bg-night/30 p-4 text-sm">
+      <div className="space-y-1.5 rounded-lg border border-hairline bg-night/30 p-4 text-sm">
         <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
           Classi
         </p>
@@ -858,7 +855,7 @@ function StepSummary({
         {ABILITIES.map((ability) => (
           <div
             key={ability}
-            className="rounded-lg border border-gold/15 bg-night/30 py-2 text-center"
+            className="rounded-lg border border-hairline bg-night/30 py-2 text-center"
           >
             <p className="text-[10px] tracking-widest text-muted-foreground uppercase">
               {ABILITY_SHORT[ability]}

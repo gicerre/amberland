@@ -3,62 +3,48 @@
 ## Stack tecnico
 - Next.js 15 App Router, TypeScript, Tailwind CSS v4, Firebase/Firestore
 - shadcn/ui, Framer Motion
-- Font: Cinzel (font-heading), Cinzel Decorative (display), Crimson Pro (font-sans/body)
+- Font: Cinzel (font-heading), Caudex (font-sans/body) — vedi `src/app/layout.tsx`
 - Token CSS in `src/app/globals.css` blocco `@theme inline`
 
-## DESIGN CONSTITUTION — OBBLIGATORIA
+## DESIGN CONSTITUTION v2 — NEXT-GEN DARK FANTASY (OBBLIGATORIA)
 
-Ogni schermata, componente e interazione deve rispettare la Design Constitution
-salvata in `docs/DESIGN_CONSTITUTION.md`.
+Direzione pivotata il 2 lug 2026: **Next-Gen Dark Fantasy** ("Obsidian") —
+qualità AAA 2026 (Diablo IV, Elden Ring HUD, FFXVI, Destiny 2) con usabilità
+professionale. La v1 materica (pergamena/pietra/legno/ceralacca) è superata.
 
-**Principio fondamentale:** questa non è una web app. È un artefatto narrativo.
-L'utente non gestisce dati. Consulta e compila documenti di un universo fantasy.
+**Principi chiave** (dettaglio in `docs/DESIGN_CONSTITUTION.md`):
+- Neri profondi e grigi FREDDI; superfici pulite senza texture; profondità
+  via luce (hairline 1px, highlight, ombre morbide, layering).
+- Vetro satinato leggero SOLO su layer flottanti (nav, dialog, popover, barre).
+- Glow disciplinato: solo stati interattivi (focus/attivo), mai ambientale.
+- Oro champagne `--gold` come firma rara (≤5% area, 1 CTA piena per vista).
+- Max 3 livelli visivi; spazio negativo abbondante; colore = segnale.
+- MAI: texture bitmap/procedurali, ornamenti medievali, ceralacca, bounce,
+  neon, gradienti dorati ampi, bordi spessi.
+- La nomenclatura diegetica italiana e Cinzel display RESTANO (fantasy nel
+  linguaggio e nella tipografia, non nelle texture).
+- Mobile first; WCAG 2.2 AA; `prefers-reduced-motion`; 60fps transform/opacity.
 
-### Checklist prima di creare qualsiasi componente
+## Fasi UX completate
+- **A–F** (era materica): entity cards, detail body, celebration, HubShell.
+- **G1–G5 parziali** (era materica, ora da ri-skinnare): palette token,
+  hero ridotti + collasso sticky (`ListPageHero`), `DeskPlaque`, componenti
+  condivisi (`SealChip`→Chip, `LeverToggle`→Segmented, Registro, tabs,
+  skeleton base unica), scala `--status-*`, bonifica esadecimali inline.
+  La STRUTTURA resta; la pelle cambia in N1–N2.
 
-1. Qual è il ruolo narrativo di questa schermata?
-2. Qual è la sua controparte nel mondo fantasy (non "form", ma "Registro della Gilda")?
-3. Materiale dominante: Metallo / Pergamena / Pietra / Legno?
-4. A quale categoria UI appartiene: Documento / Archivio / Reliquia / Sigillo / Targa?
-5. Il componente deriva da un base component già esistente?
-6. Ogni elemento decorativo ha una funzione narrativa?
+## Fase N — Obsidian (N1–N6 COMPLETATE, 2 lug 2026)
+Gerarchia documentale (in ordine di precedenza):
+1. `docs/DESIGN_CONSTITUTION.md` — v2, principi vincolanti
+2. `docs/DESIGN_SYSTEM_V3.md` — "Obsidian": token freddi, glass/hairline,
+   tipografia Cinzel+Inter(+Caudex solo lore), motion, componenti, roadmap N1–N6
+3. `docs/UX_AUDIT_REDESIGN.md` — diagnosi UX valide (prescrizioni materiche superate)
 
-### Categorie UI canoniche
-- **Documento** — schede, biografie, quest → aspetto: pagina di tomo
-- **Archivio** — tabelle, liste, raccolte → aspetto: schedario imperiale
-- **Reliquia** — CTA, azioni speciali → aspetto: oggetto fisico da attivare
-- **Sigillo** — tag, stati, rarità → aspetto: marchio nobiliare
-- **Targa** — header, titoli → aspetto: lastra incisa
-
-### Mai usare
-- Flat Design, Glassmorphism, Neumorphism, Material Design
-- Ombre moderne, blur come gerarchia, glow neon
-- Linguaggio SaaS/dashboard/enterprise
-- Animazioni bounce, elastic, cartoon
-
-### Animazioni: simulano materia reale
-- Peso, attrito, inerzia, scorrimento meccanico
-- Dialog: il tomo si apre, i sigilli si spezzano
-- Tab: il segnalibro viene spostato, la pagina girata
-- Salvataggio: timbro ufficiale, incisione della registrazione
-
-### Nomenclatura diegetica (esempi)
-| Tecnico | Fantasy |
-|---|---|
-| Character Creation Form | Registro Anagrafico della Gilda degli Avventurieri |
-| Monster Database | Archivio Bestiario delle Terre Conosciute |
-| Quest Management | Bacheca delle Commesse e delle Imprese |
-| User Settings | Sigillo Personale dell'Archivista |
-| Dashboard | Il Tomo dell'Archivista |
-
-## Fasi UX completate (A → F)
-- **A–B**: token CSS, sidebar, mobile nav, fantasy-card utilities, entity-card, button
-- **C**: SpecializedEntityCard (Quest/Character/Monster/Item/Faction)
-- **D**: EntityDetailBody (QuestBody, CreatureBody, DefaultBody)
-- **E**: CelebrationOverlay (level-up, quest-complete, item-acquired)
-- **Sezioni**: fazioni, bestiario, bag, diario, party characters → portrait card style
-- **F**: HubShell mobile nav + swipe gesture + dot indicator, griglie dense mobile
-
-## Fase G — In corso
-Vedere `docs/DESIGN_CONSTITUTION.md` per la roadmap completa.
-Ordine: G1 Palette → G2 Texture → G3 SVG ornamenti → G4 Frame card → G5 Effetti → G6 Font.
+Fatto: palette fredda + Inter + utilities glass/elev/glow-accent; componenti core
+(button/tabs/skeleton/chip/segmented); navigazione (sidebar barra-gold, bottom bar
+glass); superfici flottanti su vetro con forge-in blur-fade; FrameOverlay/
+CornerOrnaments/SectionDivider neutralizzati; sweep border-gold<30 → hairline.
+Convenzioni: bordi = hairline/hairline-strong; oro SOLO su attivo/CTA/focus;
+glow SOLO .glow-accent; superfici = surface-0..3 (alias stone-* deprecati).
+Residui tollerati: nomi file/componenti legacy (fantasy-card, SealChip,
+LeverToggle…) da rinominare in un refactor dedicato.

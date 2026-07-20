@@ -34,9 +34,9 @@ export function CompanionsGrid({
               key={companion.id}
               type="button"
               onClick={() => setActive(companion)}
-              className="group flex items-center gap-3 rounded-xl border border-gold/20 bg-card/60 p-3 text-left transition-all hover:-translate-y-0.5 hover:border-gold/45 hover:shadow-[0_0_22px_rgba(212,175,55,0.12)]"
+              className="group flex items-center gap-3 rounded-xl border border-hairline-strong bg-card/60 p-3 text-left transition-all hover:-translate-y-0.5 hover:elev-2 hover:border-gold/45"
             >
-              <span className="size-14 shrink-0 overflow-hidden rounded-lg border border-gold/15">
+              <span className="size-14 shrink-0 overflow-hidden rounded-lg border border-hairline">
                 <FantasyImage
                   src={companion.imageUrl}
                   alt={companion.name}
@@ -131,7 +131,7 @@ export function CompanionSheetDialog({
     >
       <div className="space-y-4">
         {companion.imageUrl && (
-          <div className="block w-full overflow-hidden rounded-xl border border-gold/20">
+          <div className="block w-full overflow-hidden rounded-xl border border-hairline-strong">
             <FantasyImage
               src={companion.imageUrl}
               alt={companion.name}
@@ -148,7 +148,7 @@ export function CompanionSheetDialog({
               return (
                 <div
                   key={ability}
-                  className="flex flex-col items-center gap-0.5 rounded-md border border-gold/15 bg-night/30 px-2 py-1.5 text-center"
+                  className="flex flex-col items-center gap-0.5 rounded-md border border-hairline bg-night/30 px-2 py-1.5 text-center"
                 >
                   <p className="text-[9px] tracking-widest text-muted-foreground uppercase">
                     {ABILITY_SHORT[ability]}
@@ -164,7 +164,7 @@ export function CompanionSheetDialog({
         )}
 
           {meta.length > 0 && (
-            <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-lg border border-gold/15 bg-night/30 p-3 text-sm">
+            <dl className="grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-lg border border-hairline bg-night/30 p-3 text-sm">
               {meta.map(([key, value]) => (
                 <div key={key} className="flex flex-col">
                   <dt className="text-[11px] tracking-wide text-muted-foreground uppercase">
@@ -192,7 +192,7 @@ export function CompanionSheetDialog({
           )}
 
           {(companion.attacks ?? []).length > 0 && (
-            <div className="space-y-2 border-t border-gold/15 pt-3">
+            <div className="space-y-2 border-t border-hairline pt-3">
               <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
                 Azioni
               </p>
@@ -221,7 +221,7 @@ export function CompanionSheetDialog({
             </p>
           )}
 
-          <p className="border-t border-gold/15 pt-3 text-xs text-muted-foreground italic">
+          <p className="border-t border-hairline pt-3 text-xs text-muted-foreground italic">
             La scheda del famiglio si modifica dalla scheda del personaggio.
           </p>
       </div>

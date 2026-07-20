@@ -42,12 +42,12 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
   const avatar = (
     <Avatar
       className={cn(
-        "border-2 border-gold/50 shadow-[0_0_14px_rgba(212,175,55,0.25)]",
+        "border border-hairline-strong ring-1 ring-gold/40",
         compact ? "size-9" : "size-11"
       )}
     >
       {token && <AvatarImage src={token} alt={profile.username} className="object-cover" />}
-      <AvatarFallback className="bg-gradient-to-br from-gold/25 to-night/60 font-heading font-bold text-gold-bright">
+      <AvatarFallback className="bg-surface-3 text-sm font-semibold text-gold-bright">
         {initial}
       </AvatarFallback>
     </Avatar>
@@ -60,24 +60,21 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
           "group relative flex items-center gap-3 overflow-hidden text-left outline-none transition-all",
           compact
             ? "rounded-full p-0.5 hover:opacity-90"
-            : "w-full rounded-xl border border-gold/30 bg-gradient-to-r from-gold/15 via-night/50 to-night/40 p-2.5 hover:border-gold/55 hover:shadow-[0_0_22px_rgba(212,175,55,0.18)]"
+            : "w-full rounded-xl border border-hairline bg-surface-1 p-2.5 hover:elev-1 hover:border-hairline-strong hover:bg-surface-2"
         )}
       >
-        {!compact && (
-          <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_left,rgba(212,175,55,0.15),transparent_60%)] opacity-0 transition-opacity group-hover:opacity-100" />
-        )}
         {avatar}
         {!compact && (
           <>
             <div className="relative min-w-0 flex-1">
-              <p className="truncate font-heading text-sm font-bold text-gold-bright">
+              <p className="truncate text-sm font-semibold text-parchment">
                 {profile.username}
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {role ? ROLE_LABELS[role] : ""}
               </p>
             </div>
-            <ChevronsUpDown className="relative size-4 shrink-0 text-gold/60 transition-colors group-hover:text-gold" />
+            <ChevronsUpDown className="relative size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
           </>
         )}
       </DropdownMenuTrigger>

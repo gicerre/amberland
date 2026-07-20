@@ -59,7 +59,7 @@ export function EntityMultiPicker({
             return (
               <span
                 key={entity.id}
-                className="flex items-center gap-1 rounded-full border border-gold/25 bg-night/40 px-2 py-0.5 text-xs"
+                className="flex items-center gap-1 rounded-full border border-hairline-strong bg-night/40 px-2 py-0.5 text-xs"
               >
                 <Icon className="size-3 text-gold/70" />
                 {entity.name}
@@ -84,7 +84,7 @@ export function EntityMultiPicker({
         placeholder={placeholder}
       />
       {candidates.length > 0 && (
-        <ScrollArea className="max-h-48 rounded-lg border border-gold/15">
+        <ScrollArea className="max-h-48 rounded-lg border border-hairline">
           <ul className="p-1">
             {candidates.map((entity) => {
               const Icon = ENTITY_REGISTRY[entity.type]?.icon ?? Link2;

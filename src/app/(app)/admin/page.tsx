@@ -3,7 +3,7 @@
 import { Ban, Crown, UserPlus, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { PageHeader } from "@/components/shared/page-header";
+import { DeskPlaque } from "@/components/shared/desk-plaque";
 import { Button } from "@/components/ui/button";
 import { StatGrid, TomeHeading, type StatItem } from "@/design-system";
 import { CreateUserDialog } from "@/features/users/components/user-dialogs";
@@ -36,13 +36,14 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-7">
-      <PageHeader
-        title="Amministrazione del Regno"
+      <DeskPlaque
+        eyebrow="Guardiania del portale"
+        title="Registro degli Abitanti"
         subtitle="Controllo degli accessi, ruoli e volontà degli abitanti."
         actions={
           <Button onClick={() => setCreateOpen(true)}>
             <UserPlus className="size-4" />
-            <span className="hidden sm:inline">Nuovo utente</span>
+            <span className="hidden sm:inline">Registra un abitante</span>
           </Button>
         }
       />

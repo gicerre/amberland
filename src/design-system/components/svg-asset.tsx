@@ -73,10 +73,10 @@ export function SvgAssetBase({
 const COLOR_HEX: Record<AssetColor, string> = {
   primary: "#c8a75d",
   accent: "#d4af37",
-  secondary: "#3a4150",
-  danger: "#b91c1c",
+  secondary: "#453a2c",
+  danger: "#b3402e",
   neutral: "#d7ccb4",
-  muted: "#262d3a",
+  muted: "#2e2418",
 };
 
 function svgDataUri(asset: AssetDefinition, hex: string): string {

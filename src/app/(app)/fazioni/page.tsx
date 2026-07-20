@@ -12,7 +12,7 @@ export default function FactionsPage() {
       emptyDescription="Nessun vessillo sventola ancora sulle cronache del regno."
       hero={{
         eyebrow: "Casate e poteri",
-        accent: "#c43146",
+        accent: "var(--crimson-bright)",
         src: "/images/fazioni.webp",
       }}
     />

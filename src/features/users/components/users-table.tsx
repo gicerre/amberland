@@ -162,7 +162,7 @@ export function UsersTable() {
           return (
             <div
               key={user.id}
-              className="rounded-xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-3.5 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.6)]"
+              className="rounded-xl border border-hairline bg-gradient-to-b from-stone-surface to-stone-mid/80 p-3.5 shadow-[0_4px_16px_-8px_rgba(0,0,0,0.6)]"
             >
               <div className="flex items-center gap-3">
                 <Avatar className="size-10 border border-gold/30">
@@ -184,7 +184,7 @@ export function UsersTable() {
                 </div>
                 {!isSelf && userMenu(user)}
               </div>
-              <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-0.5 border-t border-gold/10 pt-2 text-[11px] text-muted-foreground">
+              <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-0.5 border-t border-hairline pt-2 text-[11px] text-muted-foreground">
                 <span>
                   Ultimo accesso:{" "}
                   {formatDate(user.lastLogin ? new Date(user.lastLogin) : null, true)}
@@ -200,7 +200,7 @@ export function UsersTable() {
       </div>
 
       {/* ── Desktop: tabella ── */}
-      <div className="hidden overflow-x-auto rounded-xl border border-gold/15 bg-card/60 md:block">
+      <div className="hidden overflow-x-auto rounded-xl border border-hairline bg-card/60 md:block">
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">

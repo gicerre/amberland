@@ -338,7 +338,7 @@ export function EntityFormSheet({
               def.kind === "switch" ? (
                 <div
                   key={def.key}
-                  className="flex items-center justify-between gap-3 rounded-md border border-gold/15 bg-black/30 px-4 py-3"
+                  className="flex items-center justify-between gap-3 rounded-md border border-hairline bg-black/30 px-4 py-3"
                 >
                   <span className="font-heading text-sm tracking-wide text-foreground/85">
                     {def.label}
@@ -483,7 +483,7 @@ function EntityPreview({ entity, form }: { entity: Entity; form: FormState }) {
         Anteprima
       </p>
 
-      <div className="overflow-hidden rounded-lg border border-gold/20 bg-stone-mid/70 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)]">
+      <div className="overflow-hidden rounded-lg border border-hairline-strong bg-stone-mid/70 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)]">
         <div className="relative aspect-[4/3] w-full bg-night/60">
           {form.imageUrl ? (
             <div

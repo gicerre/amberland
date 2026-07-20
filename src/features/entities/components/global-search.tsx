@@ -60,7 +60,13 @@ export function GlobalSearchDialog({
         else if (entity.tags.some((tag) => tag.toLowerCase().includes(needle)))
           score = 1.5;
         else if (
-          richTextToPlainText(entity.description).toLowerCase().includes(needle)
+          entity.chronicle
+            ? `${entity.chronicle.subtitle} ${entity.chronicle.contentText}`
+                .toLowerCase()
+                .includes(needle)
+            : richTextToPlainText(entity.description)
+                .toLowerCase()
+                .includes(needle)
         )
           score = 1;
         return { entity, score };
@@ -93,7 +99,7 @@ export function GlobalSearchDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="relative border-b border-gold/15">
+        <div className="relative border-b border-hairline">
           <Search className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2 text-gold/60" />
           <Input
             autoFocus
@@ -104,13 +110,13 @@ export function GlobalSearchDialog({
           />
         </div>
 
-        <div className="flex flex-wrap gap-1.5 border-b border-gold/15 px-4 py-2.5">
+        <div className="flex flex-wrap gap-1.5 border-b border-hairline px-4 py-2.5">
           <TypeChip
             active={typeFilter === null}
             label="Tutto"
             onClick={() => setTypeFilter(null)}
           />
-          {ENTITY_TYPES.map((type) => {
+          {ENTITY_TYPES.filter((type) => type !== "event").map((type) => {
             const config = ENTITY_REGISTRY[type];
             return (
               <TypeChip
@@ -197,7 +203,7 @@ function TypeChip({
         "rounded-full border px-2.5 py-0.5 text-xs transition-colors",
         active
           ? "border-gold/60 bg-gold/15 font-semibold text-gold-bright"
-          : "border-gold/20 text-muted-foreground hover:border-gold/40 hover:text-foreground"
+          : "border-hairline-strong text-muted-foreground hover:border-gold/40 hover:text-foreground"
       )}
     >
       {label}

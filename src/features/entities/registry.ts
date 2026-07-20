@@ -1,19 +1,9 @@
 import {
-  BookOpen,
-  CalendarDays,
-  Castle,
   CheckCircle2,
   EyeOff,
-  Flag,
-  Gem,
-  Globe,
   Hourglass,
-  Map,
-  MapPin,
   ScrollText,
-  Skull,
   Swords,
-  User,
   XCircle,
   type LucideIcon,
 } from "lucide-react";
@@ -32,6 +22,11 @@ import {
   CHARACTER_STATUS_LABELS,
   CHARACTER_STATUS_OPTIONS,
 } from "@/features/characters/constants";
+import {
+  CANON_BADGES,
+  CHRONICLE_CATEGORY_META,
+  DRAFT_BADGE,
+} from "@/features/chronicles/constants";
 import { imageIcon } from "@/components/shared/image-icon";
 
 /* ============================================================
@@ -74,6 +69,11 @@ export interface EntityTypeConfig {
   /** Meta opzionali per le card (sottotitolo/badge dipendenti dai dati). */
   cardMeta?: (entity: Entity) => CardMeta;
   flavor: string;
+  /**
+   * Escluso dalla creazione generica (QuickCreateDialog & co.):
+   * tipi ritirati (event) o con un flusso dedicato (chronicle).
+   */
+  hiddenInCreate?: boolean;
 }
 
 const ALIGNMENTS = [
@@ -108,48 +108,48 @@ export const QUEST_EVENT_STYLE: Record<
   AVAILABLE: {
     icon: ScrollText,
     label: "Disponibile",
-    iconWrap: "bg-slate-500 text-white",
-    stripe: "border-l-slate-400",
+    iconWrap: "bg-ash text-stone-deep",
+    stripe: "border-l-ash",
   },
   NEXT: {
     icon: Hourglass,
     label: "Prossima",
-    iconWrap: "bg-amber-600 text-white",
-    stripe: "border-l-amber-500",
+    iconWrap: "bg-ember text-stone-deep",
+    stripe: "border-l-ember",
   },
   ACTIVE: {
     icon: Swords,
     label: "In corso",
-    iconWrap: "bg-emerald-600 text-white",
-    stripe: "border-l-emerald-500",
+    iconWrap: "bg-gold-bright text-stone-deep",
+    stripe: "border-l-gold-bright",
   },
   COMPLETED: {
     icon: CheckCircle2,
     label: "Completata",
-    iconWrap: "bg-teal-600 text-white",
-    stripe: "border-l-teal-500",
+    iconWrap: "bg-verdant text-parchment",
+    stripe: "border-l-verdant-bright",
   },
   FAILED: {
     icon: XCircle,
     label: "Fallita",
-    iconWrap: "bg-red-600 text-white",
-    stripe: "border-l-red-500",
+    iconWrap: "bg-crimson-bright text-parchment",
+    stripe: "border-l-crimson-bright",
   },
   SECRET: {
     icon: EyeOff,
     label: "Segreta",
-    iconWrap: "bg-purple-600 text-white",
-    stripe: "border-l-purple-500",
+    iconWrap: "bg-arcane text-parchment",
+    stripe: "border-l-arcane-bright",
   },
 };
 
 export const QUEST_STATUS_BADGES: Record<string, string> = {
-  AVAILABLE: "border-sky-500/50 bg-sky-500/10 text-sky-300",
-  NEXT: "border-amber-500/50 bg-amber-500/10 text-amber-300",
+  AVAILABLE: "border-ash/50 bg-ash/10 text-ash",
+  NEXT: "border-ember-bright/50 bg-ember/10 text-ember-bright",
   ACTIVE: "border-gold/50 bg-gold/15 text-gold-bright",
-  COMPLETED: "border-emerald-600/50 bg-emerald-900/30 text-emerald-300",
-  FAILED: "border-red-500/50 bg-red-500/10 text-red-300",
-  SECRET: "border-purple-500/50 bg-purple-500/10 text-purple-300",
+  COMPLETED: "border-verdant-bright/50 bg-verdant-deep/40 text-verdant-bright",
+  FAILED: "border-crimson-bright/50 bg-crimson/15 text-crimson-light",
+  SECRET: "border-arcane-bright/50 bg-arcane/15 text-arcane-bright",
 };
 
 /** Stato di una creatura nel Bestiario. */
@@ -161,10 +161,10 @@ export const CREATURE_STATUS_OPTIONS = [
 ];
 
 export const CREATURE_STATUS_BADGES: Record<string, string> = {
-  UNKNOWN: "border-zinc-500/50 bg-zinc-500/10 text-zinc-300",
-  SIGHTED: "border-sky-500/50 bg-sky-500/10 text-sky-300",
-  ALIVE: "border-emerald-600/50 bg-emerald-900/25 text-emerald-300",
-  DEAD: "border-red-500/50 bg-red-500/10 text-red-300",
+  UNKNOWN: "border-ash/40 bg-ash/10 text-ash",
+  SIGHTED: "border-silver/50 bg-silver/10 text-silver",
+  ALIVE: "border-verdant-bright/50 bg-verdant-deep/40 text-verdant-bright",
+  DEAD: "border-crimson-bright/50 bg-crimson/15 text-crimson-light",
 };
 
 export const ITEM_CATEGORY_OPTIONS = [
@@ -176,12 +176,14 @@ export const ITEM_CATEGORY_OPTIONS = [
   { value: "STORY", label: "Oggetto di trama" },
 ];
 
+/* Scala di rarità materica: ferro → argento → arcano → oro → sangue
+   (DESIGN_SYSTEM_V2 §3.1). */
 export const ITEM_CATEGORY_BADGES: Record<string, string> = {
-  COMMON: "border-zinc-500/50 bg-zinc-500/10 text-zinc-300",
-  RARE: "border-sky-500/50 bg-sky-500/10 text-sky-300",
-  MAGIC: "border-purple-500/50 bg-purple-500/10 text-purple-300",
-  LEGENDARY: "border-amber-500/50 bg-amber-500/10 text-amber-300",
-  ARTIFACT: "border-red-500/50 bg-red-500/10 text-red-300",
+  COMMON: "border-ash/40 bg-ash/10 text-ash",
+  RARE: "border-silver/50 bg-silver/10 text-silver",
+  MAGIC: "border-arcane-bright/50 bg-arcane/15 text-arcane-bright",
+  LEGENDARY: "border-gold-bright/50 bg-gold-dim/30 text-gold-light",
+  ARTIFACT: "border-crimson-bright/50 bg-crimson/15 text-crimson-light",
   STORY: "border-gold/50 bg-gold/15 text-gold-bright",
 };
 
@@ -211,7 +213,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     plural: "Mondi",
     icon: WorldIcon,
     badgeClass: "border-gold/50 bg-gold/15 text-gold-bright",
-    accent: "#d4af37",
+    accent: "var(--gold-bright)",
     parentType: null,
     childType: "region",
     defaultVisibility: "PUBLIC",
@@ -225,8 +227,8 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     label: "Regione",
     plural: "Regioni",
     icon:  RegionIcon,
-    badgeClass: "border-emerald-500/50 bg-emerald-500/10 text-emerald-300",
-    accent: "#5b9c6a",
+    badgeClass: "border-verdant-bright/50 bg-verdant/10 text-verdant-bright",
+    accent: "var(--verdant-bright)",
     parentType: "world",
     childType: "city",
     defaultVisibility: "PUBLIC",
@@ -240,8 +242,8 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     label: "Città",
     plural: "Città",
     icon: CityIcon,
-    badgeClass: "border-sky-500/50 bg-sky-500/10 text-sky-300",
-    accent: "#4f86c6",
+    badgeClass: "border-silver/50 bg-silver/10 text-silver",
+    accent: "var(--silver)",
     parentType: "region",
     childType: "location",
     defaultVisibility: "PUBLIC",
@@ -256,8 +258,8 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     label: "Luogo",
     plural: "Luoghi",
     icon: LocationIcon,
-    badgeClass: "border-teal-500/50 bg-teal-500/10 text-teal-300",
-    accent: "#3a9d9b",
+    badgeClass: "border-brass/60 bg-brass/10 text-gold",
+    accent: "var(--brass)",
     parentType: "city",
     childType: null,
     defaultVisibility: "PUBLIC",
@@ -289,7 +291,7 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     plural: "Personaggi",
     icon: CharacterIcon,
     badgeClass: "border-parchment/40 bg-parchment/10 text-parchment",
-    accent: "#e8dcc0",
+    accent: "var(--parchment-dark)",
     parentType: null,
     childType: null,
     defaultVisibility: "MASTER_ONLY",
@@ -336,8 +338,8 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     label: "Fazione",
     plural: "Fazioni",
     icon: FactionIcon,
-    badgeClass: "border-crimson-bright/50 bg-crimson/20 text-red-300",
-    accent: "#c43146",
+    badgeClass: "border-crimson-bright/50 bg-crimson/20 text-crimson-light",
+    accent: "var(--crimson-bright)",
     parentType: null,
     childType: null,
     defaultVisibility: "MASTER_ONLY",
@@ -380,8 +382,8 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     label: "Quest",
     plural: "Quest",
     icon: QuestIcon,
-    badgeClass: "border-purple-500/50 bg-purple-500/10 text-purple-300",
-    accent: "#9b59b6",
+    badgeClass: "border-arcane-bright/50 bg-arcane/15 text-arcane-bright",
+    accent: "var(--arcane-bright)",
     parentType: null,
     childType: null,
     defaultVisibility: "MASTER_ONLY",
@@ -404,8 +406,8 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     label: "Oggetto",
     plural: "Oggetti",
     icon: ObjectsIcon,
-    badgeClass: "border-orange-500/50 bg-orange-500/10 text-orange-300",
-    accent: "#e67e22",
+    badgeClass: "border-ember-bright/50 bg-ember/10 text-ember-bright",
+    accent: "var(--ember-bright)",
     parentType: null,
     childType: null,
     defaultVisibility: "MASTER_ONLY",
@@ -438,8 +440,8 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     label: "Creatura",
     plural: "Bestiario",
     icon: BeastsIcon,
-    badgeClass: "border-rose-500/50 bg-rose-500/10 text-rose-300",
-    accent: "#b03a2e",
+    badgeClass: "border-crimson-bright/50 bg-crimson/15 text-crimson-light",
+    accent: "var(--crimson)",
     parentType: null,
     childType: null,
     defaultVisibility: "MASTER_ONLY",
@@ -504,11 +506,14 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
     label: "Evento",
     plural: "Eventi",
     icon: EventsIcon,
-    badgeClass: "border-yellow-500/50 bg-yellow-500/10 text-yellow-300",
-    accent: "#f1c40f",
+    badgeClass: "border-gold-light/50 bg-gold-dim/25 text-gold-light",
+    accent: "var(--gold-light)",
     parentType: null,
     childType: null,
     defaultVisibility: "MASTER_ONLY",
+    // Tipo RITIRATO: assorbito dal Libro delle Cronache. Le voci residue
+    // restano leggibili finché il Master non le migra da /cronache.
+    hiddenInCreate: true,
     flavor: "La storia del mondo: guerre, incoronazioni, cataclismi.",
     fields: [
       { key: "eventDate", label: "Data (calendario di gioco)", kind: "text", placeholder: "12° giorno della Luna Rossa, 1247" },
@@ -518,13 +523,49 @@ export const ENTITY_REGISTRY: Record<EntityType, EntityTypeConfig> = {
       subtitle: typeof entity.fields.eventDate === "string" ? entity.fields.eventDate : undefined,
     }),
   },
+  chronicle: {
+    type: "chronicle",
+    label: "Cronaca",
+    plural: "Cronache",
+    icon: EventsIcon,
+    badgeClass: "border-gold-light/50 bg-gold-dim/25 text-gold-light",
+    accent: "var(--gold-light)",
+    parentType: null,
+    childType: null,
+    defaultVisibility: "MASTER_ONLY",
+    // Flusso di creazione dedicato (ChronicleEditor su /cronache).
+    hiddenInCreate: true,
+    flavor: "Il codex ufficiale del mondo: capitoli, diari, lettere e leggende.",
+    fields: [],
+    cardMeta: (entity) => {
+      const data = entity.chronicle;
+      const subtitle =
+        [
+          data?.dateLabel || data?.legacyDateLabel || null,
+          data?.subtitle || null,
+        ]
+          .filter(Boolean)
+          .join(" • ") || undefined;
+      if (data?.draft) return { subtitle, badge: DRAFT_BADGE };
+      if (data?.canonStatus === "PROPOSED") {
+        return { subtitle, badge: CANON_BADGES.PROPOSED };
+      }
+      const category = data ? CHRONICLE_CATEGORY_META[data.category] : undefined;
+      return {
+        subtitle,
+        badge: category
+          ? { label: category.label, className: category.badgeClass }
+          : undefined,
+      };
+    },
+  },
   session: {
     type: "session",
     label: "Sessione",
     plural: "Sessioni",
     icon: SessionIcon,
-    badgeClass: "border-indigo-400/50 bg-indigo-500/10 text-indigo-300",
-    accent: "#6c7ae0",
+    badgeClass: "border-arcane/60 bg-arcane-blue/50 text-arcane-bright",
+    accent: "var(--arcane)",
     parentType: null,
     childType: null,
     defaultVisibility: "PUBLIC",
@@ -575,10 +616,10 @@ export const VISIBILITY_LABELS: Record<string, string> = {
 };
 
 export const VISIBILITY_BADGES: Record<string, string> = {
-  PUBLIC: "border-emerald-600/50 bg-emerald-900/20 text-emerald-300",
-  PARTY_ONLY: "border-sky-500/50 bg-sky-500/10 text-sky-300",
-  MASTER_ONLY: "border-crimson-bright/50 bg-crimson/20 text-red-300",
-  OWNER_ONLY: "border-purple-500/50 bg-purple-500/10 text-purple-300",
+  PUBLIC: "border-verdant-bright/50 bg-verdant-deep/40 text-verdant-bright",
+  PARTY_ONLY: "border-silver/50 bg-silver/10 text-silver",
+  MASTER_ONLY: "border-crimson-bright/50 bg-crimson/20 text-crimson-light",
+  OWNER_ONLY: "border-arcane-bright/50 bg-arcane/15 text-arcane-bright",
 };
 
 /** Una voce è nascosta ai giocatori (non pubblica né di party). */

@@ -11,7 +11,6 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { EmptyState } from "@/components/shared/empty-state";
 import { RichTextRenderer } from "@/components/shared/rich-text-lazy";
 import {
@@ -273,14 +272,13 @@ function DiaryPage({
         "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
         "transition-all duration-200 hover:-translate-y-1.5 hover:border-gold/40 hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8),0_0_20px_rgba(212,175,55,0.06)]",
         evt
-          ? cn("border-l-[3px] border-t border-r border-b border-gold/15", evt.stripe)
-          : "border-gold/15"
+          ? cn("border-l-[3px] border-t border-r border-b border-hairline", evt.stripe)
+          : "border-hairline"
       )}
     >
       {/* Striscia ornamentale superiore */}
       <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
 
-      <CornerOrnaments size="xs" className="border-gold/20" />
 
       <div className="p-5">
         {/* Header: evento badge + titolo */}

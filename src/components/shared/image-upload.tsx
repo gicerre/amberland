@@ -89,7 +89,7 @@ export function ImageUpload({
       />
 
       {value ? (
-        <div className="group relative overflow-hidden rounded-lg border border-gold/25">
+        <div className="group relative overflow-hidden rounded-lg border border-hairline-strong">
           <FantasyImage src={value} alt="Anteprima" className="aspect-video" />
           <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 transition-opacity group-hover:opacity-100">
             {isUploadConfigured && (
@@ -140,7 +140,7 @@ export function ImageUpload({
                 className={cn(
                   "flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-lg border border-dashed text-muted-foreground shadow-[inset_0_1px_3px_rgba(0,0,0,0.4)] transition-all disabled:opacity-60",
                   dragOver
-                    ? "scale-[1.01] border-gold/70 bg-gold/10 text-gold-bright shadow-[0_0_22px_rgba(200,167,93,0.30),inset_0_0_30px_rgba(200,167,93,0.10)]"
+                    ? "border-gold/70 bg-gold/10 text-gold-bright shadow-[inset_0_1px_3px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(200,167,93,0.35)]"
                     : "border-gold/30 bg-black/40 hover:border-gold/60 hover:text-gold"
                 )}
               >

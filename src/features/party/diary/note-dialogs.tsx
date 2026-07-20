@@ -263,7 +263,7 @@ export function NoteDetailDialog({
         <RichTextRenderer content={note.content as RichTextValue} />
 
         {((links ?? []).length > 0 || canEdit) && (
-          <div className="mt-6 border-t border-gold/15 pt-4">
+          <div className="mt-6 border-t border-hairline pt-4">
             <p className="mb-2 flex items-center gap-1.5 text-xs font-semibold tracking-[0.2em] text-muted-foreground uppercase">
               <Link2 className="size-3.5" />
               Collegata a
@@ -275,7 +275,7 @@ export function NoteDetailDialog({
                   return (
                     <span
                       key={entityLink.id}
-                      className="group flex items-center gap-1 rounded-full border border-gold/25 bg-card/60 py-0.5 pr-1 pl-2.5 text-sm"
+                      className="group flex items-center gap-1 rounded-full border border-hairline-strong bg-card/60 py-0.5 pr-1 pl-2.5 text-sm"
                     >
                       <Link
                         href={`/entita/${entityLink.entityId}`}
@@ -370,7 +370,7 @@ function EntityLinkPicker({
         placeholder="Cerca un'entità da collegare…"
       />
       {candidates.length > 0 && (
-        <ScrollArea className="max-h-40 rounded-lg border border-gold/15">
+        <ScrollArea className="max-h-40 rounded-lg border border-hairline">
           <ul className="p-1">
             {candidates.map((entity) => {
               const Icon = ENTITY_REGISTRY[entity.type]?.icon ?? Link2;

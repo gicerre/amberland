@@ -3,7 +3,6 @@
 import { EyeOff, Lock, Skull } from "lucide-react";
 import Link from "next/link";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { FALLEN_FILTER } from "@/components/shared/immersive-hero";
 import { Badge } from "@/components/ui/badge";
@@ -12,7 +11,6 @@ import { cn } from "@/lib/utils";
 import type { Entity } from "@/types/entities";
 
 import { ENTITY_REGISTRY, isHiddenFromPlayers, isLockedEntity } from "../registry";
-import { imageIcon } from "@/components/shared/image-icon";
 
 /**
  * Card universale di un'entità: immagine, tipo, meta dinamiche e tag.
@@ -39,7 +37,7 @@ export function EntityCard({
     <Link
       href={`/entita/${entity.id}`}
       className={cn(
-        "group relative block overflow-hidden rounded-xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80",
+        "group relative block overflow-hidden rounded-xl border border-hairline bg-gradient-to-b from-stone-surface to-stone-mid/80",
         "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
         "transition-all duration-200 hover:-translate-y-1.5 hover:border-gold/45 hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8),0_0_30px_rgba(212,175,55,0.1)]",
         className
@@ -64,20 +62,19 @@ export function EntityCard({
       {/* Gradiente sull'immagine */}
       <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-40 bg-gradient-to-b from-black/10 via-transparent to-stone-mid/60" />
 
-      <CornerOrnaments size="xs" className="z-10 border-gold/30" />
 
       {isDead && (
         <span
-          className="absolute top-2 left-2 z-10 flex size-6 items-center justify-center rounded-full border border-red-500/50 bg-background/85 backdrop-blur-sm"
+          className="absolute top-2 left-2 z-10 flex size-6 items-center justify-center rounded-full border border-crimson-bright/50 bg-background/90"
           title="Personaggio morto"
         >
-          <Skull className="size-3 text-red-400" />
+          <Skull className="size-3 text-crimson-light" />
         </span>
       )}
 
       {isMaster && isHiddenFromPlayers(entity) && (
         <span
-          className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-full border border-amber-500/50 bg-background/85 backdrop-blur-sm"
+          className="absolute top-2 right-2 z-10 flex size-6 items-center justify-center rounded-full border border-ember-bright/50 bg-background/90"
           title={
             isLockedEntity(entity)
               ? "Bloccata: nascosta ai giocatori"
@@ -85,9 +82,9 @@ export function EntityCard({
           }
         >
           {isLockedEntity(entity) ? (
-            <Lock className="size-3 text-amber-400" />
+            <Lock className="size-3 text-ember-bright" />
           ) : (
-            <EyeOff className="size-3 text-amber-400" />
+            <EyeOff className="size-3 text-ember-bright" />
           )}
         </span>
       )}

@@ -10,7 +10,7 @@ export default function CharactersPage() {
       subtitle="PNG, alleati e rivali: i volti che popolano le cronache del regno."
       hero={{
         eyebrow: "I volti del regno",
-        accent: "#e8dcc0",
+        accent: "var(--parchment-dark)",
         src: "/images/personaggi.webp",
       }}
     />

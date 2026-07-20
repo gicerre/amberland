@@ -1,232 +1,113 @@
-# DESIGN CONSTITUTION — DARK FANTASY CAMPAIGN MANAGER
+# DESIGN CONSTITUTION v2 — NEXT-GEN DARK FANTASY
 
-> Documento vincolante per qualsiasi schermata, componente e interazione futura.
+> Documento vincolante per qualsiasi schermata, componente e interazione.
+> **Sostituisce integralmente la v1 "materica"** (pergamena/pietra/legno):
+> pivot deciso il 2 luglio 2026. In caso di conflitto con qualunque altro
+> documento, vince questa Constitution.
 
 ---
 
 ## PRINCIPIO FONDAMENTALE
 
-Questa non è una web application.
-Questa non è una dashboard.
-Questa non è una piattaforma SaaS.
-Questa non è una raccolta di schermate amministrative.
+L'applicazione è il **software ufficiale di un universo dark fantasy,
+progettato nel 2026**: la qualità visiva di un videogioco AAA next-gen
+(PS5 Pro / Series X) con gli standard d'uso di un prodotto professionale.
 
-**L'applicazione è un artefatto narrativo.**
+Riferimenti: Diablo IV, Elden Ring (HUD), Final Fantasy XVI, Destiny 2,
+The Witcher 3 Next-Gen, WoW Dragonflight, Throne and Liberty.
 
-L'intero sistema deve apparire come un gigantesco archivio vivente utilizzato da:
+Il palcoscenico è **nero profondo e silenzioso**; i protagonisti sono i
+**contenuti** (artwork, ritratti, nomi, numeri). L'interfaccia non imita
+materiali antichi: costruisce atmosfera con **luce, profondità, contrasto
+e spazio negativo**. Il fantasy vive nei contenuti, nella tipografia
+display e nel linguaggio — non nelle texture.
 
-- Maestri di Gilda
-- Cronisti Reali
-- Custodi degli Archivi
-- Bibliotecari Arcani
-- Ordini Religiosi
-- Accademie Magiche
-- Casate Nobiliari
-
-Ogni interazione deve sembrare l'utilizzo di strumenti appartenenti a questo mondo.
-
-L'utente non deve percepire di gestire dati.
-Deve percepire di consultare e compilare documenti reali provenienti da un universo fantasy.
+**Un solo test:** ogni schermata deve sembrare l'interfaccia di un gioco
+AAA del 2026 — mai un sito web, mai un template, mai un tema del 2010.
 
 ---
 
-## DESIGN PHILOSOPHY
+## FILOSOFIA
 
-### Ogni elemento UI deve trasmettere:
-- Matericità
-- Peso
-- Profondità
-- Artigianalità
-- Imperfezione controllata
-- Antichità
-- Autorevolezza
+Ogni elemento deve comunicare qualità. Ogni pixel ha uno scopo.
 
-### Mai:
-- Flat Design
-- Glassmorphism
-- Neumorphism
-- Material Design
-- SaaS Design
-- Startup Aesthetic
-- Enterprise Dashboard
+- **Minimal ma d'impatto** — pochi elementi, perfetti; il vuoto è un materiale.
+- **Cinematografico** — immagini a pieno campo, scrim morbidi, transizioni fluide.
+- **Leggibile prima di tutto** — l'estetica non costa mai un punto di contrasto.
+- **Il colore è segnale, non decorazione** — accenti rari che guidano l'occhio.
+- **Mobile first** — ogni layout nasce a 320px; desktop e ultrawide sono
+  espansioni ripensate, non allargamenti.
 
 ---
 
-## WORLD BUILDING VISIVO
+## LINGUAGGIO VISIVO
 
-Prima di generare qualsiasi schermata identificare:
+### Sempre
+- Neri profondi e grigi freddi; superfici pulite, senza grana.
+- Profondità tramite **luce**: hairline (bordi 1px a bassa alpha),
+  highlight superiore sottile, ombre morbide e larghe, layering.
+- **Vetro satinato leggerissimo** solo per i layer flottanti
+  (nav, dialog, popover): blur + tinta scura + hairline.
+- **Glow disciplinato**: solo su stati interattivi (focus, attivo, hover
+  d'accento), sempre tenue, mai come decorazione ambientale.
+- Radius generosi e coerenti; pill ammessa per chip e tag.
+- Spazio negativo abbondante; densità solo dove serve operatività.
 
-1. Chi utilizza quello strumento nel mondo fantasy
-2. Dove si trova fisicamente
-3. Da chi è stato costruito
-4. Con quali materiali è stato realizzato
-5. Quale funzione narrativa svolge
-
-**Ogni schermata deve avere una giustificazione diegetica.**
-
-### Esempi di nomenclatura corretta
-
-| Linguaggio tecnico | Linguaggio diegetico |
-|---|---|
-| Character Creation Form | Registro Anagrafico della Gilda degli Avventurieri |
-| Monster Database Entry | Archivio Bestiario delle Terre Conosciute |
-| Quest Management | Bacheca delle Commesse e delle Imprese |
-| User Settings | Sigillo Personale dell'Archivista |
-| Party Dashboard | Il Tomo dell'Archivista — Registro della Compagnia |
-| Item Inventory | Borsa Conservante — Inventario dei Tesori |
-| Campaign Diary | Cronache della Compagnia |
-| Faction List | Registro degli Ordini e delle Casate |
+### Mai
+- Texture bitmap o procedurali visibili (pergamena, pietra, legno, cuoio).
+- Ornamenti medievali: ceralacca, rivetti, cornici barocche, capilettera.
+- Gradienti dorati pieni su superfici ampie; oro come colore dominante.
+- Neon saturi, glow ambientale diffuso, ombre colorate.
+- Bounce/elastic, animazioni cartoon, parallax gratuito.
+- Bordi spessi, box su box, rumore visivo, effetti "medieval 2010".
 
 ---
 
-## DESIGN SYSTEM FOUNDATION
+## GERARCHIA
 
-### MATERIALI PRIMARI
+Massimo **tre livelli visivi** per schermata:
 
-#### Metallo Forgiato
-- **Utilizzo:** cornici, CTA principali, separatori, badge speciali
-- **Varianti:** ferro annerito, bronzo consumato, ottone inciso, argento lavorato, oro antico
+1. **Palcoscenico** — fondo quasi nero, quasi invisibile.
+2. **Superficie** — pannelli appena più chiari con hairline.
+3. **Accento** — l'unico livello che può brillare: CTA, stato attivo, dato chiave.
 
-#### Pergamena
-- **Utilizzo:** form, descrizioni, campi testuali, schede informative
-- **Varianti:** pergamena chiara, pergamena consumata, carta archivistica, pelle lavorata
-
-#### Pietra Incisa
-- **Utilizzo:** dashboard principali, header, statistiche importanti, titoli
-
-#### Legno Nobile
-- **Utilizzo:** navigazione, sidebar, menu contestuali
-
----
-
-## SISTEMA DI GERARCHIA VISIVA
-
-La gerarchia **non** viene costruita tramite:
-- Ombre moderne
-- Blur
-- Glow neon
-
-La gerarchia viene costruita tramite:
-- **Materiali** — più raro = più importante
-- **Dimensioni** — elemento più grande = più rilevante
-- **Profondità fisica** — rilievo, incisione, tridimensionalità
-- **Lavorazione artigianale** — più complessa = più autorevole
-- **Complessità delle incisioni** — ornamenti = importanza
-
-> Più un elemento è importante, più appare costoso da realizzare.
-
----
-
-## TIPOLOGIA DEGLI OGGETTI UI
-
-### Documento
-- **Utilizzato per:** schede, descrizioni, biografie, quest
-- **Aspetto:** pagina di tomo, bordi di carta consumata
-
-### Archivio
-- **Utilizzato per:** tabelle, liste, raccolte di entità
-- **Aspetto:** schedari imperiali, indici rilegati
-
-### Reliquia
-- **Utilizzato per:** CTA, azioni speciali, oggetti importanti
-- **Aspetto:** oggetto fisico da attivare, non un bottone
-
-### Sigillo
-- **Utilizzato per:** tag, stati, rarità
-- **Aspetto:** marchio nobiliare, ceralacca, stemma
-
-### Targa
-- **Utilizzato per:** header, titoli, intestazioni
-- **Aspetto:** lastra incisa su pietra o metallo
-
----
-
-## SISTEMA DELLE ANIMAZIONI
-
-Ogni animazione deve simulare materia reale.
-
-### Mai:
-- Bounce
-- Elastic
-- Cartoon Motion
-- Mobile Animation style
-
-### Sempre:
-- Peso
-- Attrito
-- Inerzia
-- Scorrimento meccanico
-- Apertura di oggetti fisici
-
-### Esempi specifici
-
-| Azione UI | Animazione fisica |
-|---|---|
-| Apertura Dialog | Il tomo si apre, la pagina scorre, i sigilli si spezzano |
-| Cambio Tab | Il segnalibro viene spostato, la pagina viene girata |
-| Salvataggio | Comparsa di un sigillo, incisione della registrazione, timbro ufficiale |
-| Caricamento | Sabbia che scorre, fiamma che si accende, ruota meccanica |
-| Eliminazione | Carta che brucia, incisione che sbiadisce |
-| Errore | Scuotimento di catene, sigillo rifiutato |
+La gerarchia si costruisce con: dimensione tipografica, contrasto,
+luminanza della superficie, posizione. Non con ornamenti.
 
 ---
 
 ## REGOLE UX ASSOLUTE
 
-1. Massimo tre livelli gerarchici visivi per schermata
-2. Nessuna informazione importante richiede hover per essere visibile
-3. Ogni azione primaria deve essere immediatamente identificabile
-4. L'estetica non deve compromettere la leggibilità
-5. Il fantasy deve migliorare la comprensione, non essere semplice decorazione
-6. Ogni elemento decorativo deve avere una funzione narrativa
-7. Ogni nuovo componente deve derivare da un componente base già esistente
+1. Nessuna informazione importante richiede hover (touch first).
+2. L'azione primaria di ogni schermata è identificabile in < 1 secondo.
+3. Meno click: le azioni frequenti a ≤ 2 interazioni.
+4. WCAG 2.2 AA: contrasto ≥ 4.5:1, focus visibile, target ≥ 44px,
+   mai solo-colore, `prefers-reduced-motion` rispettato ovunque.
+5. Testo UI ≥ 12px; etichette maiuscole spaziate solo ≥ 12px.
+6. Ogni animazione migliora la comprensione o il feedback — altrimenti si toglie.
+7. Ogni nuovo componente deriva dal Design System (`DESIGN_SYSTEM_V3.md`);
+   niente stili una-tantum nelle pagine.
 
 ---
 
-## REGOLE PER LO SVILUPPO (CLAUDE)
+## LINGUAGGIO E CONTENUTI
 
-Quando progetti una nuova schermata:
-
-1. Identifica il **ruolo narrativo** della schermata
-2. Identifica la sua **controparte nel mondo fantasy**
-3. Identifica il **materiale dominante** (Metallo / Pergamena / Pietra / Legno)
-4. Identifica il **livello gerarchico**
-5. Seleziona i **componenti base** del Design System
-6. Mantieni **coerenza assoluta** con tutte le schermate esistenti
-7. Evita qualsiasi pattern tipico delle web app moderne
-8. Giustifica ogni scelta estetica tramite motivazioni UX **e** narrative
-9. Progetta prima l'**esperienza** e poi l'**estetica**
-10. Ogni nuova schermata deve sembrare appartenente **allo stesso tomo**
+La **nomenclatura diegetica italiana resta** (Albo delle Imprese, Registro
+degli Abitanti, Cronache…): è il fantasy che vive nel linguaggio.
+La **tipografia display** (Cinzel) resta l'anima fantasy del brand,
+usata con disciplina su titoli ed elementi cerimoniali.
+Gli **artwork** sono il colore dell'app: l'interfaccia li incornicia
+con scrim neutri, non compete con loro.
 
 ---
 
-## ROADMAP IMPLEMENTAZIONE FASE G
+## GERARCHIA DOCUMENTALE
 
-### G1 — Palette dark fantasy (solo codice)
-Spostare da blue-black verso toni più organici e grezzi.
-Definire palette cromatica finale prima di procedere.
-
-### G2 — Texture di sfondo (asset PNG tileable)
-- Body: pietra nera/ossidiana seamless
-- Card: cuoio scuro consumato
-- Sidebar: pietra incisa
-
-### G3 — Ornamenti SVG (asset da creare/trovare)
-- Angoli card: teschio/spine/rune (da game-icons.net o custom)
-- Divisori sezione: catena, ossa, runa
-- Sigilli: ceralacca, stemma, pentagramma
-
-### G4 — Frame card con border-image
-SVG o PNG strip per bordi metallo/legno/pergamena sulle card.
-
-### G5 — Effetti speciali (solo codice)
-- Fiamma/torcia flicker su elementi importanti
-- Noise ambientale sul background
-- Particelle braci (opzionale)
-
-### G6 — Font heading alternativo (opzionale)
-Solo se si decide di sostituire Cinzel con un font più gotico.
+1. Questa Constitution (principi vincolanti)
+2. `DESIGN_SYSTEM_V3.md` (token, componenti, pattern, roadmap N1–N6)
+3. `UX_AUDIT_REDESIGN.md` (diagnosi UX ancora valide; le prescrizioni
+   materiche v1 sono superate)
 
 ---
 
-*Documento vincolante — versione 1.0 — Amberland Dark Fantasy Campaign Manager*
+*Documento vincolante — v2.0 — 2 luglio 2026*

@@ -38,8 +38,9 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
-import { CharacterView } from "@/features/characters/components/character-view";
+import { CharacterCodex } from "@/features/characters/codex/character-codex";
 import { PublicCharacterView } from "@/features/characters/components/public-character-view";
+import { ChronicleView } from "@/features/chronicles/components/chronicle-view";
 import { useEntityPublicCard } from "@/features/characters/data";
 import { NoteLinksPanel } from "@/features/party/diary/note-links-panel";
 import { cn } from "@/lib/utils";
@@ -128,9 +129,14 @@ export function EntityView({ id }: { id: string }) {
     );
   }
 
-  // I personaggi (PC e NPC) hanno una pagina dedicata, ricca di scheda.
+  // I personaggi (PC e NPC) hanno il loro Codex dedicato.
   if (entity.type === "character") {
-    return <CharacterView entity={entity} />;
+    return <CharacterCodex entity={entity} />;
+  }
+
+  // I capitoli del Libro delle Cronache hanno la loro pagina di lettura.
+  if (entity.type === "chronicle") {
+    return <ChronicleView entity={entity} />;
   }
 
   const config = ENTITY_REGISTRY[entity.type];
@@ -392,7 +398,7 @@ export function EntityView({ id }: { id: string }) {
                 onClick={() =>
                   openLightbox(allImages, galleryOffset + index, entity.name)
                 }
-                className="group relative aspect-video cursor-zoom-in overflow-hidden rounded-lg border border-gold/20 transition-all hover:border-gold/50"
+                className="group relative aspect-video cursor-zoom-in overflow-hidden rounded-lg border border-hairline-strong transition-all hover:border-gold/50"
               >
                 <Image
                   src={url}

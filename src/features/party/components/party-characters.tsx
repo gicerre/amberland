@@ -4,7 +4,6 @@ import { Plus, Search, Skull, Star, UserPlus, Users } from "lucide-react";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { FALLEN_FILTER, FallenOverlay } from "@/components/shared/immersive-hero";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -187,10 +186,10 @@ function ReserveCard({ character }: { character: Entity }) {
   const klass = String(character.fields.class ?? "");
   const subtitle = [race, klass].filter(Boolean).join(" • ") || "—";
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-gold/20 bg-card p-3">
+    <div className="flex items-center gap-3 rounded-xl border border-hairline-strong bg-card p-3">
       <Link
         href={`/entita/${character.id}`}
-        className="size-14 shrink-0 overflow-hidden rounded-lg border border-gold/15"
+        className="size-14 shrink-0 overflow-hidden rounded-lg border border-hairline"
       >
         <FantasyImage
           src={character.imageUrl}
@@ -254,8 +253,8 @@ function PartyCharacterCard({
         "group relative block overflow-hidden rounded-xl border",
         "bg-gradient-to-b from-stone-surface to-stone-mid/80",
         "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
-        "transition-all duration-200 hover:-translate-y-1.5",
-        "border-gold/40 hover:border-gold/65 hover:shadow-[0_0_30px_rgba(212,175,55,0.18),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
+        "transition-all duration-200 hover:-translate-y-0.5",
+        "border-gold/40 hover:border-gold/65 hover:shadow-[inset_0_1px_0_rgba(232,201,121,0.22),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
       )}
     >
       {/* Striscia dorata superiore */}
@@ -281,8 +280,8 @@ function PartyCharacterCard({
 
         {/* Dead skull o status badge — top-left */}
         {card.isDead ? (
-          <span className="absolute left-2 top-2 z-10 flex size-6 items-center justify-center rounded-full border border-red-500/50 bg-background/85 backdrop-blur-sm">
-            <Skull className="size-3.5 text-red-400" />
+          <span className="absolute left-2 top-2 z-10 flex size-6 items-center justify-center rounded-full border border-crimson-bright/50 bg-background/90">
+            <Skull className="size-3.5 text-crimson-light" />
           </span>
         ) : card.status !== "ALIVE" ? (
           <span className={cn(
@@ -303,7 +302,7 @@ function PartyCharacterCard({
               event.stopPropagation();
               toggleFav.mutate({ kind: "character", id: entry.id, label: card.name });
             }}
-            className="absolute right-2 top-2 z-10 flex size-6 items-center justify-center rounded-full border border-gold/40 bg-background/85 text-gold/80 backdrop-blur-sm transition-colors hover:text-gold"
+            className="absolute right-2 top-2 z-10 flex size-6 items-center justify-center rounded-full border border-gold/40 bg-background/90 text-gold/80 transition-colors hover:text-gold"
           >
             <Star className={cn("size-3.5", fav && "fill-gold text-gold")} />
           </button>
@@ -359,7 +358,6 @@ function PartyCharacterCard({
         </div>
       </div>
 
-      <CornerOrnaments size="xs" className="border-gold/25" />
     </Link>
   );
 }

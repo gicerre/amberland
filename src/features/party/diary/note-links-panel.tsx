@@ -119,7 +119,7 @@ export function NoteLinksPanel({ entity }: { entity: Entity }) {
                       "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border",
                       isPersonal
                         ? "border-sky-700/40 bg-sky-950/40"
-                        : "border-gold/25 bg-night/40"
+                        : "border-hairline-strong bg-night/40"
                     )}
                   >
                     {evt ? (
@@ -249,7 +249,7 @@ function LinkExistingDialog({
           onChange={(event) => setSearch(event.target.value)}
           placeholder="Cerca una nota…"
         />
-        <ScrollArea className="h-72 rounded-lg border border-gold/15 bg-black/20">
+        <ScrollArea className="h-72 rounded-lg border border-hairline bg-black/20">
           <ul className="p-1">
             {candidates.map((note) => (
               <li key={note.id}>

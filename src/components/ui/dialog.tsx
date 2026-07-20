@@ -39,7 +39,7 @@ function DialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       className={cn(
-        "modal-vignette fixed inset-0 isolate z-50 duration-100 supports-backdrop-filter:backdrop-blur-[3px] data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
+        "modal-vignette fixed inset-0 isolate z-50 duration-100 data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
         className
       )}
       {...props}
@@ -61,7 +61,7 @@ function DialogContent({
       <DialogPrimitive.Content
         data-slot="dialog-content"
         className={cn(
-          "fantasy-stripe-top fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-xl border border-gold/20 bg-popover bg-[radial-gradient(120%_80%_at_50%_0%,rgba(200,167,93,0.06),transparent_55%)] p-4 text-sm text-popover-foreground shadow-[0_30px_80px_-25px_rgba(0,0,0,0.85)] ring-1 ring-black/40 duration-150 outline-none sm:max-w-sm data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-open:slide-in-from-bottom-1 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95",
+          "glass elev-3 fixed top-1/2 left-1/2 z-50 grid w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 rounded-2xl p-4 text-sm text-popover-foreground outline-none sm:max-w-sm data-open:animate-[forge-in_300ms_var(--ease-out)_both] data-closed:animate-[forge-out_160ms_ease-in_both]",
           className
         )}
         {...props}

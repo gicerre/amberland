@@ -195,7 +195,7 @@ async function savePrivate(entityId: string, data: EntityPrivate) {
 /* Mutazioni entità                                                    */
 /* ------------------------------------------------------------------ */
 
-async function syncRelationNames(entityId: string, newName: string) {
+export async function syncRelationNames(entityId: string, newName: string) {
   const relationsRef = collection(db, COLLECTIONS.relations);
   const [asA, asB] = await Promise.all([
     getDocs(query(relationsRef, where("aId", "==", entityId))),
@@ -209,7 +209,7 @@ async function syncRelationNames(entityId: string, newName: string) {
 }
 
 /** Aggiorna il nome denormalizzato dell'entità in tutti i collegamenti nota. */
-async function syncNoteLinkNames(entityId: string, newName: string) {
+export async function syncNoteLinkNames(entityId: string, newName: string) {
   const linksRef = collection(db, COLLECTIONS.noteLinks);
   const snapshot = await getDocs(
     query(linksRef, where("entityId", "==", entityId))

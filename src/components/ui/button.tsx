@@ -72,15 +72,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-gradient-to-b from-gold/90 to-gold border-gold/40 text-[#181102] text-[0.78rem] font-heading font-bold tracking-[0.08em] uppercase shadow-[0_2px_8px_rgba(0,0,0,0.4),inset_0_1px_0_rgba(255,255,255,0.15)] hover:from-gold-bright hover:to-gold hover:border-gold-bright/60 hover:shadow-[0_0_18px_rgba(212,175,55,0.4),0_2px_8px_rgba(0,0,0,0.4)]",
+          "bg-gold text-[#0a0c10] text-sm font-semibold tracking-[0.02em] hover:bg-gold-bright hover:shadow-[0_0_24px_rgba(214,178,94,0.18)] active:scale-[0.98]",
         outline:
-          "border-gold/28 bg-stone-surface/50 text-foreground/85 text-sm hover:bg-stone-highlight/70 hover:border-gold/50 hover:text-foreground aria-expanded:bg-stone-highlight aria-expanded:border-gold/40",
+          "border-hairline-strong bg-transparent text-foreground/85 text-sm hover:bg-surface-2 hover:text-foreground aria-expanded:bg-surface-2",
         secondary:
-          "bg-stone-surface border-iron-dark text-foreground/80 text-sm hover:bg-stone-highlight hover:border-iron-mid hover:text-foreground aria-expanded:bg-stone-highlight",
+          "bg-surface-2 border-transparent text-foreground/85 text-sm hover:bg-surface-3 hover:text-foreground aria-expanded:bg-surface-3",
         ghost:
-          "text-sm hover:bg-stone-highlight/60 hover:text-foreground aria-expanded:bg-stone-highlight/60",
+          "text-sm hover:bg-surface-2 hover:text-foreground aria-expanded:bg-surface-2",
         destructive:
-          "border-crimson/40 bg-crimson/10 text-red-300 text-sm hover:bg-crimson/20 hover:border-crimson/60 hover:text-red-200 focus-visible:ring-crimson/50",
+          "border-crimson/50 bg-transparent text-crimson-light text-sm hover:bg-crimson/15 hover:border-crimson-bright/60 focus-visible:ring-crimson/50",
         link: "text-gold underline-offset-4 hover:underline hover:text-gold-bright text-sm",
       },
       size: {

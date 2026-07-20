@@ -11,7 +11,7 @@ interface EmptyStateProps {
   className?: string;
 }
 
-/** Stato vuoto a tema fantasy, con icona, testo e azione opzionale. */
+/** Empty state Obsidian (V3 §8): emblema quieto, titolo Cinzel, molto spazio. */
 export function EmptyState({
   icon: Icon = ScrollText,
   title,
@@ -22,14 +22,14 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-xl border border-dashed border-gold/20 bg-card/40 px-6 py-16 text-center",
+        "flex flex-col items-center justify-center rounded-2xl border border-dashed border-hairline-strong bg-surface-1/50 px-6 py-16 text-center",
         className
       )}
     >
-      <div className="mb-4 flex size-14 items-center justify-center rounded-full border border-gold/30 bg-gold/10">
-        <Icon className="size-6 text-gold" />
+      <div className="mb-4 flex size-16 items-center justify-center rounded-full border border-hairline bg-surface-2">
+        <Icon className="size-7 text-muted-foreground" />
       </div>
-      <h3 className="font-heading text-lg font-semibold text-foreground">
+      <h3 className="font-heading text-lg font-semibold text-parchment">
         {title}
       </h3>
       {description && (

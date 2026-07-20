@@ -133,10 +133,10 @@ function buildConfig(event: CelebrationEvent): EventConfig {
 
     case "item-acquired": {
       const rarityMap: Record<string, Partial<EventConfig>> = {
-        LEGENDARY: { particleColors: ["#c9a227", "#f7e8a0", "#fbbf24", "#fff"], glowColor: "rgba(212,175,55,0.5)", cardBorderClass: "border-gold/70", cardBgClass: "from-[#120d00] via-stone-mid to-[#0a0c0f]" },
-        ARTIFACT:  { particleColors: ["#c43146", "#ff8a9b", "#fecdd3", "#fff"], glowColor: "rgba(196,49,70,0.5)", cardBorderClass: "border-crimson-bright/65", cardBgClass: "from-[#120003] via-stone-mid to-[#0a0c0f]" },
-        MAGIC:     { particleColors: ["#9b59b6", "#c39bd3", "#ede9fe", "#fff"], glowColor: "rgba(155,89,182,0.4)", cardBorderClass: "border-purple-500/65", cardBgClass: "from-[#0d0012] via-stone-mid to-[#0a0c0f]" },
-        RARE:      { particleColors: ["#4d72c9", "#7fa3e6", "#bfdbfe", "#fff"], glowColor: "rgba(77,114,201,0.4)", cardBorderClass: "border-arcane-bright/65", cardBgClass: "from-[#010718] via-stone-mid to-[#0a0c0f]" },
+        LEGENDARY: { particleColors: ["#d4af37", "#f7e8a0", "#e8c979", "#fff"], glowColor: "rgba(212,175,55,0.5)", cardBorderClass: "border-gold/70", cardBgClass: "from-[#120d00] via-stone-mid to-[#0d0a06]" },
+        ARTIFACT:  { particleColors: ["#b3402e", "#d98a70", "#f0c4b0", "#fff"], glowColor: "rgba(179,64,46,0.5)", cardBorderClass: "border-crimson-bright/65", cardBgClass: "from-[#140503] via-stone-mid to-[#0d0a06]" },
+        MAGIC:     { particleColors: ["#9d8ac9", "#c3b5e3", "#ece7f7", "#fff"], glowColor: "rgba(157,138,201,0.4)", cardBorderClass: "border-arcane-bright/65", cardBgClass: "from-[#0e0a18] via-stone-mid to-[#0d0a06]" },
+        RARE:      { particleColors: ["#9aa0a6", "#c4c9cd", "#e8eaec", "#fff"], glowColor: "rgba(154,160,166,0.4)", cardBorderClass: "border-silver/60", cardBgClass: "from-[#0e0f10] via-stone-mid to-[#0d0a06]" },
       };
       const overrides = rarityMap[event.rarity ?? "RARE"] ?? rarityMap.RARE;
       return {

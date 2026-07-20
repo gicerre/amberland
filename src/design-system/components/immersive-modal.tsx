@@ -79,7 +79,7 @@ export function ImmersiveModal({
       <DialogPrimitive.Portal>
         <DialogPrimitive.Overlay
           className={cn(
-            "modal-vignette fixed inset-0 z-50 supports-backdrop-filter:backdrop-blur-[3px]",
+            "modal-vignette fixed inset-0 z-50",
             "data-[state=open]:animate-[overlay-in_220ms_ease-out]",
             "data-[state=closed]:animate-[overlay-out_160ms_ease-in]"
           )}
@@ -90,35 +90,24 @@ export function ImmersiveModal({
         <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-3">
         <DialogPrimitive.Content
           {...(description ? {} : { "aria-describedby": undefined })}
-          style={{
-            backgroundColor: "#0a0b10",
-            backgroundImage:
-              "linear-gradient(157deg, rgba(27,20,48,0.55) 0%, rgba(11,12,17,0.92) 55%, rgba(6,6,10,0.97) 100%), url('/textures/obsidian.webp')",
-            backgroundSize: "cover, 360px",
-            backgroundBlendMode: "normal, overlay",
-            boxShadow:
-              "0 40px 110px -30px rgba(0,0,0,0.85), 0 0 70px rgba(200,167,93,0.10)",
-          }}
           className={cn(
-            // Cornice unica per TUTTE le modali: centrata dal wrapper flex,
-            // quasi a tutto schermo, altezza piena. Stessa grandezza ovunque.
-            "group pointer-events-auto relative z-50 flex h-full w-full max-w-6xl flex-col overflow-hidden outline-none",
-            "data-[state=open]:animate-[forge-in_340ms_cubic-bezier(0.16,1,0.3,1)_both]",
+            // Cornice unica per TUTTE le modali Obsidian (V3 §8): superficie
+            // fredda solida (il vetro è riservato ai pannelli piccoli),
+            // hairline, ombra E3, blur-fade d'ingresso.
+            "group pointer-events-auto relative z-50 flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-2xl border border-hairline-strong bg-surface-1 outline-none",
+            "shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_40px_110px_-30px_rgba(0,0,0,0.85)]",
+            "data-[state=open]:animate-[forge-in_320ms_var(--ease-out)_both]",
             "data-[state=closed]:animate-[forge-out_180ms_ease-in_both]",
             className
           )}
         >
-          {/* Atmosfera: braci + bagliore superiore (dietro al contenuto). */}
+          {/* Atmosfera opzionale: braci quiete dietro al contenuto. */}
           {embers && (
             <EmberParticles
-              className="absolute inset-0 z-0 opacity-50"
-              density={20}
+              className="absolute inset-0 z-0 opacity-40"
+              density={16}
             />
           )}
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(120%_80%_at_50%_0%,rgba(200,167,93,0.10),transparent_60%)]"
-          />
 
           {/* Contenuto reale, sopra l'atmosfera. Padding extra per staccare
               header/corpo/footer dalla cornice overlay su tutti i lati. */}
@@ -126,7 +115,7 @@ export function ImmersiveModal({
             <header className="shrink-0 px-6 pt-5 pb-3">
               <div className="flex items-start gap-3 pr-8">
                 {icon && (
-                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-md border border-gold/30 bg-night/50 text-gold shadow-[inset_0_1px_0_rgba(212,175,55,0.25)] [&_svg]:size-5">
+                  <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-hairline-strong bg-surface-2 text-gold [&_svg]:size-5">
                     {icon}
                   </span>
                 )}
@@ -170,7 +159,7 @@ export function ImmersiveModal({
             </div>
 
             {footer && (
-              <footer className="shrink-0 border-t border-gold/15 bg-black/30 px-6 py-3.5 supports-backdrop-filter:backdrop-blur-sm">
+              <footer className="shrink-0 border-t border-hairline bg-surface-0/80 px-6 py-3.5">
                 <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
                   {footer}
                 </div>

@@ -41,7 +41,7 @@ export function FrameCard({
     <div
       className={cn(
         "relative",
-        glow && "[filter:drop-shadow(0_0_24px_rgba(212,175,55,0.18))]",
+        glow && "[filter:drop-shadow(0_8px_24px_rgba(0,0,0,0.5))]",
         className
       )}
       {...props}

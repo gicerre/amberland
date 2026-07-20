@@ -33,7 +33,7 @@ export function FormConsole({
       {nav}
       <div className="min-h-0 overflow-y-auto px-5 py-5 md:px-6">{children}</div>
       {aside && (
-        <aside className="hidden min-h-0 overflow-y-auto border-l border-gold/15 bg-black/25 p-4 lg:block">
+        <aside className="hidden min-h-0 overflow-y-auto border-l border-hairline bg-black/25 p-4 lg:block">
           {aside}
         </aside>
       )}
@@ -63,7 +63,7 @@ export function ConsoleNav({
   return (
     <nav
       className={cn(
-        "flex shrink-0 gap-1 overflow-x-auto border-b border-gold/15 bg-black/25 p-2",
+        "flex shrink-0 gap-1 overflow-x-auto border-b border-hairline bg-black/25 p-2",
         "md:flex-col md:overflow-x-visible md:overflow-y-auto md:border-r md:border-b-0",
         className
       )}
@@ -84,7 +84,7 @@ export function ConsoleNav({
             )}
           >
             {isActive && (
-              <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-gold-bright shadow-[0_0_8px_rgba(212,175,55,0.75)]" />
+              <span className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-gold-bright" />
             )}
             {section.icon && (
               <span className="flex size-4 shrink-0 items-center justify-center [&_svg]:size-4">
@@ -196,7 +196,7 @@ export function ConsoleSegmented<T extends string>({
   return (
     <div
       className={cn(
-        "inline-flex w-full gap-1 rounded-md border border-gold/20 bg-black/40 p-1 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]",
+        "inline-flex w-full gap-1 rounded-md border border-hairline-strong bg-black/40 p-1 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]",
         className
       )}
     >

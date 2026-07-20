@@ -23,7 +23,7 @@ export function CreatureStatusBar({ entity }: { entity: Entity }) {
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-gold/20 bg-card/50 px-4 py-3">
+    <div className="flex flex-wrap items-center gap-3 rounded-xl border border-hairline-strong bg-card/50 px-4 py-3">
       <span className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
         <Skull className="size-3.5 text-gold" />
         Stato della creatura
@@ -41,7 +41,7 @@ export function CreatureStatusBar({ entity }: { entity: Entity }) {
                 "rounded-full border px-3.5 py-2 text-xs transition-colors",
                 active
                   ? cn("font-semibold", CREATURE_STATUS_BADGES[option.value])
-                  : "border-gold/20 bg-black/20 text-muted-foreground hover:border-gold/45 hover:text-foreground"
+                  : "border-hairline-strong bg-black/20 text-muted-foreground hover:border-gold/45 hover:text-foreground"
               )}
             >
               {option.label}

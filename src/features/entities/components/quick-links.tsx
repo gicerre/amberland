@@ -52,7 +52,7 @@ export function QuickLinks({ entity }: { entity: Entity }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gold/15 bg-card/40 px-4 py-3">
+    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-hairline bg-card/40 px-4 py-3">
       <span className="flex items-center gap-1.5 text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
         <Link2 className="size-3.5 text-gold" />
         Collegamenti rapidi
@@ -65,7 +65,7 @@ export function QuickLinks({ entity }: { entity: Entity }) {
             key={link.id}
             href={`/entita/${link.id}`}
             className={cn(
-              "flex items-center gap-1.5 rounded-full border border-gold/25 bg-night/40 px-3 py-1 text-xs transition-colors hover:border-gold/55 hover:text-gold-bright"
+              "flex items-center gap-1.5 rounded-full border border-hairline-strong bg-night/40 px-3 py-1 text-xs transition-colors hover:border-gold/55 hover:text-gold-bright"
             )}
             title={config.label}
           >
@@ -75,7 +75,7 @@ export function QuickLinks({ entity }: { entity: Entity }) {
         ));
       })}
       {noteCount > 0 && (
-        <span className="flex items-center gap-1.5 rounded-full border border-gold/20 bg-night/40 px-3 py-1 text-xs text-muted-foreground">
+        <span className="flex items-center gap-1.5 rounded-full border border-hairline-strong bg-night/40 px-3 py-1 text-xs text-muted-foreground">
           {noteCount} {noteCount === 1 ? "nota collegata" : "note collegate"}
         </span>
       )}

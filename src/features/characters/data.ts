@@ -79,6 +79,11 @@ export function emptySheet(): CharacterSheet {
     tempHp: 0,
     initiative: 0,
     speed: "9 m",
+    xp: 0,
+    inspiration: false,
+    exhaustion: 0,
+    conditions: [],
+    resources: [],
     proficiencyBonus: 2,
     savingThrows: [],
     skills: [],
@@ -98,6 +103,30 @@ export function emptySheet(): CharacterSheet {
     tokenUrl: "",
     altPortraits: [],
   };
+}
+
+/**
+ * Normalizza una scheda letta da Firestore: i documenti scritti prima
+ * dell'introduzione di condizioni/risorse/XP non hanno quei campi, e un
+ * `undefined` risalvato farebbe fallire updateDoc. Riempie i default
+ * senza mai perdere i dati presenti.
+ */
+export function normalizeSheet(
+  raw: Partial<CharacterSheet> | undefined | null
+): CharacterSheet {
+  const base = emptySheet();
+  if (!raw) return base;
+  const merged: CharacterSheet = { ...base, ...raw };
+  // I merge superficiali non bastano per la mappa delle caratteristiche.
+  merged.abilities = { ...base.abilities, ...(raw.abilities ?? {}) };
+  merged.money = { ...base.money, ...(raw.money ?? {}) };
+  // Gli array possono arrivare undefined dai documenti legacy.
+  merged.conditions = raw.conditions ?? [];
+  merged.resources = raw.resources ?? [];
+  merged.xp = raw.xp ?? 0;
+  merged.inspiration = raw.inspiration ?? false;
+  merged.exhaustion = raw.exhaustion ?? 0;
+  return merged;
 }
 
 export interface BuildCharacterOptions {
@@ -387,7 +416,14 @@ export function useMyCharacters() {
     queryKey: [ENTITIES_KEY, "owned", uid ?? ""],
     enabled: role !== null && Boolean(uid),
     queryFn: async () =>
-      sortByName(await entityService.list(where("ownerId", "==", uid))),
+      // Il filtro sul tipo è necessario: anche le cronache proposte dai
+      // giocatori hanno ownerId (vedi Libro delle Cronache).
+      sortByName(
+        await entityService.list(
+          where("type", "==", "character"),
+          where("ownerId", "==", uid)
+        )
+      ),
   });
 }
 

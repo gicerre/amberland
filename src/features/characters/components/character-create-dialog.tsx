@@ -292,7 +292,7 @@ export function CharacterCreateDialog({
           </ConsoleField>
         )}
         {kind === "PC" && !isMaster && (
-          <p className="rounded-md border border-gold/15 bg-night/30 px-3 py-2 text-xs text-muted-foreground">
+          <p className="rounded-md border border-hairline bg-night/30 px-3 py-2 text-xs text-muted-foreground">
             Questo personaggio sarà tuo: potrai gestirne la scheda.
           </p>
         )}

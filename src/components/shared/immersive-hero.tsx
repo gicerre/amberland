@@ -3,18 +3,10 @@
 import { ZoomIn } from "lucide-react";
 import Image from "next/image";
 
+import { withAlpha } from "@/lib/color";
 import { cn } from "@/lib/utils";
 
 import { FantasyImage } from "./fantasy-image";
-
-/** Converte un esadecimale (#rrggbb) in rgba() con alpha. */
-function hexA(hex: string, alpha: number): string {
-  const h = hex.replace("#", "");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 /**
  * Filtro "caduto": l'immagine vira al sangue cupo — calda, desaturata e
@@ -54,12 +46,12 @@ export function HeroAtmosphere({ accent }: { accent: string }) {
       {/* Nebbia che sale dall'abisso */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-background via-background/45 to-transparent" />
       {/* Vignetta cinematografica */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_-10%,transparent_30%,rgba(6,7,10,0.85))]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_-10%,transparent_30%,rgba(10,8,5,0.85))]" />
       {/* Alone della categoria che scende dall'alto */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-x-0 top-0 h-28"
-        style={{ background: `linear-gradient(to bottom, ${hexA(accent, 0.16)}, transparent)` }}
+        style={{ background: `linear-gradient(to bottom, ${withAlpha(accent, 0.16)}, transparent)` }}
       />
     </>
   );
@@ -93,7 +85,7 @@ function CrestBanner({ accent }: { accent: string }) {
       {/* Stemma del regno, incastonato e illuminato dal colore della categoria */}
       <span
         className="absolute bottom-1 left-1/2 flex size-14 -translate-x-1/2 items-center justify-center rounded-full sm:size-16"
-        style={{ filter: `drop-shadow(0 0 16px ${hexA(accent, 0.4)})` }}
+        style={{ filter: `drop-shadow(0 0 16px ${withAlpha(accent, 0.4)})` }}
       >
         <Image
           src="/logo/logo.png"
@@ -112,6 +104,12 @@ interface ImmersiveHeroProps {
   alt: string;
   /** Colore della categoria (config.accent del registry): tinge l'atmosfera. */
   accent: string;
+  /**
+   * Altezza del monumento (UX_AUDIT_REDESIGN 0.5): "full" (45rem) è
+   * riservato al dettaglio entità, dove l'immagine È il contenuto;
+   * le liste usano "list" (h-56 → h-96).
+   */
+  size?: "full" | "list";
   /** Apertura nel lightbox; se assente l'hero non è cliccabile. */
   onOpen?: () => void;
   /** Trattamento "caduto": tinta di sangue dark-horror (es. personaggi morti). */
@@ -122,6 +120,11 @@ interface ImmersiveHeroProps {
   children?: React.ReactNode;
 }
 
+const HERO_HEIGHTS: Record<NonNullable<ImmersiveHeroProps["size"]>, string> = {
+  full: "h-80 sm:h-[28rem] lg:h-[45rem]",
+  list: "h-56 sm:h-72 lg:h-96",
+};
+
 /**
  * Hero cinematografico "paesaggio immersivo": immagine + foschia volumetrica,
  * vignetta, alone di categoria e fascia con stemma. Pensato per le single-page
@@ -131,6 +134,7 @@ export function ImmersiveHero({
   src,
   alt,
   accent,
+  size = "full",
   onOpen,
   fallen,
   priority,
@@ -144,7 +148,7 @@ export function ImmersiveHero({
       <FantasyImage
         src={src}
         alt={alt}
-        className={cn("h-80 sm:h-[28rem] lg:h-[45rem]", fallen && FALLEN_FILTER)}
+        className={cn(HERO_HEIGHTS[size], fallen && FALLEN_FILTER)}
         sizes="100vw"
         priority={priority}
       />
@@ -156,7 +160,7 @@ export function ImmersiveHero({
       {fallen && <FallenOverlay />}
 
       {interactive && (
-        <span className="pointer-events-none absolute top-3 right-3 z-30 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100">
+        <span className="pointer-events-none absolute top-3 right-3 z-30 flex size-9 items-center justify-center rounded-full border border-gold/40 bg-background/90 text-gold opacity-0 transition-opacity group-hover:opacity-100 [@media(hover:none)]:opacity-100">
           <ZoomIn className="size-4.5" />
         </span>
       )}
@@ -167,9 +171,14 @@ export function ImmersiveHero({
           {/* Scrim per la leggibilità del testo sovrapposto */}
           <div
             aria-hidden
-            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(6,7,10,0.62),transparent_72%)]"
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(10,8,5,0.62),transparent_72%)]"
           />
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-5 px-6 pb-12 text-center sm:pb-16">
+          <div
+            className={cn(
+              "absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center",
+              size === "list" ? "gap-3 pb-8 sm:pb-10" : "gap-5 pb-12 sm:pb-16"
+            )}
+          >
             {children}
           </div>
         </>
@@ -180,7 +189,7 @@ export function ImmersiveHero({
   );
 
   const base = cn(
-    "group relative isolate block w-full overflow-hidden rounded-xl border border-gold/15",
+    "group relative isolate block w-full overflow-hidden rounded-xl border border-hairline",
     className
   );
 

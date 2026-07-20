@@ -127,14 +127,14 @@ export function PartyHeaderPanel() {
 
         {/* Stat chips */}
         <div className="mt-3.5 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/20 bg-black/45 px-2.5 py-1.5 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-lg border border-hairline-strong bg-black/45 px-2.5 py-1.5 text-xs">
             <Users className="size-3.5 text-gold/70" />
             <strong className="text-gold-bright">{memberCount}</strong>
             <span className="text-muted-foreground">
               {memberCount === 1 ? "membro" : "membri"}
             </span>
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-lg border border-gold/20 bg-black/45 px-2.5 py-1.5 text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-lg border border-hairline-strong bg-black/45 px-2.5 py-1.5 text-xs">
             <Clock className="size-3.5 text-gold/70" />
             <span className="text-muted-foreground">{timeAgo(lastActivity)}</span>
           </span>

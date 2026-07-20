@@ -78,7 +78,7 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
             {card.publicEquipment.map((item, index) => (
               <li
                 key={`${item}-${index}`}
-                className="flex items-center gap-1.5 rounded-lg border border-gold/15 bg-card/60 px-3 py-1.5 text-sm"
+                className="flex items-center gap-1.5 rounded-lg border border-hairline bg-card/60 px-3 py-1.5 text-sm"
               >
                 <Swords className="size-3.5 text-gold/60" />
                 {item}
@@ -88,7 +88,7 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
         </section>
       )}
 
-      <div className="flex items-center gap-2 rounded-xl border border-gold/15 bg-night/30 px-4 py-3 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 rounded-xl border border-hairline bg-night/30 px-4 py-3 text-sm text-muted-foreground">
         <Lock className="size-4 text-gold/60" />
         La scheda completa di questo personaggio è riservata al suo
         proprietario e al Master.
@@ -99,7 +99,7 @@ export function PublicCharacterView({ card }: { card: EntityPublicCard }) {
 
 function Stat({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-gold/15 bg-card/60 px-4 py-3">
+    <div className="rounded-lg border border-hairline bg-card/60 px-4 py-3">
       <dt className="text-[11px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
         {label}
       </dt>

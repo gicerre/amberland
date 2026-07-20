@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
-import { ImmersiveHero } from "@/components/shared/immersive-hero";
+import { ListPageHero } from "@/components/shared/list-page-hero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,11 +20,11 @@ const STATUS_GROUPS: {
   values: string[];
   accent: string;
 }[] = [
-  { label: "In corso", values: ["ACTIVE"], accent: "#d4af37" },
-  { label: "Prossime imprese", values: ["NEXT"], accent: "#ff7a18" },
-  { label: "Trame segrete", values: ["SECRET"], accent: "#7c5cff" },
-  { label: "Sulla bacheca", values: ["AVAILABLE"], accent: "#9a907c" },
-  { label: "Negli annali", values: ["COMPLETED", "FAILED"], accent: "#c8a75d" },
+  { label: "In corso", values: ["ACTIVE"], accent: "var(--status-active)" },
+  { label: "Prossime imprese", values: ["NEXT"], accent: "var(--status-next)" },
+  { label: "Trame segrete", values: ["SECRET"], accent: "var(--status-secret)" },
+  { label: "Sulla bacheca", values: ["AVAILABLE"], accent: "var(--status-available)" },
+  { label: "Negli annali", values: ["COMPLETED", "FAILED"], accent: "var(--status-archive)" },
 ];
 
 /**
@@ -60,30 +60,22 @@ export default function QuestsPage() {
 
   return (
     <div>
-      {/* ════════ Hero immersivo a piena larghezza, con titolo sovrapposto ════════ */}
-      <div className="relative left-1/2 -mt-4 mb-7 w-screen -translate-x-1/2 sm:-mt-6 lg:-mt-10 lg:w-[calc(100vw-18rem)]">
-        <ImmersiveHero
-          src="/images/albo-delle-imprese.webp"
-          alt="Albo delle Imprese"
-          accent="#9b59b6"
-          priority
-          className="rounded-none border-0"
-        >
-          <div className="max-w-3xl">
-            <p className="font-heading text-[11px] font-semibold tracking-[0.45em] text-arcane-bright/90 uppercase sm:text-xs">
-              Bacheca delle commesse
-            </p>
-            <h1 className="text-gold-gradient mt-3 font-heading text-4xl font-black tracking-wider drop-shadow-[0_2px_20px_rgba(0,0,0,0.85)] sm:text-5xl lg:text-6xl">
-              L&rsquo;Albo delle Imprese
-            </h1>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-parchment-dark/90 drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] sm:text-base">
-              Incarichi, misteri e chiamate all&rsquo;avventura del party,
-              raccolti per stato: ciò che arde adesso, ciò che attende e ciò che
-              è ormai leggenda.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center justify-center gap-2">
+      {/* Hero di sala (ridotto, con Targa sticky al collasso) */}
+      <ListPageHero
+        src="/images/albo-delle-imprese.webp"
+        alt="Albo delle Imprese"
+        accent="var(--arcane-bright)"
+        eyebrow="Bacheca delle commesse"
+        title="L'Albo delle Imprese"
+        subtitle={
+          <>
+            Incarichi, misteri e chiamate all&rsquo;avventura del party,
+            raccolti per stato: ciò che arde adesso, ciò che attende e ciò che
+            è ormai leggenda.
+          </>
+        }
+        actions={
+          <>
             <Button variant="outline" asChild>
               <Link href="/grafo">
                 <Network className="size-4" />
@@ -96,9 +88,9 @@ export default function QuestsPage() {
                 Nuova quest
               </Button>
             )}
-          </div>
-        </ImmersiveHero>
-      </div>
+          </>
+        }
+      />
 
       {/* Ricerca */}
       <div className="relative mb-7 w-full sm:max-w-xs">
@@ -133,7 +125,7 @@ export default function QuestsPage() {
           }
         />
       ) : (
-        <div className="space-y-9">
+        <div className="space-y-10">
           {groups.map((group) => (
             <section key={group.label}>
               <QuestSectionHeading
@@ -162,7 +154,10 @@ export default function QuestsPage() {
   );
 }
 
-/** Intestazione di sezione con barra-glow nel colore dello stato. */
+/**
+ * Intestazione di sezione Obsidian: indicatore di stato minimale
+ * (barra 2px nel colore-token) + conteggio in un counter pill quieto.
+ */
 function QuestSectionHeading({
   label,
   count,
@@ -176,16 +171,16 @@ function QuestSectionHeading({
     <div className="mb-4 flex items-center gap-3">
       <span
         aria-hidden
-        className="h-5 w-1 shrink-0 rounded-full"
-        style={{ background: accent, boxShadow: `0 0 12px ${accent}` }}
+        className="h-5 w-0.5 shrink-0 rounded-full"
+        style={{ background: accent }}
       />
-      <h2 className="font-heading text-xl font-semibold tracking-wider whitespace-nowrap text-foreground">
+      <h2 className="font-heading text-lg font-semibold tracking-wide whitespace-nowrap text-parchment">
         {label}
       </h2>
-      <span className="rounded-full border border-gold/25 bg-night/40 px-2 py-0.5 font-heading text-xs text-gold/70">
+      <span className="rounded-full border border-hairline bg-surface-1 px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
         {count}
       </span>
-      <span aria-hidden className="h-px flex-1 bg-gradient-to-r from-gold/30 to-transparent" />
+      <span aria-hidden className="h-px flex-1 bg-hairline" />
     </div>
   );
 }

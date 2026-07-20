@@ -24,7 +24,7 @@ function TableHeader({ className, ...props }: React.ComponentProps<"thead">) {
     <thead
       data-slot="table-header"
       className={cn(
-        "bg-black/30 [&_tr]:border-b [&_tr]:border-gold/20",
+        "bg-black/30 [&_tr]:border-b [&_tr]:border-hairline-strong",
         className
       )}
       {...props}
@@ -47,7 +47,7 @@ function TableFooter({ className, ...props }: React.ComponentProps<"tfoot">) {
     <tfoot
       data-slot="table-footer"
       className={cn(
-        "border-t border-gold/15 bg-black/20 font-medium [&>tr]:last:border-b-0",
+        "border-t border-hairline bg-black/20 font-medium [&>tr]:last:border-b-0",
         className
       )}
       {...props}
@@ -60,7 +60,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "border-b border-gold/10 transition-colors hover:bg-gold/[0.06] has-aria-expanded:bg-gold/[0.06] data-[state=selected]:bg-gold/10",
+        "border-b border-hairline transition-colors hover:bg-gold/[0.06] has-aria-expanded:bg-gold/[0.06] data-[state=selected]:bg-gold/10",
         className
       )}
       {...props}

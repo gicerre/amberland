@@ -45,7 +45,7 @@ export default function LoginPage() {
         className="relative z-20 w-full max-w-md"
       >
         <FrameCard
-          className="bg-card/90 shadow-[0_25px_70px_-20px_rgba(0,0,0,0.9),0_0_40px_rgba(212,175,55,0.06)] backdrop-blur-sm"
+          className="rounded-2xl bg-surface-1 shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_25px_70px_-20px_rgba(0,0,0,0.9)]"
           contentClassName="p-8 sm:p-10"
         >
           <div className="mb-8 flex flex-col items-center text-center">
@@ -55,7 +55,7 @@ export default function LoginPage() {
               width={88}
               height={88}
               priority
-              className="mb-4 size-20 object-contain drop-shadow-[0_0_30px_rgba(212,175,55,0.3)]"
+              className="mb-4 size-20 object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]"
             />
             <h1 className="text-gold-gradient font-heading text-2xl font-bold tracking-widest">
               VARCA I CANCELLI

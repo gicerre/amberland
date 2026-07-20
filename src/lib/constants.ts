@@ -24,6 +24,8 @@ export const COLLECTIONS = {
   noteLinks: "note_links",
   /** Cronologia operazioni sulle note. */
   noteLog: "note_log",
+  /** Cronologia operazioni sulle Cronache (pattern note_log). */
+  chronicleLog: "chronicle_log",
 } as const;
 
 /**

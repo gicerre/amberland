@@ -33,17 +33,13 @@ function MobileBottomNav() {
   const activeGroupId = getActiveGroupId(pathname);
 
   return (
+    /* Bottom bar Obsidian (V3 §9): vetro satinato, icona 24 + label 11px
+       sempre visibile, attiva = icona gold + dot. */
     <nav
       aria-label="Navigazione principale"
-      className="fixed inset-x-0 bottom-0 z-40 flex h-16 items-stretch border-t border-gold/12 bg-sidebar/98 backdrop-blur-sm lg:hidden"
+      className="glass fixed inset-x-0 bottom-0 z-40 flex h-16 items-stretch border-x-0 border-b-0 border-t border-hairline lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      {/* Striscia ornamentale superiore */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent"
-      />
-
       {NAV_GROUPS.map((group) => {
         const Icon = group.icon;
         const isActive = activeGroupId === group.id;
@@ -53,42 +49,23 @@ function MobileBottomNav() {
           <Link
             key={group.id}
             href={primaryHref}
+            aria-current={isActive ? "page" : undefined}
             className={cn(
-              "group relative flex flex-1 flex-col items-center justify-center gap-0.5 px-1 transition-colors",
-              isActive ? "text-gold-bright" : "text-muted-foreground hover:text-foreground"
+              "group relative flex flex-1 flex-col items-center justify-center gap-1 px-1 transition-colors",
+              isActive ? "text-parchment" : "text-muted-foreground hover:text-foreground"
             )}
           >
-            {/* Indicatore attivo — barretta superiore */}
-            {isActive && (
-              <span
-                aria-hidden
-                className="absolute inset-x-3 top-0 h-0.5 rounded-b-full bg-gradient-to-r from-transparent via-gold to-transparent"
-              />
-            )}
-
-            {/* Bagliore sfondo quando attivo */}
-            {isActive && (
-              <span
-                aria-hidden
-                className="absolute inset-x-1 inset-y-1 rounded-lg bg-gold/8"
-              />
-            )}
-
             <Icon
               className={cn(
-                "relative size-5 transition-all",
-                isActive
-                  ? "text-gold drop-shadow-[0_0_6px_rgba(212,175,55,0.6)]"
-                  : "group-hover:text-gold/70"
+                "size-6 transition-colors",
+                isActive ? "text-gold" : "group-hover:text-foreground"
               )}
             />
-            <span
-              className={cn(
-                "relative font-heading text-[9px] tracking-[0.12em] uppercase transition-colors",
-                isActive ? "text-gold/90" : "text-muted-foreground/70"
-              )}
-            >
+            <span className="flex items-center gap-1 text-[11px] font-medium leading-none">
               {group.label}
+              {isActive && (
+                <span aria-hidden className="size-1 rounded-full bg-gold" />
+              )}
             </span>
           </Link>
         );
@@ -125,12 +102,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <AppSidebar onSearch={() => setSearchOpen(true)} />
 
         {/* Topbar mobile */}
-        <header className="sticky top-0 z-40 flex h-12 items-center justify-between border-b border-gold/12 bg-background/92 px-2 sm:h-13 sm:px-3 backdrop-blur-sm lg:hidden">
-          {/* Striscia ornamentale inferiore */}
-          <span
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/20 to-transparent"
-          />
+        {/* Topbar mobile su vetro (V3 §9) */}
+        <header className="glass sticky top-0 z-40 flex h-12 items-center justify-between border-x-0 border-t-0 border-b border-hairline px-2 sm:h-13 sm:px-3 lg:hidden">
 
           <Sheet open={drawerOpen} onOpenChange={setDrawerOpen}>
             <SheetTrigger asChild>
@@ -143,7 +116,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <Menu className="size-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-80 border-gold/15 bg-sidebar p-0">
+            <SheetContent side="left" className="w-80 border-hairline bg-sidebar p-0">
               <SheetHeader className="sr-only">
                 <SheetTitle>Menu di navigazione</SheetTitle>
               </SheetHeader>
@@ -169,7 +142,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               width={150}
               height={32}
               priority
-              className="h-5 w-auto object-contain drop-shadow-[0_0_8px_rgba(212,175,55,0.25)]"
+              className="h-5 w-auto object-contain drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]"
             />
           </Link>
 

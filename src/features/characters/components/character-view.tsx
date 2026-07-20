@@ -384,13 +384,13 @@ export function CharacterView({ entity }: { entity: Entity }) {
       </header>
 
       {/* Striscia d'identità: fatti + HP */}
-      <div className="rounded-2xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 p-4 shadow-[0_8px_30px_-14px_rgba(0,0,0,0.7)] sm:p-5">
+      <div className="rounded-2xl border border-hairline bg-gradient-to-b from-stone-surface to-stone-mid/80 p-4 shadow-[0_8px_30px_-14px_rgba(0,0,0,0.7)] sm:p-5">
         {facts.length > 0 ? (
           <div className="flex min-w-0 flex-wrap gap-2">
             {facts.map((fact) => (
               <span
                 key={fact.label}
-                className="inline-flex items-baseline gap-1.5 rounded-lg border border-gold/15 bg-night/40 px-3 py-1.5"
+                className="inline-flex items-baseline gap-1.5 rounded-lg border border-hairline bg-night/40 px-3 py-1.5"
               >
                 <span className="text-[10px] font-semibold tracking-[0.12em] text-muted-foreground uppercase">
                   {fact.label}
@@ -426,7 +426,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
 
       {/* ════════ TABS sticky ════════ */}
       {tabs.length > 1 && (
-        <div className="sticky top-12 z-30 -mx-1 rounded-xl border border-gold/15 bg-stone-mid/95 px-1.5 py-1.5 backdrop-blur supports-backdrop-filter:bg-stone-mid/80 sm:top-13 lg:top-2">
+        <div className="sticky top-12 z-30 -mx-1 rounded-xl border border-hairline bg-stone-mid px-1.5 py-1.5 sm:top-13 lg:top-2">
           <div className="flex gap-1 overflow-x-auto">
             {tabs.map((t) => {
               const isActive = t.id === activeTab;
@@ -465,7 +465,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
             </div>
           ) : (
             canEdit && (
-              <div className="rounded-xl border border-dashed border-gold/20 p-6 text-center text-sm text-muted-foreground">
+              <div className="rounded-xl border border-dashed border-hairline-strong p-6 text-center text-sm text-muted-foreground">
                 Nessuna descrizione.{" "}
                 <button
                   type="button"
@@ -570,7 +570,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
                     onClick={() =>
                       openLightbox(allImages, galleryOffset + index, entity.name)
                     }
-                    className="group relative aspect-video cursor-zoom-in overflow-hidden rounded-lg border border-gold/20 transition-all hover:border-gold/50"
+                    className="group relative aspect-video cursor-zoom-in overflow-hidden rounded-lg border border-hairline-strong transition-all hover:border-gold/50"
                   >
                     <Image
                       src={url}
@@ -600,7 +600,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
                         entity.name
                       )
                     }
-                    className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-lg border border-gold/20 transition-all hover:border-gold/50"
+                    className="group relative aspect-square cursor-zoom-in overflow-hidden rounded-lg border border-hairline-strong transition-all hover:border-gold/50"
                   >
                     <Image
                       src={url}
@@ -748,7 +748,7 @@ function HistorySection({
       </div>
 
       {adding && (
-        <div className="mb-4 space-y-3 rounded-xl border border-gold/20 bg-night/30 p-4">
+        <div className="mb-4 space-y-3 rounded-xl border border-hairline-strong bg-night/30 p-4">
           <div className="grid gap-3 sm:grid-cols-[200px_1fr]">
             <Select
               value={type}
@@ -793,11 +793,11 @@ function HistorySection({
           Nessun evento registrato.
         </p>
       ) : (
-        <ol className="relative space-y-3 border-l border-gold/20 pl-5">
+        <ol className="relative space-y-3 border-l border-hairline-strong pl-5">
           {history.map((item) => (
             <li key={item.id} className="group relative">
               <span className="absolute top-1.5 -left-[1.45rem] size-2.5 rounded-full border border-gold/50 bg-night" />
-              <div className="rounded-lg border border-gold/15 bg-card/60 px-4 py-2.5">
+              <div className="rounded-lg border border-hairline bg-card/60 px-4 py-2.5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-heading text-sm font-semibold text-gold-bright">
                     {item.title}

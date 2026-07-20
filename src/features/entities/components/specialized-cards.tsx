@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { FALLEN_FILTER, FallenOverlay } from "@/components/shared/immersive-hero";
 import { richTextToPlainText } from "@/components/shared/rich-text-utils";
@@ -82,12 +81,15 @@ const ITEM_RARITY_CONFIG: Record<string, {
   label: string;
   labelColor: string;
 }> = {
-  COMMON:    { border: "border-iron-mid/70",          glow: "",                                   label: "Comune",            labelColor: "text-muted-foreground" },
-  RARE:      { border: "border-arcane-bright/60",     glow: "shadow-[0_0_14px_rgba(77,114,201,0.35)]",   label: "Raro",              labelColor: "text-arcane-bright" },
-  MAGIC:     { border: "border-purple-500/70",        glow: "shadow-[0_0_14px_rgba(155,89,182,0.4)]",    label: "Magico",            labelColor: "text-purple-300" },
-  LEGENDARY: { border: "border-gold/70",              glow: "animate-glow-pulse",                         label: "Leggendario",       labelColor: "text-gold-bright" },
-  ARTIFACT:  { border: "border-crimson-bright/70",   glow: "shadow-[0_0_16px_rgba(196,49,70,0.5)]",     label: "Artefatto",         labelColor: "text-crimson-bright" },
-  STORY:     { border: "border-parchment/50",         glow: "",                                   label: "Oggetto di trama",  labelColor: "text-parchment" },
+  /* Scala materica: ferro → argento → arcano → oro → sangue. L'aura resta
+     solo sulle rarità alte (funzione narrativa), tenue e statica; il
+     flicker di torcia per il leggendario arriva in G5. */
+  COMMON:    { border: "border-iron-mid/70",          glow: "",                                                label: "Comune",            labelColor: "text-ash" },
+  RARE:      { border: "border-silver/60",            glow: "",                                                label: "Raro",              labelColor: "text-silver" },
+  MAGIC:     { border: "border-arcane-bright/70",     glow: "shadow-[0_0_12px_rgba(157,138,201,0.30)]",        label: "Magico",            labelColor: "text-arcane-bright" },
+  LEGENDARY: { border: "border-gold/70",              glow: "shadow-[0_0_14px_rgba(212,175,55,0.30)]",         label: "Leggendario",       labelColor: "text-gold-bright" },
+  ARTIFACT:  { border: "border-crimson-bright/70",    glow: "shadow-[0_0_14px_rgba(179,64,46,0.40)]",          label: "Artefatto",         labelColor: "text-crimson-light" },
+  STORY:     { border: "border-parchment/50",         glow: "",                                                label: "Oggetto di trama",  labelColor: "text-parchment" },
 };
 
 /* ────────────────────────────────────────────────────────────
@@ -117,7 +119,7 @@ export function QuestCard({ entity }: { entity: Entity }) {
     <Link
       href={`/entita/${entity.id}`}
       className={cn(
-        "group relative flex overflow-hidden rounded-xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80",
+        "group relative flex overflow-hidden rounded-xl border border-hairline bg-gradient-to-b from-stone-surface to-stone-mid/80",
         "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
         "transition-all duration-200 hover:-translate-y-1.5 hover:border-gold/40 hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8),0_0_24px_rgba(212,175,55,0.08)]"
       )}
@@ -126,7 +128,6 @@ export function QuestCard({ entity }: { entity: Entity }) {
       <span className={cn("shrink-0 w-1 self-stretch rounded-l-xl", ribbonColor)} />
 
       <div className="flex min-w-0 flex-1 flex-col p-4">
-        <CornerOrnaments size="xs" className="border-gold/25" />
 
         {/* Icona + status label */}
         <div className="mb-2 flex items-center justify-between gap-2">
@@ -171,7 +172,7 @@ export function QuestCard({ entity }: { entity: Entity }) {
               <Badge
                 key={tag}
                 variant="outline"
-                className="border-gold/18 text-[9px] text-muted-foreground"
+                className="border-hairline text-[9px] text-muted-foreground"
               >
                 {tag}
               </Badge>
@@ -214,10 +215,10 @@ export function CharacterCard({ entity }: { entity: Entity }) {
         "group relative block overflow-hidden rounded-xl border",
         "bg-gradient-to-b from-stone-surface to-stone-mid/80",
         "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
-        "transition-all duration-200 hover:-translate-y-1.5",
+        "transition-all duration-200 hover:-translate-y-0.5",
         isPC
-          ? "border-gold/40 hover:border-gold/65 hover:shadow-[0_0_30px_rgba(212,175,55,0.18),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
-          : "border-gold/15 hover:border-gold/38 hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8)]"
+          ? "border-gold/40 hover:border-gold/65 hover:shadow-[inset_0_1px_0_rgba(232,201,121,0.22),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
+          : "border-hairline hover:border-gold/38 hover:shadow-[0_12px_40px_-8px_rgba(0,0,0,0.8)]"
       )}
     >
       {/* Striscia superiore */}
@@ -312,7 +313,6 @@ export function CharacterCard({ entity }: { entity: Entity }) {
         )}
       </div>
 
-      <CornerOrnaments size="xs" className="border-gold/25" />
     </Link>
   );
 }
@@ -346,7 +346,7 @@ export function MonsterCard({ entity }: { entity: Entity }) {
         "group relative block overflow-hidden rounded-xl border border-crimson/30",
         "bg-gradient-to-b from-stone-surface to-stone-mid/80",
         "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
-        "transition-all duration-200 hover:-translate-y-1.5 hover:border-crimson/55 hover:shadow-[0_0_24px_rgba(196,49,70,0.12),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
+        "transition-all duration-200 hover:-translate-y-0.5 hover:border-crimson/55 hover:shadow-[inset_0_1px_0_rgba(217,138,112,0.20),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
       )}
     >
       {/* Striscia crimson superiore */}
@@ -416,7 +416,6 @@ export function MonsterCard({ entity }: { entity: Entity }) {
         ) : (
           <span className="text-[11px] text-muted-foreground/40">—</span>
         )}
-        <CornerOrnaments size="xs" className="border-crimson/20" />
       </div>
     </Link>
   );
@@ -446,7 +445,7 @@ export function FactionCard({ entity }: { entity: Entity }) {
         "group relative block overflow-hidden rounded-xl border border-crimson/25",
         "bg-gradient-to-b from-stone-surface to-stone-mid/80",
         "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
-        "transition-all duration-200 hover:-translate-y-1.5 hover:border-crimson/50 hover:shadow-[0_0_24px_rgba(196,49,70,0.10),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
+        "transition-all duration-200 hover:-translate-y-0.5 hover:border-crimson/50 hover:shadow-[inset_0_1px_0_rgba(217,138,112,0.16),0_12px_40px_-8px_rgba(0,0,0,0.8)]"
       )}
     >
       {/* Striscia crimson superiore */}
@@ -507,14 +506,13 @@ export function FactionCard({ entity }: { entity: Entity }) {
       <div className="flex flex-wrap items-center gap-1.5 px-3 py-2.5">
         {entity.tags.length > 0 ? (
           entity.tags.slice(0, 2).map((tag) => (
-            <Badge key={tag} variant="outline" className="border-gold/18 text-[9px] text-muted-foreground">
+            <Badge key={tag} variant="outline" className="border-hairline text-[9px] text-muted-foreground">
               {tag}
             </Badge>
           ))
         ) : (
           <span className="text-[11px] text-muted-foreground/40">—</span>
         )}
-        <CornerOrnaments size="xs" className="border-crimson/20" />
       </div>
     </Link>
   );
@@ -616,7 +614,7 @@ export function ItemCard({ entity }: { entity: Entity }) {
         {entity.tags.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1">
             {entity.tags.slice(0, 2).map((tag) => (
-              <Badge key={tag} variant="outline" className="border-gold/18 text-[9px] text-muted-foreground">
+              <Badge key={tag} variant="outline" className="border-hairline text-[9px] text-muted-foreground">
                 {tag}
               </Badge>
             ))}

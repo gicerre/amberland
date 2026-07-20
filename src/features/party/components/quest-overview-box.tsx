@@ -86,7 +86,7 @@ export function QuestOverviewBox() {
             onClick={() => setOpen((value) => !value)}
             aria-expanded={open}
             aria-label={open ? "Comprimi" : "Espandi il dettaglio"}
-            className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-night/40 text-gold transition-colors hover:border-gold/50 sm:hidden"
+            className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-hairline-strong bg-night/40 text-gold transition-colors hover:border-gold/50 sm:hidden"
           >
             <ChevronDown
               className={cn("size-5 transition-transform", open && "rotate-180")}
@@ -106,7 +106,7 @@ export function QuestOverviewBox() {
               <strong className="text-gold-bright">{pct}%</strong>
             </span>
           </div>
-          <div className="h-3 overflow-hidden rounded-full border border-gold/25 bg-night/60">
+          <div className="h-3 overflow-hidden rounded-full border border-hairline-strong bg-night/60">
             <div
               className="h-full rounded-full bg-gradient-to-r from-emerald-700 via-emerald-500 to-emerald-400 transition-[width] duration-500"
               style={{ width: `${pct}%` }}
@@ -123,7 +123,7 @@ export function QuestOverviewBox() {
               return (
                 <div
                   key={status}
-                  className="flex flex-col items-center gap-1.5 rounded-xl border border-gold/15 bg-night/40 p-3 text-center"
+                  className="flex flex-col items-center gap-1.5 rounded-xl border border-hairline bg-night/40 p-3 text-center"
                 >
                   <QuestStatusIcon status={status} className="size-10" />
                   <span className="font-heading text-2xl font-bold text-foreground">
@@ -150,7 +150,7 @@ export function QuestOverviewBox() {
                   <li key={quest.id}>
                     <Link
                       href={`/entita/${quest.id}`}
-                      className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-1.5 transition-colors hover:border-gold/20 hover:bg-gold/8"
+                      className="group flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-1.5 transition-colors hover:border-hairline-strong hover:bg-gold/8"
                     >
                       <QuestStatusIcon
                         status="ACTIVE"

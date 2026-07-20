@@ -64,6 +64,7 @@ import { ALIGNMENT_OPTIONS, DND_CLASSES } from "../constants";
 import {
   emptySheet,
   makeHistoryEntry,
+  normalizeSheet,
   usePlayerRoster,
   writePublicCard,
 } from "../data";
@@ -164,10 +165,9 @@ export function CharacterFormSheet({
     setOwnerId(entity.ownerId ?? "");
     setMasterNotes(privateData?.masterNotes ?? "");
     setSecrets(privateData?.secrets ?? "");
+    // normalizeSheet: i documenti legacy non hanno condizioni/risorse/XP.
     setSheet(
-      isPC
-        ? (entity.sheet ?? emptySheet())
-        : (privateData?.reservedSheet ?? emptySheet())
+      isPC ? normalizeSheet(entity.sheet) : normalizeSheet(privateData?.reservedSheet)
     );
   }, [open, entity, privateData, isPC]);
 
@@ -343,7 +343,7 @@ export function CharacterFormSheet({
             <p className="font-heading text-[0.65rem] font-semibold tracking-[0.18em] text-gold/50 uppercase">
               Anteprima
             </p>
-            <div className="overflow-hidden rounded-lg border border-gold/20 bg-stone-mid/70 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)]">
+            <div className="overflow-hidden rounded-lg border border-hairline-strong bg-stone-mid/70 shadow-[0_10px_30px_-12px_rgba(0,0,0,0.8)]">
               <div className="relative aspect-[4/3] w-full bg-night/60">
                 {imageUrl ? (
                   <div
@@ -369,7 +369,7 @@ export function CharacterFormSheet({
                     {[race, klass].filter(Boolean).join(" · ")}
                   </p>
                 )}
-                <span className="inline-block rounded border border-gold/25 bg-gold/10 px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide text-gold/80">
+                <span className="inline-block rounded border border-hairline-strong bg-gold/10 px-1.5 py-0.5 text-[0.6rem] font-medium tracking-wide text-gold/80">
                   {VISIBILITY_LABELS[visibility]}
                 </span>
               </div>
@@ -426,7 +426,7 @@ export function CharacterFormSheet({
                   </datalist>
                 </div>
               ) : (
-                <p className="rounded-lg border border-gold/15 bg-night/30 px-3 py-2 text-xs text-muted-foreground">
+                <p className="rounded-lg border border-hairline bg-night/30 px-3 py-2 text-xs text-muted-foreground">
                   Classe e livello si gestiscono nella scheda «Classi»
                   (supporto multiclasse).
                 </p>
@@ -434,7 +434,7 @@ export function CharacterFormSheet({
 
               {/* NPC: cosa possono vedere i giocatori di razza e classe */}
               {!isPC && isMaster && (
-                <div className="space-y-3 rounded-lg border border-gold/15 bg-night/30 px-4 py-3">
+                <div className="space-y-3 rounded-lg border border-hairline bg-night/30 px-4 py-3">
                   <p className="text-xs font-semibold tracking-[0.15em] text-muted-foreground uppercase">
                     Visibile ai giocatori
                   </p>
@@ -468,7 +468,7 @@ export function CharacterFormSheet({
                 </Select>
               </div>
 
-              <div className="flex items-center justify-between gap-3 rounded-lg border border-gold/15 bg-night/30 px-4 py-3">
+              <div className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-night/30 px-4 py-3">
                 <Label>Membro del party</Label>
                 <Switch
                   checked={partyMember}
@@ -553,7 +553,7 @@ export function CharacterFormSheet({
 
               {hasSheet && (
                 <>
-                  <div className="space-y-2 border-t border-gold/15 pt-5">
+                  <div className="space-y-2 border-t border-hairline pt-5">
                     <Label>Token VTT</Label>
                     <ImageUpload
                       value={sheet.tokenUrl}

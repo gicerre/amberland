@@ -235,7 +235,7 @@ function InventoryCard({
     <div
       className={cn(
         "group relative overflow-hidden rounded-xl border bg-card transition-colors",
-        item.equipped ? "border-gold/50" : "border-gold/20"
+        item.equipped ? "border-gold/50" : "border-hairline-strong"
       )}
     >
       {item.equipped && (
@@ -256,7 +256,7 @@ function InventoryCard({
       </button>
 
       <div className="flex gap-3 p-3">
-        <div className="size-20 shrink-0 overflow-hidden rounded-lg border border-gold/15">
+        <div className="size-20 shrink-0 overflow-hidden rounded-lg border border-hairline">
           <FantasyImage
             src={item.itemImage}
             alt={item.itemName}
@@ -282,7 +282,7 @@ function InventoryCard({
               variant="outline"
               className={cn(
                 "mt-1 text-[10px]",
-                ITEM_CATEGORY_BADGES[item.itemCategory] ?? "border-gold/20"
+                ITEM_CATEGORY_BADGES[item.itemCategory] ?? "border-hairline-strong"
               )}
             >
               {categoryLabel(item.itemCategory)}
@@ -296,7 +296,7 @@ function InventoryCard({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-end gap-0.5 border-t border-gold/10 px-1.5 py-1">
+      <div className="flex flex-wrap items-center justify-end gap-0.5 border-t border-hairline px-1.5 py-1">
         <Button
           size="sm"
           variant="ghost"
@@ -452,7 +452,7 @@ function AddToInventoryDialog({
 
         {mode === "catalog" ? (
           <>
-            <ScrollArea className="h-44 rounded-lg border border-gold/15 bg-black/20">
+            <ScrollArea className="h-44 rounded-lg border border-hairline bg-black/20">
               <ul className="p-1">
                 {candidates.map((item) => (
                   <li key={item.id}>
@@ -517,7 +517,7 @@ function AddToInventoryDialog({
             </ConsoleField>
           </>
         ) : (
-          <ScrollArea className="h-72 rounded-lg border border-gold/15 bg-black/20">
+          <ScrollArea className="h-72 rounded-lg border border-hairline bg-black/20">
             <ul className="p-1">
               {bagCandidates.map((item) => (
                 <li

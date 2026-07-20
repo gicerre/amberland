@@ -1,14 +1,21 @@
 import type { Metadata, Viewport } from "next";
-import { Caudex, Cinzel } from "next/font/google";
+import { Caudex, Cinzel, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { AppProviders } from "@/providers/app-providers";
 import { Analytics } from "@vercel/analytics/next"
 
-
+/* Tipografia Obsidian (DESIGN_SYSTEM_V3 §3):
+   Cinzel = display (l'anima fantasy) · Inter = UI · Caudex = solo prosa lore. */
 const cinzel = Cinzel({
   subsets: ["latin"],
   variable: "--font-cinzel",
+  display: "swap",
+});
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
   display: "swap",
 });
 
@@ -54,7 +61,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="it" className={`dark ${cinzel.variable} ${caudex.variable}`} suppressHydrationWarning>
+    <html lang="it" className={`dark ${cinzel.variable} ${inter.variable} ${caudex.variable}`} suppressHydrationWarning>
       <body className="antialiased" suppressHydrationWarning>
         <AppProviders>{children}</AppProviders>
         <Toaster position="bottom-right" />

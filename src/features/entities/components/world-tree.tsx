@@ -22,7 +22,7 @@ export function WorldTree({ onNavigate }: { onNavigate?: () => void }) {
   if (!worlds || worlds.length === 0) return null;
 
   return (
-    <ul className="mt-1 ml-[26px] space-y-0.5 border-l border-gold/15 pl-2">
+    <ul className="mt-1 ml-[26px] space-y-0.5 border-l border-hairline pl-2">
       {worlds.map((world) => (
         <TreeNode key={world.id} entity={world} onNavigate={onNavigate} depth={0} />
       ))}
@@ -89,7 +89,7 @@ function TreeNode({
       </div>
 
       {expanded && children && children.length > 0 && depth < 3 && (
-        <ul className="ml-4 space-y-0.5 border-l border-gold/10 pl-1.5">
+        <ul className="ml-4 space-y-0.5 border-l border-hairline pl-1.5">
           {children.map((child) => (
             <TreeNode
               key={child.id}

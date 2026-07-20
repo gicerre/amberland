@@ -24,14 +24,15 @@ function Tabs({
   )
 }
 
+/* Tabs Obsidian (V3 §8): minimali su una hairline, testo muted→hi,
+   indicatore 2px gold sotto la voce attiva. */
 const tabsListVariants = cva(
-  "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none",
+  "group/tabs-list inline-flex w-fit text-muted-foreground group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none",
   {
     variants: {
       variant: {
-        default:
-          "border border-gold/15 bg-black/40 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]",
-        line: "gap-1 bg-transparent",
+        default: "items-center gap-1 border-b border-hairline bg-transparent",
+        line: "h-8 items-center justify-center gap-1 bg-transparent p-[3px]",
       },
     },
     defaultVariants: {
@@ -64,10 +65,10 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "relative inline-flex h-[calc(100%-1px)] flex-1 items-center justify-center gap-1.5 rounded-md border border-transparent px-1.5 py-0.5 text-sm font-medium whitespace-nowrap text-foreground/60 transition-all group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start hover:text-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 has-data-[icon=inline-end]:pr-1 has-data-[icon=inline-start]:pl-1 dark:text-muted-foreground dark:hover:text-foreground group-data-[variant=default]/tabs-list:data-active:shadow-sm group-data-[variant=line]/tabs-list:data-active:shadow-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-        "group-data-[variant=line]/tabs-list:bg-transparent group-data-[variant=line]/tabs-list:data-active:bg-transparent dark:group-data-[variant=line]/tabs-list:data-active:border-transparent dark:group-data-[variant=line]/tabs-list:data-active:bg-transparent",
-        "data-active:bg-gradient-to-b data-active:from-gold/25 data-active:to-gold/10 data-active:text-gold-bright data-active:shadow-[inset_0_1px_0_rgba(212,175,55,0.25)]",
-        "after:absolute after:bg-foreground after:opacity-0 after:transition-opacity group-data-horizontal/tabs:after:inset-x-0 group-data-horizontal/tabs:after:bottom-[-5px] group-data-horizontal/tabs:after:h-0.5 group-data-vertical/tabs:after:inset-y-0 group-data-vertical/tabs:after:-right-1 group-data-vertical/tabs:after:w-0.5 group-data-[variant=line]/tabs-list:data-active:after:opacity-100",
+        "relative inline-flex items-center justify-center gap-1.5 whitespace-nowrap text-sm font-medium transition-colors group-data-vertical/tabs:w-full group-data-vertical/tabs:justify-start focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 focus-visible:outline-1 focus-visible:outline-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        /* Voce: testo quieto che si accende; indicatore 2px gold sotto */
+        "px-3 py-2.5 text-muted-foreground hover:text-foreground data-active:text-parchment",
+        "after:absolute after:inset-x-2 after:-bottom-px after:h-0.5 after:rounded-full after:bg-gold after:opacity-0 after:transition-opacity after:duration-200 data-active:after:opacity-100",
         className
       )}
       {...props}
@@ -82,7 +83,11 @@ function TabsContent({
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
-      className={cn("flex-1 text-sm outline-none", className)}
+      /* La pagina viene girata: cross-fade con lieve slittamento (§4.7) */
+      className={cn(
+        "flex-1 text-sm outline-none data-[state=active]:animate-[console-page-in_240ms_var(--ease-settle)_both]",
+        className
+      )}
       {...props}
     />
   )

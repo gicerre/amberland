@@ -131,7 +131,9 @@ export function QuickCreateDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {ENTITY_TYPES.map((entityType) => {
+                {ENTITY_TYPES.filter(
+                  (entityType) => !ENTITY_REGISTRY[entityType].hiddenInCreate
+                ).map((entityType) => {
                   const entry = ENTITY_REGISTRY[entityType];
                   const Icon = entry.icon;
                   return (

@@ -3,7 +3,6 @@
 import { ArrowRight, Globe } from "lucide-react";
 import Link from "next/link";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import {
   richTextToPlainText,
@@ -39,10 +38,10 @@ export function WorldPortalCard({
     <Link
       href={`/entita/${entity.id}`}
       className={cn(
-        "group relative isolate block overflow-hidden rounded-2xl border border-gold/20",
+        "group relative isolate block overflow-hidden rounded-2xl border border-hairline-strong",
         "shadow-[0_18px_50px_-20px_rgba(0,0,0,0.9)]",
         "transition-all duration-300 hover:-translate-y-1.5 hover:border-gold/55",
-        "hover:shadow-[0_0_50px_rgba(124,92,255,0.14),0_24px_60px_-18px_rgba(0,0,0,0.95)]",
+        "hover:shadow-[inset_0_1px_0_rgba(232,201,121,0.20),0_24px_60px_-18px_rgba(0,0,0,0.95)]",
         featured && "sm:col-span-2"
       )}
     >
@@ -62,7 +61,7 @@ export function WorldPortalCard({
       {/* Foschia dal basso per la leggibilità del testo */}
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-stone-deep via-stone-deep/55 to-transparent" />
       {/* Vignetta cinematografica */}
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_28%,transparent_35%,rgba(6,7,10,0.82)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_28%,transparent_35%,rgba(10,8,5,0.82)_100%)]" />
       {/* Alone arcano dall'alto — tocco mistico */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-arcane-bright/15 to-transparent" />
       {/* Riflesso dorato che attraversa la card al passaggio del mouse */}
@@ -70,12 +69,11 @@ export function WorldPortalCard({
 
       {/* Filo dorato superiore + angoli incisi */}
       <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-gold/55 to-transparent" />
-      <CornerOrnaments size="md" className="z-20 border-gold/45" />
 
-      {/* Emblema del mondo con alone pulsante */}
+      {/* Emblema del mondo: medaglione di ferro che vacilla alla torcia */}
       <div className="absolute top-4 right-4 z-20 flex size-14 items-center justify-center">
-        <span className="animate-glow-pulse absolute inset-0 rounded-full border border-gold/40 bg-night/50 shadow-[0_0_24px_rgba(212,175,55,0.25)] backdrop-blur-sm" />
-        <Icon className="relative size-7 opacity-90 drop-shadow-[0_0_8px_rgba(212,175,55,0.5)]" />
+        <span className="glow-accent absolute inset-0 rounded-full border border-gold/40 bg-night/80" />
+        <Icon className="relative size-7 opacity-90 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]" />
       </div>
 
       {/* Contenuto in basso */}

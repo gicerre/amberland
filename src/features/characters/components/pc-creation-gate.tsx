@@ -51,13 +51,13 @@ export function PcCreationGate({ children }: { children: React.ReactNode }) {
 function PcCheckWarning({ onDismiss }: { onDismiss: () => void }) {
   return (
     <div className="fixed inset-x-0 top-0 z-[60] flex justify-center px-4 pt-3">
-      <div className="flex w-full max-w-2xl items-start gap-3 rounded-xl border border-amber-500/40 bg-amber-950/90 px-4 py-3 shadow-lg backdrop-blur-sm">
-        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-amber-400" />
+      <div className="elev-2 flex w-full max-w-2xl items-start gap-3 rounded-xl border border-ember-bright/40 bg-ember-deep/95 px-4 py-3">
+        <AlertTriangle className="mt-0.5 size-5 shrink-0 text-ember-bright" />
         <div className="flex-1 text-sm">
-          <p className="font-semibold text-amber-200">
+          <p className="font-semibold text-ember-bright">
             Impossibile verificare il tuo personaggio
           </p>
-          <p className="mt-0.5 text-amber-100/80">
+          <p className="mt-0.5 text-parchment-dark/85">
             Probabile problema di permessi (regole Firestore non aggiornate).
             Puoi comunque usare l&rsquo;app, ma alcune funzioni potrebbero non
             funzionare: avvisa il Master di ripubblicare le regole.
@@ -67,7 +67,7 @@ function PcCheckWarning({ onDismiss }: { onDismiss: () => void }) {
           type="button"
           onClick={onDismiss}
           aria-label="Chiudi avviso"
-          className="shrink-0 rounded-md p-1 text-amber-300/70 transition-colors hover:bg-amber-500/15 hover:text-amber-200"
+          className="shrink-0 rounded-md p-1 text-ember-bright/70 transition-colors hover:bg-ember/15 hover:text-ember-bright"
         >
           <X className="size-4" />
         </button>

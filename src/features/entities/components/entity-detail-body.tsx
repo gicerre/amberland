@@ -105,7 +105,7 @@ function EmptyPrompt({
   onEdit: () => void;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-gold/20 p-6 text-center">
+    <div className="rounded-2xl border border-dashed border-hairline-strong p-6 text-center">
       <Icon className="mx-auto mb-2 size-8 text-gold/25" />
       <p className="text-sm text-muted-foreground italic">{text}</p>
       <Button variant="outline" size="sm" className="mt-3" onClick={onEdit}>
@@ -152,7 +152,7 @@ function QuestBody({ entity, longFields, isMaster, onEdit }: BodyProps) {
   return (
     <div className="space-y-5">
       {/* ── Stato (a colpo d'occhio) ── */}
-      <div className="flex items-center gap-3 rounded-2xl border border-gold/15 bg-gradient-to-r from-gold/10 to-transparent px-4 py-3">
+      <div className="flex items-center gap-3 rounded-2xl border border-hairline bg-gradient-to-r from-gold/10 to-transparent px-4 py-3">
         <QuestStatusIcon status={status} className="size-11 shrink-0" />
         <div className="min-w-0">
           <p className="font-heading text-[10px] font-bold tracking-[0.18em] text-muted-foreground uppercase">
@@ -331,7 +331,7 @@ function DefaultBody({
           content={entity.description as RichTextValue}
         />
       ) : (
-        <div className="rounded-2xl border border-dashed border-gold/20 p-6 text-center">
+        <div className="rounded-2xl border border-dashed border-hairline-strong p-6 text-center">
           <config.icon className="mx-auto mb-2 size-8 text-gold/25" />
           <p className="text-sm text-muted-foreground italic">{config.flavor}</p>
           {isMaster && (

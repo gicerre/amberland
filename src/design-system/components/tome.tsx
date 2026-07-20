@@ -27,7 +27,7 @@ const ACCENT: Record<
   { border: string; title: string; icon: string; value: string }
 > = {
   gold: {
-    border: "border-gold/15",
+    border: "border-hairline",
     title: "text-gold-gradient",
     icon: "text-gold",
     value: "text-gold-bright",
@@ -136,28 +136,20 @@ export function TomePanel({
   return (
     <section
       className={cn(
-        "fantasy-stripe-top relative overflow-hidden rounded-2xl border shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)]",
+        "elev-1 relative overflow-hidden rounded-2xl border",
         a.border,
-        isParchment
-          ? "parchment"
-          : "bg-gradient-to-b from-stone-surface to-stone-mid/80",
+        isParchment ? "parchment" : "bg-surface-1",
         className
       )}
       {...props}
     >
-      {!isParchment && (
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_0%,rgba(200,167,93,0.05),transparent_55%)]"
-        />
-      )}
       <div className="relative p-4 sm:p-5">
         {(title || eyebrow || meta) && (
           <header className="mb-3 flex items-start gap-2.5">
             {Icon && (
               <span
                 className={cn(
-                  "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-night/40",
+                  "mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg border border-hairline bg-surface-2",
                   a.icon
                 )}
               >
@@ -168,8 +160,8 @@ export function TomePanel({
               {eyebrow && (
                 <p
                   className={cn(
-                    "font-heading text-[10px] font-bold tracking-[0.18em] uppercase",
-                    isParchment ? "text-[#7a5c1e]" : "text-gold/60"
+                    "text-xs font-semibold tracking-[0.08em] uppercase",
+                    isParchment ? "text-[#6b5a2e]" : "text-muted-foreground"
                   )}
                 >
                   {eyebrow}
@@ -191,7 +183,7 @@ export function TomePanel({
         )}
         <div className={contentClassName}>{children}</div>
         {footer && (
-          <footer className="mt-4 border-t border-gold/12 pt-3">{footer}</footer>
+          <footer className="mt-4 border-t border-hairline pt-3">{footer}</footer>
         )}
       </div>
     </section>
@@ -221,20 +213,21 @@ export function StatTile({
   return (
     <div
       className={cn(
-        "flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border border-gold/15 bg-gradient-to-b from-stone-surface to-stone-mid/80 px-2 py-3 text-center shadow-[0_4px_16px_-8px_rgba(0,0,0,0.6)]",
+        "elev-1 flex min-h-[4.25rem] flex-col items-center justify-center gap-1 rounded-xl border border-hairline bg-surface-1 px-2 py-3 text-center",
         className
       )}
     >
-      {Icon && <Icon className="size-20 text-gold/70" />}
+      {/* KPI Obsidian (V3 §8): la cifra domina, l'emblema resta contenuto */}
+      {Icon && <Icon className="size-10 text-muted-foreground" />}
       <span
         className={cn(
-          "font-heading text-xl leading-none font-bold",
+          "font-heading text-2xl leading-none font-bold tabular-nums",
           ACCENT[accent].value
         )}
       >
         {value}
       </span>
-      <span className="text-[10px] font-semibold tracking-[0.1em] text-muted-foreground uppercase">
+      <span className="text-xs font-medium tracking-[0.06em] text-muted-foreground uppercase">
         {label}
       </span>
       {sub && <span className="text-[10px] text-muted-foreground/80">{sub}</span>}
@@ -287,11 +280,11 @@ export function StatBlock({
   const a = ACCENT[accent];
   return (
     <TomePanel accent={accent} className={className}>
-      <header className="mb-3 flex items-start gap-3 border-b border-gold/15 pb-3">
+      <header className="mb-3 flex items-start gap-3 border-b border-hairline pb-3">
         {Icon && (
           <span
             className={cn(
-              "flex size-11 shrink-0 items-center justify-center rounded-lg border border-gold/25 bg-night/40",
+              "flex size-11 shrink-0 items-center justify-center rounded-lg border border-hairline-strong bg-night/40",
               a.icon
             )}
           >
@@ -376,7 +369,7 @@ export function TomeDisclosure({
           )}
         />
       </button>
-      {open && <div className="border-t border-gold/12 p-4">{children}</div>}
+      {open && <div className="border-t border-hairline p-4">{children}</div>}
     </div>
   );
 }
@@ -408,7 +401,7 @@ export function KeyValueGrid({
       {items.map((item, index) => (
         <div
           key={index}
-          className="rounded-lg border border-gold/12 bg-night/30 px-3 py-2"
+          className="rounded-lg border border-hairline bg-night/30 px-3 py-2"
         >
           <dt className="text-[10px] font-semibold tracking-[0.15em] text-muted-foreground uppercase">
             {item.label}

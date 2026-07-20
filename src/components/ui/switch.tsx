@@ -17,7 +17,7 @@ function Switch({
       data-slot="switch"
       data-size={size}
       className={cn(
-        "peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-gold/25 transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-gold focus-visible:ring-2 focus-visible:ring-gold/50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/30 data-[size=default]:h-[18.4px] data-[size=default]:w-[32px] data-[size=sm]:h-[14px] data-[size=sm]:w-[24px] data-unchecked:bg-black/55 data-unchecked:shadow-[inset_0_1px_3px_rgba(0,0,0,0.6)] data-checked:border-gold/50 data-checked:bg-gradient-to-r data-checked:from-gold/75 data-checked:to-gold data-checked:shadow-[0_0_12px_rgba(200,167,93,0.35),inset_0_1px_0_rgba(255,255,255,0.20)] data-disabled:cursor-not-allowed data-disabled:opacity-50",
+        "peer group/switch relative inline-flex shrink-0 items-center rounded-full border border-hairline-strong transition-all outline-none after:absolute after:-inset-x-3 after:-inset-y-2 focus-visible:border-gold focus-visible:ring-2 focus-visible:ring-gold/50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/30 data-[size=default]:h-[18.4px] data-[size=default]:w-[32px] data-[size=sm]:h-[14px] data-[size=sm]:w-[24px] data-unchecked:bg-black/55 data-unchecked:shadow-[inset_0_1px_3px_rgba(0,0,0,0.6)] data-checked:border-gold/50 data-checked:bg-gradient-to-r data-checked:from-gold/75 data-checked:to-gold data-checked:shadow-[0_0_12px_rgba(200,167,93,0.35),inset_0_1px_0_rgba(255,255,255,0.20)] data-disabled:cursor-not-allowed data-disabled:opacity-50",
         className
       )}
       {...props}

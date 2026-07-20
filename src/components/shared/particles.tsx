@@ -35,6 +35,10 @@ export function EmberParticles({
     if (!context) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+    /* Su viewport piccoli le braci si dimezzano (budget performance §5.6). */
+    const effectiveDensity =
+      window.innerWidth < 640 ? Math.min(density, 20) : density;
+
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     let width = 0;
     let height = 0;
@@ -60,7 +64,7 @@ export function EmberParticles({
       canvas.height = Math.max(1, Math.round(height * dpr));
       context.setTransform(dpr, 0, 0, dpr, 0, 0);
       if (embers.length === 0) {
-        embers = Array.from({ length: density }, () => spawn(true));
+        embers = Array.from({ length: effectiveDensity }, () => spawn(true));
       }
     };
 
@@ -83,7 +87,7 @@ export function EmberParticles({
           }
 
           const flicker = ember.alpha * (0.7 + 0.3 * Math.sin(ember.pulse * 3));
-          const color = ember.gold ? "212,175,55" : "220,38,38";
+          const color = ember.gold ? "212,175,55" : "179,64,46";
           const gradient = context.createRadialGradient(
             ember.x,
             ember.y,

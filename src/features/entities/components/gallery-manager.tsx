@@ -58,7 +58,7 @@ export function GalleryManager({
                 setOverIndex(null);
               }}
               className={cn(
-                "group relative aspect-video cursor-grab overflow-hidden rounded-lg border border-gold/20 active:cursor-grabbing",
+                "group relative aspect-video cursor-grab overflow-hidden rounded-lg border border-hairline-strong active:cursor-grabbing",
                 overIndex === index && dragIndex !== index && "border-gold ring-2 ring-gold/40",
                 dragIndex === index && "opacity-50"
               )}

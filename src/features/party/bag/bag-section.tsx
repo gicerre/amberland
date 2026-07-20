@@ -220,14 +220,14 @@ function BagCard({
   const { removeEntry, approveItem } = useBagMutations();
   const { trigger: triggerCelebration } = useCelebration();
 
-  const catBadge = entry.itemCategory ? (ITEM_CATEGORY_BADGES[entry.itemCategory] ?? "border-gold/20") : "";
+  const catBadge = entry.itemCategory ? (ITEM_CATEGORY_BADGES[entry.itemCategory] ?? "border-hairline-strong") : "";
   const catLabel = entry.itemCategory ? categoryLabel(entry.itemCategory) : null;
 
   return (
     <div className={cn(
       "group relative overflow-hidden rounded-xl border bg-gradient-to-b from-stone-surface to-stone-mid/80",
       "shadow-[0_8px_32px_-12px_rgba(0,0,0,0.7)]",
-      pending ? "border-amber-500/40" : "border-gold/18"
+      pending ? "border-amber-500/40" : "border-hairline"
     )}>
       {/* Striscia superiore */}
       <span className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px bg-gradient-to-r from-transparent via-gold/30 to-transparent" />
@@ -432,7 +432,7 @@ function AddToBagDialog({
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Cerca un oggetto conservabile…"
             />
-            <ScrollArea className="h-44 rounded-lg border border-gold/15 bg-black/20">
+            <ScrollArea className="h-44 rounded-lg border border-hairline bg-black/20">
               <ul className="p-1">
                 {candidates.map((item) => (
                   <li key={item.id}>
@@ -614,7 +614,7 @@ function HistoryDialog({
             {(log ?? []).map((entry: BagLogEntry) => (
               <li
                 key={entry.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-gold/15 bg-card/60 px-3 py-2 text-sm"
+                className="flex items-center justify-between gap-3 rounded-lg border border-hairline bg-card/60 px-3 py-2 text-sm"
               >
                 <span className="min-w-0 flex-1 truncate">
                   <strong className="text-gold-bright">

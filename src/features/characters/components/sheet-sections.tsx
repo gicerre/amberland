@@ -118,7 +118,7 @@ export function IdentitySheetSection({
         />
       </Field>
 
-      <div className="space-y-4 border-t border-gold/15 pt-4">
+      <div className="space-y-4 border-t border-hairline pt-4">
         <Field label="Tratti caratteriali">
           <Textarea
             value={sheet.personalityTraits}
@@ -193,7 +193,7 @@ export function AbilitiesSection({
           return (
             <div
               key={ability}
-              className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 rounded-lg border border-gold/15 bg-night/30 px-3 py-2"
+              className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 rounded-lg border border-hairline bg-night/30 px-3 py-2"
             >
               <span className="font-heading text-sm font-semibold">
                 {ABILITY_LABELS[ability]}
@@ -228,7 +228,7 @@ export function AbilitiesSection({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 border-t border-gold/15 pt-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 border-t border-hairline pt-4 sm:grid-cols-3">
         <NumField
           label="Bonus competenza"
           value={sheet.proficiencyBonus}
@@ -313,7 +313,7 @@ export function ProficienciesSection({
             return (
               <div
                 key={key}
-                className="flex items-center justify-between gap-2 rounded-md border border-gold/10 px-3 py-1.5"
+                className="flex items-center justify-between gap-2 rounded-md border border-hairline px-3 py-1.5"
               >
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox
@@ -348,7 +348,7 @@ export function ProficienciesSection({
         </div>
       </div>
 
-      <div className="space-y-4 border-t border-gold/15 pt-4">
+      <div className="space-y-4 border-t border-hairline pt-4">
         <Field label="Competenze negli strumenti">
           <Textarea
             value={sheet.toolProficiencies}
@@ -432,7 +432,7 @@ export function ClassesSection({
           {sheet.classes.map((entry) => (
             <li
               key={entry.id}
-              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-3"
+              className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] items-end gap-2 rounded-lg border border-hairline bg-night/30 p-3"
             >
               <Field label="Classe">
                 <Input
@@ -536,7 +536,7 @@ export function EquipmentSection({
           {sheet.equipment.map((item) => (
             <li
               key={item.id}
-              className="space-y-2 rounded-lg border border-gold/15 bg-night/30 p-3"
+              className="space-y-2 rounded-lg border border-hairline bg-night/30 p-3"
             >
               <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-end gap-2">
                 <Field label="Nome">
@@ -606,7 +606,7 @@ export function EquipmentSection({
         </ul>
       )}
 
-      <div className="border-t border-gold/15 pt-4">
+      <div className="border-t border-hairline pt-4">
         <Label className="mb-2 block">Denaro</Label>
         <div className="grid grid-cols-5 gap-2">
           {(["pp", "gp", "ep", "sp", "cp"] as const).map((coin) => (
@@ -714,7 +714,7 @@ export function MagicSection({
       </Field>
 
       {/* Slot incantesimo */}
-      <div className="border-t border-gold/15 pt-4">
+      <div className="border-t border-hairline pt-4">
         <div className="mb-2 flex items-center justify-between">
           <Label>Slot incantesimo</Label>
           <Button type="button" size="sm" variant="outline" onClick={addSlot}>
@@ -731,7 +731,7 @@ export function MagicSection({
               .map((slot) => (
                 <li
                   key={slot.level}
-                  className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-2.5"
+                  className="grid grid-cols-[auto_minmax(0,1fr)_minmax(0,1fr)_auto] items-end gap-2 rounded-lg border border-hairline bg-night/30 p-2.5"
                 >
                   <span className="pb-2 text-sm font-semibold">
                     Liv. {slot.level}
@@ -764,7 +764,7 @@ export function MagicSection({
       </div>
 
       {/* Incantesimi conosciuti / preparati */}
-      <div className="border-t border-gold/15 pt-4">
+      <div className="border-t border-hairline pt-4">
         <div className="mb-2 flex items-center justify-between">
           <Label>Incantesimi</Label>
           <Button type="button" size="sm" variant="outline" onClick={addSpell}>
@@ -779,7 +779,7 @@ export function MagicSection({
             {sheet.spells.map((spell) => (
               <li
                 key={spell.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-end gap-2 rounded-lg border border-gold/15 bg-night/30 p-3"
+                className="grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-end gap-2 rounded-lg border border-hairline bg-night/30 p-3"
               >
                 <Field label="Nome">
                   <Input
@@ -959,7 +959,7 @@ export function CompanionsSection({
           {companions.map((companion) => (
             <li
               key={companion.id}
-              className="space-y-3 rounded-lg border border-gold/15 bg-night/30 p-3"
+              className="space-y-3 rounded-lg border border-hairline bg-night/30 p-3"
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="grid flex-1 grid-cols-2 gap-2">
@@ -993,7 +993,7 @@ export function CompanionsSection({
                 </Button>
               </div>
 
-              <label className="flex items-center justify-between gap-2 rounded-lg border border-gold/20 bg-gold/5 px-3 py-2">
+              <label className="flex items-center justify-between gap-2 rounded-lg border border-hairline-strong bg-gold/5 px-3 py-2">
                 <span className="flex items-center gap-2 text-sm">
                   <Star className="size-4 text-gold/70" />
                   Compagno in evidenza (accanto alla card del Party)
@@ -1044,7 +1044,7 @@ export function CompanionsSection({
                     return (
                       <div
                         key={ability}
-                        className="rounded-lg border border-gold/15 bg-night/20 p-2 text-center"
+                        className="rounded-lg border border-hairline bg-night/20 p-2 text-center"
                       >
                         <p className="text-[10px] tracking-widest text-muted-foreground uppercase">
                           {ABILITY_SHORT[ability]}
@@ -1132,7 +1132,7 @@ export function CompanionsSection({
                     {(companion.traits ?? []).map((trait) => (
                       <li
                         key={trait.id}
-                        className="space-y-1.5 rounded-lg border border-gold/15 bg-night/20 p-2"
+                        className="space-y-1.5 rounded-lg border border-hairline bg-night/20 p-2"
                       >
                         <div className="flex items-center gap-2">
                           <Input
@@ -1194,7 +1194,7 @@ export function CompanionsSection({
                     {(companion.attacks ?? []).map((attack) => (
                       <li
                         key={attack.id}
-                        className="space-y-1.5 rounded-lg border border-gold/15 bg-night/20 p-2"
+                        className="space-y-1.5 rounded-lg border border-hairline bg-night/20 p-2"
                       >
                         <div className="flex items-center gap-2">
                           <Input
@@ -1331,7 +1331,7 @@ function Toggle({
         "rounded-full border px-3 py-1 text-xs transition-colors",
         active
           ? "border-gold/60 bg-gold/15 font-semibold text-gold-bright"
-          : "border-gold/20 text-muted-foreground hover:border-gold/40"
+          : "border-hairline-strong text-muted-foreground hover:border-gold/40"
       )}
     >
       {label}
@@ -1341,7 +1341,7 @@ function Toggle({
 
 function EmptyHint({ text }: { text: string }) {
   return (
-    <p className="rounded-lg border border-dashed border-gold/15 px-3 py-4 text-center text-sm text-muted-foreground italic">
+    <p className="rounded-lg border border-dashed border-hairline px-3 py-4 text-center text-sm text-muted-foreground italic">
       {text}
     </p>
   );

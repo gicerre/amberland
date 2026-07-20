@@ -11,9 +11,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/features/auth/auth-provider";
 import { WorldTree } from "@/features/entities/components/world-tree";
 import { cn } from "@/lib/utils";
@@ -33,7 +31,7 @@ export function Brand({ className }: { className?: string }) {
       href="/party"
       className={cn("group flex items-center gap-3 px-2", className)}
     >
-      <span className="relative flex size-11 shrink-0 items-center justify-center drop-shadow-[0_0_10px_rgba(212,175,55,0.25)] transition-[filter] group-hover:drop-shadow-[0_0_16px_rgba(212,175,55,0.45)]">
+      <span className="relative flex size-11 shrink-0 items-center justify-center drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">
         <Image
           src="/logo/logo.png"
           alt="Emblema di Amberland"
@@ -47,7 +45,7 @@ export function Brand({ className }: { className?: string }) {
         <span className="text-gold-gradient font-heading text-[17px] font-extrabold tracking-[0.22em]">
           AMBERLAND
         </span>
-        <span className="text-[9px] tracking-[0.32em] text-gold/40 uppercase">
+        <span className="text-[10px] tracking-[0.18em] text-muted-foreground uppercase">
           Le Cronache del Regno
         </span>
       </span>
@@ -72,33 +70,33 @@ function NavLink({
   const [open, setOpen] = useState(entry.worldTree ? true : active);
   const Icon = entry.icon;
 
-  /* Voce in evidenza: CTA dedicata, a tema fantasy. */
+  /* Voce in evidenza (Party): card d'accento quieta, emblema contenuto. */
   if (entry.featured) {
     return (
       <Link
         href={entry.href}
         onClick={onNavigate}
         className={cn(
-          "group relative my-1 flex items-center gap-3 overflow-hidden rounded-xl border px-3 py-3 transition-all",
+          "group relative my-1 flex items-center gap-3 overflow-hidden rounded-xl border px-3 py-2.5 transition-all",
           active
-            ? "border-gold/55 bg-gradient-to-r from-gold/22 via-gold/10 to-transparent shadow-[0_0_28px_rgba(212,175,55,0.2)]"
-            : "border-gold/25 bg-gradient-to-r from-gold/8 to-transparent hover:border-gold/50 hover:from-gold/15 hover:shadow-[0_0_22px_rgba(212,175,55,0.15)]"
+            ? "elev-1 border-gold/50 bg-gold-dim"
+            : "border-hairline bg-surface-1 hover:elev-1 hover:border-hairline-strong hover:bg-surface-2"
         )}
       >
-        <CornerOrnaments size="sm" />
-        {/* Striscia superiore dorata */}
-        <span className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gold/50 to-transparent" />
-        <span className={cn(
-          "flex size-20 ml-3 shrink-0 items-center justify-center rounded-lg transition-all",
-        )}>
-          <Icon className="size-20 ml-5 mr-5 text-gold" />
+        <span className="flex size-12 shrink-0 items-center justify-center rounded-lg">
+          <Icon className="size-12" />
         </span>
         <span className="flex flex-col">
-          <span className="font-heading text-[14px] font-bold tracking-wide text-gold-bright">
+          <span
+            className={cn(
+              "text-sm font-semibold tracking-wide",
+              active ? "text-gold-bright" : "text-foreground"
+            )}
+          >
             {entry.label}
           </span>
           {entry.tagline && (
-            <span className="text-[10px] text-gold/50">
+            <span className="text-[11px] text-muted-foreground">
               {entry.tagline}
             </span>
           )}
@@ -108,26 +106,26 @@ function NavLink({
   }
 
   const linkClasses = cn(
-    "group relative flex flex-1 items-center gap-2.5 rounded-md px-3 py-2 text-[14px] transition-all",
+    "group relative flex flex-1 items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
     active
-      ? "bg-gold/10 font-semibold text-gold-bright"
-      : "text-foreground/70 hover:bg-stone-highlight/80 hover:text-foreground"
+      ? "bg-surface-2 font-semibold text-parchment"
+      : "text-muted-foreground hover:bg-surface-2/70 hover:text-foreground"
   );
 
   const iconElement = (
     <Icon
       className={cn(
-        "size-[16px] shrink-0 transition-colors",
-        active ? "text-gold drop-shadow-[0_0_4px_rgba(212,175,55,0.5)]" : "text-muted-foreground group-hover:text-gold/75"
+        "size-4 shrink-0 transition-colors",
+        active ? "text-gold" : "text-muted-foreground group-hover:text-foreground"
       )}
     />
   );
 
-  /* Indicatore attivo: barretta sinistra */
+  /* Indicatore attivo: barra 2px gold a sinistra (V3 §9) */
   const activeBar = active ? (
     <span
       aria-hidden
-      className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-gradient-to-b from-transparent via-gold to-transparent"
+      className="absolute left-0 top-1/2 h-4 w-0.5 -translate-y-1/2 rounded-r-full bg-gold"
     />
   ) : null;
 
@@ -169,13 +167,11 @@ function NavLink({
   );
 }
 
-/** Separatore ornamentale tra gruppi. */
+/** Separatore tra gruppi: hairline quieta (Obsidian). */
 function GroupDivider() {
   return (
-    <div aria-hidden className="my-1 flex items-center gap-2 px-3">
-      <span className="h-px flex-1 bg-gradient-to-r from-transparent via-gold/20 to-transparent" />
-      <span className="size-1 rotate-45 bg-gold/25" />
-      <span className="h-px flex-1 bg-gradient-to-l from-transparent via-gold/20 to-transparent" />
+    <div aria-hidden className="my-1 px-3">
+      <span className="block h-px bg-hairline" />
     </div>
   );
 }
@@ -213,11 +209,11 @@ export function SidebarContent({
           <button
             type="button"
             onClick={onSearch}
-            className="group flex w-full items-center gap-2.5 rounded-lg border border-gold/15 bg-stone-surface/60 px-3 py-2 text-sm text-muted-foreground transition-all hover:border-gold/35 hover:bg-stone-highlight/60 hover:text-foreground"
+            className="group flex w-full items-center gap-2.5 rounded-lg border border-hairline bg-stone-surface/60 px-3 py-2 text-sm text-muted-foreground transition-all hover:border-gold/35 hover:bg-stone-highlight/60 hover:text-foreground"
           >
             <Search className="size-3.5 text-gold/50 transition-colors group-hover:text-gold/80" />
             <span className="flex-1 text-left text-[13px]">Cerca nel regno…</span>
-            <kbd className="rounded border border-gold/15 bg-stone-surface px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground/60">
+            <kbd className="rounded border border-hairline bg-stone-surface px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground/60">
               ⌃K
             </kbd>
           </button>
@@ -286,7 +282,7 @@ export function SidebarContent({
 /** Sidebar fissa, visibile da lg in su. */
 export function AppSidebar({ onSearch }: { onSearch?: () => void }) {
   return (
-    <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-gold/12 bg-sidebar/98 backdrop-blur-sm lg:flex">
+    <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-hairline bg-sidebar lg:flex">
       {/* Texture sottile sulla sidebar */}
       <div
         aria-hidden

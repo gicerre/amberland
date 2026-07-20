@@ -66,10 +66,11 @@ service cloud.firestore {
 
     // ---------- Sistema universale delle entità ----------
     match /entities/{entityId} {
-      // Proprietario di un PC: l'uid combacia con il campo ownerId.
+      // Proprietario dell'entità: l'uid combacia con il campo ownerId
+      // (PC del giocatore e cronache proposte dai giocatori).
       // NB: accesso DIRETTO al campo (no .get(), no vincolo su type) così che
-      // Firestore possa abbinare questa regola alla query list
-      // where("ownerId","==",uid) — solo i PC hanno ownerId, quindi è sicuro.
+      // Firestore possa abbinare questa regola alle query list con
+      // where("ownerId","==",uid).
       function isCharacterOwner() {
         return isSignedIn() && resource.data.ownerId == request.auth.uid;
       }
@@ -221,6 +222,13 @@ service cloud.firestore {
 
     // Cronologia operazioni sulle note (append-only per i giocatori).
     match /note_log/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isContributor();
+      allow update, delete: if isMaster();
+    }
+
+    // Cronologia del Libro delle Cronache (append-only per i giocatori).
+    match /chronicle_log/{logId} {
       allow read: if isSignedIn();
       allow create: if isContributor();
       allow update, delete: if isMaster();

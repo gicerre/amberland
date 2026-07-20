@@ -3,6 +3,7 @@
 import { Color } from "@tiptap/extension-color";
 import { Highlight } from "@tiptap/extension-highlight";
 import { Image } from "@tiptap/extension-image";
+import Mention from "@tiptap/extension-mention";
 import { Placeholder } from "@tiptap/extension-placeholder";
 import { TextAlign } from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
@@ -13,6 +14,7 @@ import {
   type JSONContent,
 } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import type { SuggestionOptions } from "@tiptap/suggestion";
 import {
   AlignCenter,
   AlignLeft,
@@ -38,9 +40,16 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { useAllEntities } from "@/features/entities/data";
 import { uploadImage } from "@/lib/upload/image-service";
 import { cn } from "@/lib/utils";
+import type { Entity } from "@/types/entities";
 
+import { MentionHoverArea } from "./entity-hover-card";
+import {
+  buildMentionSuggestion,
+  type MentionAttrs,
+} from "./mention-suggestion";
 import type { RichTextValue } from "./rich-text-utils";
 
 export {
@@ -55,7 +64,10 @@ export {
  * viene mostrata/normalizzata come testo semplice.
  * ============================================================ */
 
-function buildExtensions(placeholder?: string) {
+function buildExtensions(
+  placeholder?: string,
+  mentionSuggestion?: Omit<SuggestionOptions<Entity, MentionAttrs>, "editor">
+) {
   return [
     StarterKit.configure({ link: { openOnClick: false, autolink: true } }),
     TextStyle,
@@ -63,6 +75,14 @@ function buildExtensions(placeholder?: string) {
     Highlight.configure({ multicolor: true }),
     TextAlign.configure({ types: ["heading", "paragraph"] }),
     Image,
+    // Sempre presente: anche renderer ed editor senza trigger «@» devono
+    // saper leggere le citazioni inline salvate nei contenuti.
+    Mention.configure({
+      HTMLAttributes: { class: "entity-mention" },
+      renderText: ({ node }) =>
+        `@${(node.attrs.label as string) ?? node.attrs.id}`,
+      ...(mentionSuggestion ? { suggestion: mentionSuggestion } : {}),
+    }),
     ...(placeholder ? [Placeholder.configure({ placeholder })] : []),
   ];
 }
@@ -75,18 +95,32 @@ export function RichTextEditor({
   placeholder,
   className,
   folder = "misc",
+  enableMentions = false,
 }: {
   value: RichTextValue;
   onChange: (value: JSONContent) => void;
   placeholder?: string;
   className?: string;
   folder?: Parameters<typeof uploadImage>[0];
+  /** Attiva le citazioni inline: digitando «@» si cerca tra le entità. */
+  enableMentions?: boolean;
 }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
+  // Le estensioni vivono fuori dal ciclo React: il popup delle menzioni
+  // legge le entità da una ref sempre aggiornata.
+  const { data: entities } = useAllEntities();
+  const entitiesRef = useRef<Entity[]>([]);
+  entitiesRef.current = entities ?? [];
+  const [mentionSuggestion] = useState(() =>
+    enableMentions
+      ? buildMentionSuggestion(() => entitiesRef.current)
+      : undefined
+  );
+
   const editor = useEditor({
-    extensions: buildExtensions(placeholder),
+    extensions: buildExtensions(placeholder, mentionSuggestion),
     content: (value ?? "") as JSONContent | string,
     immediatelyRender: false,
     editorProps: {
@@ -118,14 +152,14 @@ export function RichTextEditor({
 
   if (!editor) {
     return (
-      <div className="rounded-lg border border-gold/20 bg-night/20 p-4 text-sm text-muted-foreground">
+      <div className="rounded-lg border border-hairline-strong bg-night/20 p-4 text-sm text-muted-foreground">
         Caricamento editor…
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-gold/20 bg-night/20">
+    <div className="overflow-hidden rounded-lg border border-hairline-strong bg-night/20">
       <Toolbar editor={editor} onPickImage={() => fileRef.current?.click()} uploading={uploading} />
       <input
         ref={fileRef}
@@ -167,7 +201,7 @@ function Toolbar({
   };
 
   return (
-    <div className="flex flex-wrap items-center gap-0.5 border-b border-gold/15 bg-card/60 p-1.5">
+    <div className="flex flex-wrap items-center gap-0.5 border-b border-hairline bg-card/60 p-1.5">
       <Btn active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title="Grassetto">
         <Bold className="size-4" />
       </Btn>
@@ -316,5 +350,9 @@ export function RichTextRenderer({
   }, [editor, content]);
 
   if (!editor) return null;
-  return <EditorContent editor={editor} className={cn("rich-text", className)} />;
+  return (
+    <MentionHoverArea>
+      <EditorContent editor={editor} className={cn("rich-text", className)} />
+    </MentionHoverArea>
+  );
 }

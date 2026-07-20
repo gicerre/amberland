@@ -18,7 +18,6 @@ import {
   useState,
 } from "react";
 
-import { CornerOrnaments } from "@/components/shared/fantasy-card";
 import { FantasyImage } from "@/components/shared/fantasy-image";
 import { optimizeCloudinary } from "@/lib/upload/image-service";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -145,8 +144,7 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
             {label || "Immagine a schermo intero"}
           </DialogTitle>
 
-          <div className="relative overflow-hidden rounded-2xl border border-gold/35 bg-night/95 shadow-[0_0_60px_rgba(0,0,0,0.6)]">
-            <CornerOrnaments className="z-20 size-6 border-gold/60" />
+          <div className="relative overflow-hidden rounded-2xl border border-gold/35 bg-night shadow-[0_24px_48px_-12px_rgba(0,0,0,0.85)]">
             {/* Bagliore epico */}
             <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_70%)]" />
 
@@ -204,7 +202,7 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
             </div>
 
             {/* Barra strumenti */}
-            <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-gold/25 bg-background/80 px-2 py-1 backdrop-blur-sm">
+            <div className="absolute bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-hairline-strong bg-background/95 px-2 py-1">
               <ToolBtn label="Riduci" onClick={() => zoomBy(0.8)}>
                 <ZoomOut className="size-4" />
               </ToolBtn>
@@ -215,7 +213,7 @@ export function LightboxProvider({ children }: { children: React.ReactNode }) {
                 <ZoomIn className="size-4" />
               </ToolBtn>
               {multiple && (
-                <span className="ml-1 border-l border-gold/20 pl-2 font-heading text-xs tracking-widest text-gold-bright">
+                <span className="ml-1 border-l border-hairline-strong pl-2 font-heading text-xs tracking-widest text-gold-bright">
                   {index + 1} / {images.length}
                 </span>
               )}
@@ -242,7 +240,7 @@ function NavButton({
       aria-label={side === "left" ? "Immagine precedente" : "Immagine successiva"}
       onClick={onClick}
       className={cn(
-        "absolute top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-gold/30 bg-background/70 text-gold backdrop-blur-sm transition-colors hover:border-gold/60 hover:bg-background/90",
+        "absolute top-1/2 z-20 flex size-11 -translate-y-1/2 items-center justify-center rounded-full border border-gold/30 bg-background/90 text-gold transition-colors hover:border-gold/60 hover:bg-background",
         side === "left" ? "left-2" : "right-2"
       )}
     >
@@ -327,7 +325,7 @@ export function ZoomableImage({
         sizes={sizes}
         priority={priority}
       />
-      <span className="pointer-events-none absolute right-2.5 bottom-2.5 z-10 flex size-8 items-center justify-center rounded-full border border-gold/40 bg-background/70 text-gold opacity-0 backdrop-blur-sm transition-opacity group-hover/zoom:opacity-100">
+      <span className="pointer-events-none absolute right-2.5 bottom-2.5 z-10 flex size-8 items-center justify-center rounded-full border border-gold/40 bg-background/90 text-gold opacity-0 transition-opacity group-hover/zoom:opacity-100 [@media(hover:none)]:opacity-100">
         <ZoomIn className="size-4" />
       </span>
     </button>

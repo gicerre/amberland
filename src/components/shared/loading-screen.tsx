@@ -17,7 +17,7 @@ export function LoadingScreen({ className }: { className?: string }) {
         width={72}
         height={72}
         priority
-        className="size-16 animate-pulse object-contain drop-shadow-[0_0_40px_rgba(212,175,55,0.25)]"
+        className="size-16 animate-pulse object-contain drop-shadow-[0_4px_10px_rgba(0,0,0,0.8)]"
       />
       <p className="font-heading text-sm tracking-[0.3em] text-muted-foreground uppercase">
         Evocazione in corso…

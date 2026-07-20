@@ -3,7 +3,9 @@ import type {
   CharacterHistoryType,
   CharacterKind,
   CharacterStatus,
+  ConditionKind,
   EquipmentCategory,
+  ResourceRecharge,
 } from "@/types/entities";
 
 /* ============================================================
@@ -150,6 +152,40 @@ export const HISTORY_TYPE_LABELS: Record<CharacterHistoryType, string> = {
   STATUS: "Cambio di stato",
   NOTE: "Nota",
 };
+
+/* ------------------- Stato vivo (Codex) ------------------- */
+
+export const CONDITION_KIND_LABELS: Record<ConditionKind, string> = {
+  BUFF: "Beneficio",
+  DEBUFF: "Malus",
+  CONDITION: "Condizione",
+};
+
+/** Stile chip per tipo di effetto: verdant / blood / ember (V3 §2). */
+export const CONDITION_KIND_STYLES: Record<ConditionKind, string> = {
+  BUFF: "border-emerald/40 bg-emerald-deep/60 text-emerald-bright",
+  DEBUFF: "border-crimson/45 bg-crimson/12 text-crimson-light",
+  CONDITION: "border-ember/45 bg-ember-deep/60 text-ember-bright",
+};
+
+export const RESOURCE_RECHARGE_LABELS: Record<ResourceRecharge, string> = {
+  SHORT_REST: "Riposo breve",
+  LONG_REST: "Riposo lungo",
+  DAILY: "All'alba",
+  MANUAL: "Manuale",
+};
+
+/** Monete D&D: chiave → etichetta IT. */
+export const COIN_LABELS = {
+  pp: "Platino",
+  gp: "Oro",
+  ep: "Electrum",
+  sp: "Argento",
+  cp: "Rame",
+} as const;
+
+export type CoinKey = keyof typeof COIN_LABELS;
+export const COIN_KEYS = Object.keys(COIN_LABELS) as CoinKey[];
 
 /* ---------------------- Helper di calcolo ---------------------- */
 

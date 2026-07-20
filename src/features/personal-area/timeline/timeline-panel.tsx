@@ -40,7 +40,7 @@ export function TimelinePanel({ limit = 12 }: { limit?: number }) {
         <History className="size-5 text-gold" />
         Le tue gesta recenti
       </h2>
-      <ol className="relative space-y-4 border-l border-gold/20 pl-5">
+      <ol className="relative space-y-4 border-l border-hairline-strong pl-5">
         {events.map((event) => {
           const Icon = KIND_ICON[event.kind];
           return (

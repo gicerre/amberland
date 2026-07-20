@@ -7,9 +7,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-caudex), Georgia, serif;
+  /* Obsidian (V3 §3): Inter = UI, Cinzel = display, Caudex = solo lore */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", monospace;
   --font-heading: var(--font-cinzel), Georgia, serif;
+  --font-lore: var(--font-caudex), Georgia, serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -46,6 +48,7 @@
   --color-gold-dim: var(--gold-dim);
   --color-crimson: var(--crimson);
   --color-crimson-bright: var(--crimson-bright);
+  --color-crimson-light: var(--crimson-light);
   --color-night: var(--night);
   --color-parchment: var(--parchment);
   --color-parchment-dark: var(--parchment-dark);
@@ -57,7 +60,27 @@
   --color-iron-mid: var(--iron-mid);
   --color-brass: var(--brass);
   --color-arcane-blue: var(--arcane-blue);
+  --color-arcane: var(--arcane);
   --color-arcane-bright: var(--arcane-bright);
+  --color-wood-dark: var(--wood-dark);
+  --color-wood-mid: var(--wood-mid);
+  --color-leather: var(--leather);
+  --color-ash: var(--ash);
+  --color-silver: var(--silver);
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-blood: var(--crimson);
+  --color-blood-bright: var(--crimson-bright);
+  --color-ember-deep: var(--ember-deep);
+  --color-ember: var(--ember);
+  --color-ember-bright: var(--ember-bright);
+  --color-verdant-deep: var(--verdant-deep);
+  --color-verdant: var(--verdant);
+  --color-verdant-bright: var(--verdant-bright);
   --color-emerald-deep: var(--emerald-deep);
   --color-emerald: var(--emerald);
   --color-emerald-bright: var(--emerald-bright);
@@ -82,132 +105,196 @@
   --animate-float: float 4s ease-in-out infinite;
   --animate-scale-in: scale-in 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
   --animate-slide-up: slide-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --ease-weight: cubic-bezier(0.2, 0, 0, 1);
+  --ease-settle: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-press: cubic-bezier(0.4, 0, 1, 1);
 }
 
 /*
- * Palette ufficiale "Amberland — Archivio della Compagnia" (RPG AAA).
- * Ispirazione: Baldur's Gate 3, Dragon Age, Diablo IV, Pillars of Eternity.
+ * Palette "Obsidian & Aurum" — N1 (docs/DESIGN_SYSTEM_V3.md §2).
+ * Direzione Next-Gen Dark Fantasy: Diablo IV, Elden Ring HUD, FFXVI.
  *
- * Background  → Abyss #06070A · Void #0B0D12 · Dark Obsidian #11151C
- * Superfici   → Ancient Stone #181C24 · Dark Slate #1F2430 · Charcoal Steel #262D3A
- * Oro (raro)  → Antique #C8A75D · Royal #D4AF37 · Soft Glow #E8C979
- * Testo       → Ivory #F1E8D2 (titoli) · Aged Paper #D7CCB4 · Muted #9A907C
- * Contestuali → Arcano #7C5CFF · Natura #84CC16 · Luce #34D399
- *               Fuoco #FF7A18 · Oscurità #A855F7 · Sangue #DC2626
- *
- * Tema esclusivamente scuro; i valori vivono in :root e ogni componente
- * li eredita via token (@theme inline). L'oro è una risorsa preziosa,
- * non un colore dominante.
+ * Neutri FREDDI e profondi; profondità via luce (hairline, highlight,
+ * ombre morbide), mai texture. Oro champagne come firma rara (≤5%).
+ * I nomi-token legacy (stone-*, wood-*, parchment…) restano definiti e
+ * puntano alla nuova scala, così nessuna classe esistente si rompe:
+ * verranno rinominati in N2.
  */
 :root {
-  /* ── Background — i tre neri dell'abisso ──
-     Abyss #06070A · Void #0B0D12 · Dark Obsidian #11151C */
-  --background: #06070a;
-  --foreground: #d7ccb4; /* Aged Paper — corpo del testo */
-  --card: #181c24; /* Ancient Stone — superficie */
-  --card-foreground: #d7ccb4;
-  --popover: #1f2430; /* Dark Slate — pannelli flottanti */
-  --popover-foreground: #d7ccb4;
+  /* ── Palcoscenico e superfici — obsidian fredda ── */
+  --background: #060709;
+  --foreground: #c8cdd6; /* corpo testo — ~10:1 su surface-1 */
+  --card: #0e1116; /* surface-1 */
+  --card-foreground: #c8cdd6;
+  --popover: #141821; /* surface-2 */
+  --popover-foreground: #c8cdd6;
 
-  /* ── CTA — oro reale (risorsa preziosa, non dominante) ── */
-  --primary: #d4af37; /* Royal Gold */
-  --primary-foreground: #0b0d12;
+  /* ── CTA — oro champagne (firma, non decorazione) ── */
+  --primary: #d6b25e;
+  --primary-foreground: #0a0c10;
 
-  /* ── Pannelli secondari — acciaio carbone ── */
-  --secondary: #262d3a; /* Charcoal Steel */
-  --secondary-foreground: #d7ccb4;
-  --muted: #11151c; /* Dark Obsidian */
-  --muted-foreground: #9a907c; /* Muted Text */
-  --accent: #262d3a;
-  --accent-foreground: #e8c979; /* Soft Gold Glow */
+  /* ── Pannelli secondari ── */
+  --secondary: #1b2029; /* surface-3 */
+  --secondary-foreground: #c8cdd6;
+  --muted: #0a0c10; /* surface-0 */
+  --muted-foreground: #8b93a1; /* ~5.4:1 su surface-1 */
+  --accent: #1b2029;
+  --accent-foreground: #eacb77;
 
-  /* ── Distruttivo — sangue ── */
-  --destructive: #b91c1c;
+  /* ── Distruttivo — blood ── */
+  --destructive: #c2413b;
 
-  /* ── Bordi e input — oro come filo prezioso ── */
-  --border: rgba(200, 167, 93, 0.14);
-  --input: rgba(200, 167, 93, 0.20);
-  --ring: rgba(212, 175, 55, 0.50);
+  /* ── Bordi hairline — luce, non oro ── */
+  --border: rgba(255, 255, 255, 0.08);
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.14);
+  --input: rgba(255, 255, 255, 0.10);
+  --ring: rgba(214, 178, 94, 0.50);
 
-  /* ── Grafici — colori contestuali ── */
-  --chart-1: #d4af37; /* oro */
-  --chart-2: #b91c1c; /* sangue */
-  --chart-3: #7c5cff; /* arcano */
-  --chart-4: #20c997; /* luce */
-  --chart-5: #ff7a18; /* fuoco */
+  /* ── Grafici — oro → blood → arcane → verdant → ember ── */
+  --chart-1: #d6b25e;
+  --chart-2: #c2413b;
+  --chart-3: #a79ae6;
+  --chart-4: #6cc9a0;
+  --chart-5: #d9822b;
 
-  --radius: 0.625rem;
+  --radius: 0.75rem;
 
-  /* ── Sidebar — Void Black, distinta dal body ── */
-  --sidebar: #0b0d12;
-  --sidebar-foreground: #d7ccb4;
-  --sidebar-primary: #d4af37;
-  --sidebar-primary-foreground: #0b0d12;
-  --sidebar-accent: #262d3a;
-  --sidebar-accent-foreground: #e8c979;
-  --sidebar-border: rgba(200, 167, 93, 0.10);
-  --sidebar-ring: rgba(212, 175, 55, 0.50);
+  /* ── Sidebar — surface-0, distinta dal body ── */
+  --sidebar: #0a0c10;
+  --sidebar-foreground: #c8cdd6;
+  --sidebar-primary: #d6b25e;
+  --sidebar-primary-foreground: #0a0c10;
+  --sidebar-accent: #1b2029;
+  --sidebar-accent-foreground: #eacb77;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: rgba(214, 178, 94, 0.50);
 
-  /* ── Oro — Antique / Royal / Soft Glow ── */
-  --gold: #c8a75d; /* Antique Gold (base) */
-  --gold-bright: #d4af37; /* Royal Gold */
-  --gold-light: #e8c979; /* Soft Gold Glow */
-  --gold-dark: #9a7e3a;
-  --gold-dim: #4a3c1c;
+  /* ── Aurum — oro champagne freddo ── */
+  --gold: #d6b25e;
+  --gold-bright: #eacb77;
+  --gold-light: #f3dfa4;
+  --gold-dark: #9c824a;
+  --gold-dim: rgba(214, 178, 94, 0.16);
 
-  /* ── Pergamena — avorio per i titoli, carta invecchiata ── */
-  --parchment: #f1e8d2; /* Ivory Parchment */
-  --parchment-dark: #d7ccb4; /* Aged Paper */
+  /* ── Testo di rango display (ex "pergamena") ── */
+  --parchment: #f2f4f8; /* text-hi — titoli, valori chiave */
+  --parchment-dark: #c8cdd6;
 
-  /* ── Superfici pietra — layering progressivo ── */
-  --stone-deep: #0b0d12; /* Void */
-  --stone-mid: #181c24; /* Ancient Stone */
-  --stone-surface: #1f2430; /* Dark Slate */
-  --stone-highlight: #262d3a; /* Charcoal Steel */
+  /* ── Scala superfici (nomi legacy stone-* → surface fredde) ── */
+  --stone-deep: #0a0c10; /* surface-0 */
+  --stone-mid: #0e1116; /* surface-1 */
+  --stone-surface: #141821; /* surface-2 */
+  --stone-highlight: #1b2029; /* surface-3 */
+  --surface-0: #0a0c10;
+  --surface-1: #0e1116;
+  --surface-2: #141821;
+  --surface-3: #1b2029;
 
-  /* ── Metalli — acciaio brunito ── */
-  --iron-dark: #262d3a;
-  --iron-mid: #3a4150;
-  --brass: #9a7e3a;
+  /* ── Legacy materici — rimappati sulle superfici (deprecati, N2) ── */
+  --wood-dark: #10131a;
+  --wood-mid: #171b24;
+  --leather: #0e1116;
+  --iron-dark: #1b2029;
+  --iron-mid: #2a303c;
+  --brass: #9c824a;
+  --silver: #9aa3af;
+  --ash: #8b93a1;
+  --night: #0a0c10;
 
-  /* ── Notte — obsidiana profonda (pannelli incassati) ── */
-  --night: #11151c;
+  /* ── Vetro (solo layer flottanti — V3 §2) ── */
+  --glass-bg: rgba(14, 17, 22, 0.72);
+  --glass-blur: blur(20px) saturate(1.2);
 
-  /* ── Arcano — sapere, mana, mistico ── */
-  --arcane-blue: #1e2a4a;
-  --arcane-bright: #7c5cff;
-  --arcane-glow: rgba(124, 92, 255, 0.35);
+  /* ── Arcano — segreti, magia ── */
+  --arcane-blue: #191627;
+  --arcane: #7c6fc4;
+  --arcane-bright: #a79ae6;
+  --arcane-glow: rgba(167, 154, 230, 0.25);
 
-  /* ── Sangue / Cremisi — fallimenti, pericoli, stati critici ── */
-  --crimson: #b91c1c;
-  --crimson-bright: #dc2626;
+  /* ── Blood — errori, caduti, pericolo ── */
+  --crimson: #c2413b;
+  --crimson-bright: #e06a5e;
+  --crimson-light: #f0958a;
 
-  /* ── Luce — successo, completamento, stati positivi ── */
-  --emerald-deep: #0e2a22;
-  --emerald: #20c997;
-  --emerald-bright: #34d399;
+  /* ── Verdant — successo ── */
+  --verdant-deep: #0f231b;
+  --verdant: #3fa57a;
+  --verdant-bright: #6cc9a0;
+  --emerald-deep: var(--verdant-deep);
+  --emerald: var(--verdant);
+  --emerald-bright: var(--verdant-bright);
+  --nature: var(--verdant);
+  --nature-bright: var(--verdant-bright);
 
-  /* ── Fuoco — eventi, battaglie, energia, avvisi ── */
-  --amber-deep: #5a2a00;
-  --amber: #ff7a18;
-  --amber-bright: #ffb347;
+  /* ── Ember — warning, eventi ── */
+  --ember-deep: #2a1708;
+  --ember: #d9822b;
+  --ember-bright: #f0a45a;
+  --amber-deep: var(--ember-deep);
+  --amber: var(--ember);
+  --amber-bright: var(--ember-bright);
 
-  /* ── Natura — druidi, foreste, guarigione ── */
-  --nature: #65a30d;
-  --nature-bright: #84cc16;
+  /* ── Oscurità — necromanzia, proibito ── */
+  --shadow-arcane: #9a86d9;
+  --shadow-arcane-deep: #5b4a94;
 
-  /* ── Oscurità — necromanzia, corruzione, proibito ── */
-  --shadow-arcane: #a855f7;
-  --shadow-arcane-deep: #6d28d9;
+  /* ── Stati quest/imprese — sempre colore + glifo, mai solo colore ── */
+  --status-active: var(--gold);
+  --status-next: var(--ember);
+  --status-available: var(--muted-foreground);
+  --status-secret: var(--arcane-bright);
+  --status-archive: var(--silver);
+  --status-done: var(--verdant-bright);
+  --status-failed: var(--crimson-bright);
+
+  /* ── Motion tokens (V3 §6) ── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* alias legacy (N2: rinominare gli usi) */
+  --ease-weight: var(--ease-in-out);
+  --ease-settle: var(--ease-out);
+  --ease-press: cubic-bezier(0.4, 0, 1, 1);
+  --dur-micro: 140ms;
+  --dur-quick: 200ms;
+  --dur-move: 280ms;
+  --dur-ceremony: 380ms;
+}
+
+/* Errore (V3 §6): shake orizzontale smorzato 4→1px, mai elastico. */
+@keyframes chain-shake {
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-4px); }
+  35% { transform: translateX(4px); }
+  55% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+  90% { transform: translateX(-1px); }
+}
+
+/* Rivelazione (V3 §6): l'elemento svanisce in blur-fade salendo. */
+@keyframes reveal-out {
+  0% { opacity: 1; transform: none; filter: blur(0); }
+  100% { opacity: 0; transform: translateY(-6px); filter: blur(4px); }
+}
+
+/* Inchiostro che si asciuga (LoadingInk, §4.14): la macchia respira
+   lentamente mentre "prende" sulla carta — niente shimmer da SaaS. */
+@keyframes ink-dry {
+  0%, 100% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.75;
+  }
 }
 
 @keyframes glow-pulse {
   0%,
   100% {
-    box-shadow: 0 0 22px rgba(200, 167, 93, 0.25), 0 0 50px rgba(200, 167, 93, 0.08);
+    box-shadow: 0 0 22px rgba(214, 178, 94, 0.25), 0 0 50px rgba(214, 178, 94, 0.08);
   }
   50% {
-    box-shadow: 0 0 34px rgba(200, 167, 93, 0.50), 0 0 80px rgba(200, 167, 93, 0.18);
+    box-shadow: 0 0 34px rgba(214, 178, 94, 0.50), 0 0 80px rgba(214, 178, 94, 0.18);
   }
 }
 
@@ -303,14 +390,13 @@
   }
 }
 
-/* ── Modale "finestra forgiata": entrata/uscita scenografica ──────────
-   Il centraggio è gestito dal wrapper flex: qui solo scala/opacità/blur,
-   così l'animazione non tocca il posizionamento. */
+/* ── Blur-fade di scena (V3 §6): ingresso morbido dei layer flottanti.
+   Il centraggio è gestito dal wrapper: qui solo scala/opacità/blur. ── */
 @keyframes forge-in {
   from {
     opacity: 0;
-    transform: scale(0.92) translateY(10px);
-    filter: blur(7px);
+    transform: scale(0.97) translateY(6px);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
@@ -377,6 +463,44 @@
   }
 }
 
+/* ── Profondità Obsidian (V3 §5) — luce fredda, mai texture ────────── */
+
+/* E1 card — hairline + micro-highlight superiore + contatto */
+@utility elev-1 {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+/* E2 raised — hover card, dropdown */
+@utility elev-2 {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 8px 24px -12px rgba(0, 0, 0, 0.7);
+}
+
+/* E3 floating — dialog, drawer, barre (accoppiare a .glass) */
+@utility elev-3 {
+  box-shadow: 0 24px 64px -16px rgba(0, 0, 0, 0.8);
+}
+
+/* Vetro satinato — SOLO layer flottanti (nav, dialog, popover, barre) */
+@utility glass {
+  background-color: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--hairline);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Focus/accento — l'unico glow ammesso (V3 §5) */
+@utility glow-accent {
+  box-shadow:
+    0 0 0 1px var(--gold),
+    0 0 24px rgba(214, 178, 94, 0.18);
+}
+
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -389,13 +513,12 @@
 
   body {
     @apply bg-background text-foreground;
-    /* Ossidiana base + angolo sangue (Ossidiana) + angolo vuoto (Gotico) + calore forgia (Brace) */
-    /* Abisso base + tenue alone di sangue, arcano e oro — molto sobri */
+    /* Palcoscenico quieto (V3): vignetta fredda + due respiri di colore
+       appena percettibili (arcano e aurum). Niente texture. */
     background-image:
-      radial-gradient(1400px 900px at 50% -5%,  rgba(6, 7, 10, 0.98),     transparent 70%),
-      radial-gradient(1000px 700px at 95% 110%, rgba(185, 28, 28, 0.10),  transparent 60%),
-      radial-gradient(800px 600px at 5% 90%,    rgba(124, 92, 255, 0.06), transparent 55%),
-      radial-gradient(500px 400px at 68% 52%,   rgba(200, 167, 93, 0.04), transparent 60%);
+      radial-gradient(1400px 900px at 50% -10%, rgba(20, 24, 33, 0.55),   transparent 70%),
+      radial-gradient(900px 700px at 88% 108%,  rgba(124, 111, 196, 0.05), transparent 60%),
+      radial-gradient(700px 500px at 8% 92%,    rgba(214, 178, 94, 0.03),  transparent 55%);
     background-attachment: fixed;
   }
 
@@ -408,7 +531,7 @@
   }
 
   ::selection {
-    background: rgba(200, 167, 93, 0.35);
+    background: rgba(214, 178, 94, 0.35);
     color: #f1e8d2;
   }
 
@@ -422,80 +545,71 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    background: rgba(200, 167, 93, 0.18);
+    background: rgba(214, 178, 94, 0.18);
     border-radius: 999px;
     border: 2px solid var(--background);
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(200, 167, 93, 0.38);
+    background: rgba(214, 178, 94, 0.38);
   }
 
   :focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgba(200, 167, 93, 0.60);
+    box-shadow: 0 0 0 2px var(--background), 0 0 0 4px rgba(214, 178, 94, 0.60);
     border-radius: var(--radius);
   }
 }
 
 @layer components {
-  /* Titoli: oro tarnito con profondità metallica */
+  /* Titoli display: champagne, sfumatura appena percettibile */
   .text-gold-gradient {
-    background-image: linear-gradient(180deg, #e8c979 0%, #c8a75d 52%, #9a7e3a 100%);
+    background-image: linear-gradient(180deg, #f3dfa4 0%, #d6b25e 60%, #b3954f 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
 
-  /* Pergamena — texture carta reale + gradients di invecchiamento sovrapposti */
+  /* Prosa lore (ex "pergamena"): carta pulita senza texture (V3) —
+     superficie chiara quieta per diario e documenti narrativi. */
   .parchment {
-    background-color: #c9bc92;
-    background-image:
-      radial-gradient(ellipse at 18% 12%, rgba(110, 75, 20, 0.22), transparent 45%),
-      radial-gradient(ellipse at 85% 90%, rgba(110, 75, 20, 0.26), transparent 45%),
-      linear-gradient(180deg, rgba(255, 248, 210, 0.30), transparent 28%),
-      url('/textures/parchment-1.webp');
-    background-size: auto, auto, auto, cover;
-    background-blend-mode: normal, normal, normal, multiply;
-    color: #2a2010;
+    background-color: #e8e3d6;
+    background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.5), transparent 30%);
+    color: #2b2822;
     box-shadow:
-      inset 0 0 48px rgba(90, 60, 15, 0.35),
-      0 2px 20px rgba(0, 0, 0, 0.6);
+      inset 0 0 0 1px rgba(0, 0, 0, 0.06),
+      0 8px 24px -12px rgba(0, 0, 0, 0.6);
   }
 
   .parchment h1,
   .parchment h2,
   .parchment h3,
   .parchment h4 {
-    color: #3b2808;
+    color: #1f1c16;
   }
 
-  /* ── Glows ─────────────────────────────────────── */
-
-  .glow-gold {
-    box-shadow:
-      0 0 20px rgba(200, 167, 93, 0.40),
-      0 0 60px rgba(200, 167, 93, 0.12);
+  /* Prosa narrativa: il serif resta solo qui (V3 §3) */
+  .font-lore {
+    font-family: var(--font-lore);
   }
 
+  /* ── Glows legacy: neutralizzati (il glow vive solo in .glow-accent) ── */
+
+  .glow-gold,
   .glow-gold-sm {
-    box-shadow: 0 0 12px rgba(200, 167, 93, 0.35);
+    box-shadow: 0 0 0 1px rgba(214, 178, 94, 0.35);
   }
 
   .glow-arcane {
-    box-shadow:
-      0 0 20px rgba(124, 92, 255, 0.50),
-      0 0 60px rgba(124, 92, 255, 0.18);
+    box-shadow: 0 0 0 1px rgba(167, 154, 230, 0.35);
   }
 
   .glow-crimson {
-    box-shadow:
-      0 0 20px rgba(220, 38, 38, 0.50),
-      0 0 60px rgba(220, 38, 38, 0.16);
+    box-shadow: 0 0 0 1px rgba(224, 106, 94, 0.35);
   }
 
   .glow-emerald {
-    box-shadow: 0 0 20px rgba(56, 152, 96, 0.40);
+    box-shadow: 0 0 0 1px rgba(108, 201, 160, 0.35);
   }
 
   /* ── Angoli tagliati (clip-path fantasy) ────────── */
@@ -544,9 +658,9 @@
   .shimmer-gold {
     background: linear-gradient(
       90deg,
-      rgba(200, 167, 93, 0.04) 0%,
-      rgba(200, 167, 93, 0.10) 50%,
-      rgba(200, 167, 93, 0.04) 100%
+      rgba(214, 178, 94, 0.04) 0%,
+      rgba(214, 178, 94, 0.10) 50%,
+      rgba(214, 178, 94, 0.04) 100%
     );
     background-size: 200% 100%;
     animation: shimmer-gold 2.2s ease-in-out infinite;
@@ -554,6 +668,7 @@
 
   /* ── Nav group label ─────────────────────────────── */
 
+  /* Etichetta di gruppo nav Obsidian: Inter 12px quieta (V3 §3/§9) */
   .nav-group-label {
     display: flex;
     align-items: center;
@@ -561,45 +676,44 @@
     padding: 0 12px;
     margin-top: 20px;
     margin-bottom: 6px;
-    font-family: var(--font-heading);
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.28em;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(200, 167, 93, 0.45);
+    color: var(--muted-foreground);
   }
 
   .nav-group-label::after {
     content: '';
     flex: 1;
     height: 1px;
-    background: linear-gradient(to right, rgba(200, 167, 93, 0.25), transparent);
+    background: var(--hairline);
   }
 
   /* ── Rarità oggetti (bordo + glow) ──────────────── */
 
-  .rarity-common    { --rarity-color: rgba(154, 144, 124, 0.5); }   /* muted text */
-  .rarity-rare      { --rarity-color: rgba(110, 168, 254, 0.70); }  /* arcano blu */
-  .rarity-magic     { --rarity-color: rgba(124, 92, 255, 0.70); }   /* arcano indaco */
-  .rarity-legendary {
-    --rarity-color: rgba(200, 167, 93, 0.80);                       /* oro tarnito */
-    animation: glow-pulse 3s ease-in-out infinite;
-  }
-  .rarity-artifact  {
-    --rarity-color: rgba(220, 38, 38, 0.80);                        /* sangue */
-  }
+  /* Rarità come luce (V3 §2): muted → silver → arcane → gold → blood. */
+  .rarity-common    { --rarity-color: rgba(139, 147, 161, 0.5); }
+  .rarity-rare      { --rarity-color: rgba(154, 163, 175, 0.7); }
+  .rarity-magic     { --rarity-color: rgba(167, 154, 230, 0.7); }
+  .rarity-legendary { --rarity-color: rgba(214, 178, 94, 0.8); }
+  .rarity-artifact  { --rarity-color: rgba(224, 106, 94, 0.8); }
 
   /* ── Card hover standard ─────────────────────────── */
 
+  /* Hover card Obsidian: sale a E2 con hairline più netta (V3 §8). */
   .card-hover {
-    transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 200ms ease-out,
-                border-color 200ms ease-out;
+    transition: transform var(--dur-quick) var(--ease-out),
+                box-shadow var(--dur-quick) ease-out,
+                border-color var(--dur-quick) ease-out;
   }
 
   .card-hover:hover {
-    transform: translateY(-3px) scale(1.005);
-    box-shadow: 0 8px 40px rgba(200, 167, 93, 0.14);
+    transform: translateY(-2px);
+    border-color: var(--hairline-strong);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 8px 24px -12px rgba(0, 0, 0, 0.7);
   }
 
   /* ── Striscia ornamentale superiore ─────────────── */
@@ -608,63 +722,49 @@
     position: relative;
   }
 
+  /* Obsidian: la striscia dorata è dismessa — resta un micro-highlight */
   .fantasy-stripe-top::before {
     content: '';
     position: absolute;
     inset-inline: 0;
     top: 0;
-    height: 2px;
-    background: linear-gradient(
-      to right,
-      transparent 0%,
-      rgba(200, 167, 93, 0.55) 20%,
-      rgba(212, 175, 55, 0.88) 50%,
-      rgba(200, 167, 93, 0.55) 80%,
-      transparent 100%
-    );
+    height: 1px;
+    background: rgba(255, 255, 255, 0.10);
     border-radius: var(--radius) var(--radius) 0 0;
   }
 
   /* ── Bottoni fantasy ─────────────────────────────── */
 
+  /* CTA primaria Obsidian: riempimento gold piatto, hover luminoso con
+     glow d'accento, active scale 0.98 (V3 §8). */
   .btn-fantasy-primary {
     position: relative;
-    background: linear-gradient(135deg, #9a7e3a 0%, #c8a75d 50%, #b08f45 100%);
-    border: 1px solid rgba(212, 175, 55, 0.40);
-    color: #180e02;
-    font-family: var(--font-heading);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    font-size: 0.8rem;
+    background: var(--gold);
+    border: 1px solid transparent;
+    color: #0a0c10;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    font-size: 0.875rem;
     transition:
-      box-shadow 180ms ease-out,
-      transform 120ms ease-out,
-      border-color 180ms ease-out;
+      background-color 160ms ease-out,
+      box-shadow 160ms ease-out,
+      transform 120ms ease-out;
   }
 
   .btn-fantasy-primary:hover {
-    box-shadow:
-      0 0 18px rgba(200, 167, 93, 0.45),
-      0 0 50px rgba(200, 167, 93, 0.12);
-    border-color: rgba(212, 175, 55, 0.65);
-    transform: translateY(-1px);
+    background: var(--gold-bright);
+    box-shadow: 0 0 24px rgba(214, 178, 94, 0.18);
   }
 
   .btn-fantasy-primary:active {
-    transform: translateY(1px) scale(0.98);
-    box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.40);
+    transform: scale(0.98);
   }
 
-  /* ── Campo "inciso" — input/select/textarea materici ──────────────
-     Pietra scura incassata con bordo oro tarnito; al focus la runa si
-     accende (glow dorato). Sostituisce il look "form aziendale". */
+  /* ── Input Obsidian (V3 §8): surface-0, hairline sottile, focus
+     cinematografico = bordo gold + glow tenue. ── */
   .field-engraved {
-    background-color: rgba(6, 6, 10, 0.55);
-    border: 1px solid rgba(200, 167, 93, 0.22);
-    box-shadow:
-      inset 0 1px 3px rgba(0, 0, 0, 0.55),
-      inset 0 0 0 1px rgba(0, 0, 0, 0.20);
+    background-color: var(--surface-0);
+    border: 1px solid var(--hairline);
     transition:
       border-color 160ms ease,
       box-shadow 160ms ease,
@@ -672,27 +772,23 @@
   }
 
   .field-engraved:hover {
-    border-color: rgba(200, 167, 93, 0.42);
+    border-color: var(--hairline-strong);
   }
 
   .field-engraved:focus,
   .field-engraved:focus-visible,
   .field-engraved:focus-within,
   .field-engraved[data-state="open"] {
-    border-color: rgba(212, 175, 55, 0.70);
-    background-color: rgba(8, 8, 13, 0.65);
-    box-shadow:
-      inset 0 1px 3px rgba(0, 0, 0, 0.55),
-      0 0 0 1px rgba(200, 167, 93, 0.35),
-      0 0 16px rgba(200, 167, 93, 0.22);
+    border-color: rgba(214, 178, 94, 0.6);
+    box-shadow: 0 0 24px rgba(214, 178, 94, 0.12);
     outline: none;
   }
 
-  /* ── Velo della modale: vignetta + buio profondo dietro il tomo ──── */
+  /* ── Overlay modale Obsidian: velo freddo + blur raffinato (V3 §8) ── */
   .modal-vignette {
-    background:
-      radial-gradient(125% 125% at 50% 0%, rgba(0, 0, 0, 0.50), rgba(2, 2, 4, 0.84) 70%),
-      rgba(2, 2, 4, 0.42);
+    background: rgba(4, 5, 7, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   /* ── Riga ornamentale che chiude un'intestazione di sezione ──────── */
@@ -700,23 +796,24 @@
     height: 1px;
     background: linear-gradient(
       to right,
-      rgba(212, 175, 55, 0.55) 0%,
-      rgba(200, 167, 93, 0.18) 45%,
+      rgba(214, 178, 94, 0.55) 0%,
+      rgba(214, 178, 94, 0.18) 45%,
       transparent 100%
     );
   }
 }
 
-/* ── Notifiche (Sonner) — pergamene sigillate con accento per tipo ──── */
+/* ── Notifiche (Sonner) — vetro compatto con barra d'accento (V3 §8) ── */
 [data-sonner-toast].amber-toast {
-  background-image:
-    radial-gradient(120% 80% at 50% 0%, rgba(200, 167, 93, 0.06), transparent 60%),
-    linear-gradient(180deg, rgba(25, 26, 38, 0.4), transparent 60%);
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--hairline-strong);
   box-shadow:
-    0 18px 50px -14px rgba(0, 0, 0, 0.85),
-    inset 0 1px 0 rgba(212, 175, 55, 0.12);
-  border-left-width: 3px;
-  border-left-color: rgba(200, 167, 93, 0.55);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 18px 50px -14px rgba(0, 0, 0, 0.8);
+  border-left-width: 2px;
+  border-left-color: rgba(214, 178, 94, 0.6);
 }
 
 [data-sonner-toast].amber-toast[data-type="success"] {
@@ -733,7 +830,7 @@
 }
 
 [data-sonner-toast].amber-toast [data-title] {
-  font-family: var(--font-heading);
+  font-weight: 600;
   letter-spacing: 0.01em;
 }
 
@@ -792,7 +889,7 @@
   margin: 0.5em 0;
 }
 .rich-text blockquote {
-  border-left: 3px solid rgba(200, 167, 93, 0.50);
+  border-left: 3px solid rgba(214, 178, 94, 0.50);
   padding-left: 1em;
   margin: 0.6em 0;
   font-style: italic;
@@ -805,7 +902,7 @@
 }
 .rich-text hr {
   border: none;
-  border-top: 1px solid rgba(200, 167, 93, 0.28);
+  border-top: 1px solid rgba(214, 178, 94, 0.28);
   margin: 1em 0;
 }
 .rich-text img {
@@ -820,7 +917,7 @@
   font-size: 0.9em;
 }
 .rich-text mark {
-  background: rgba(200, 167, 93, 0.35);
+  background: rgba(214, 178, 94, 0.35);
   border-radius: 0.2rem;
   padding: 0 0.15em;
 }
@@ -830,4 +927,33 @@
   float: left;
   height: 0;
   pointer-events: none;
+}
+
+/* ── Riduzione del movimento (DESIGN_SYSTEM_V2 §3.7) ─────────────────
+   Le animazioni decorative si spengono; le cerimonie diventano
+   dissolvenze brevi. Le particelle vanno disattivate anche a livello
+   di componente (density 0 / render statico). */
+@media (prefers-reduced-motion: reduce) {
+  .animate-glow-pulse,
+  .animate-flicker,
+  .animate-float,
+  .animate-shimmer-gold,
+  .shimmer-gold {
+    animation: none !important;
+  }
+
+  /* LoadingInk: macchia statica al 60% */
+  [class*="ink-dry"] {
+    animation: none !important;
+    opacity: 0.6;
+  }
+
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.15s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.15s !important;
+    scroll-behavior: auto !important;
+  }
 }

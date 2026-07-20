@@ -41,7 +41,7 @@ export default function LandingPage() {
         className="object-cover"
       />
       <div className="absolute inset-0 bg-gradient-to-b from-background/70 via-background/35 to-background" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(10,12,18,0.85)_100%)]" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_25%,rgba(10,8,5,0.85)_100%)]" />
       <EmberParticles density={45} className="z-10" />
 
       {/* Titolo */}
@@ -66,13 +66,15 @@ export default function LandingPage() {
             height={560}
             priority
             sizes="(max-width: 640px) 70vw, 480px"
-            className="h-auto w-[clamp(15rem,55vw,30rem)] object-contain drop-shadow-[0_0_50px_rgba(212,175,55,0.3)]"
+            className="h-auto w-[clamp(15rem,55vw,30rem)] object-contain drop-shadow-[0_6px_18px_rgba(0,0,0,0.85)]"
           />
         </motion.div>
 
         <motion.div variants={item} className="mt-10 w-full max-w-xs sm:max-w-sm">
           <Link href={destination} className="block">
-            <Button className="h-14 w-full px-6 font-heading text-sm font-bold tracking-[0.15em] uppercase transition-transform hover:scale-[1.03] hover:brightness-110 sm:h-16 sm:px-10 sm:text-base sm:tracking-[0.2em]">
+            {/* Reliquia: la piastra prende luce di torcia (flicker) e
+                affonda alla pressione — mai scale/brightness. */}
+            <Button className="glow-accent h-14 w-full px-6 font-heading text-sm font-bold tracking-[0.15em] uppercase transition-transform hover:-translate-y-px active:translate-y-0.5 sm:h-16 sm:px-10 sm:text-base sm:tracking-[0.2em]">
               Entra in Amberland
             </Button>
           </Link>

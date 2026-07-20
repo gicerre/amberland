@@ -5,8 +5,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
+import { LeverToggle } from "@/components/shared/lever-toggle";
 import { ListPageHero } from "@/components/shared/list-page-hero";
 import { PageHeader } from "@/components/shared/page-header";
+import { SealChip } from "@/components/shared/seal-chip";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -213,13 +215,13 @@ export function EntityListPage({
 
         {chipDef && (
           <div className="flex flex-wrap gap-1.5">
-            <FilterChip
+            <SealChip
               active={chip === null}
               label="Tutti"
               onClick={() => setChip(null)}
             />
             {(chipDef.options ?? []).map((option) => (
-              <FilterChip
+              <SealChip
                 key={option.value}
                 active={chip === option.value}
                 label={option.label}
@@ -231,20 +233,17 @@ export function EntityListPage({
           </div>
         )}
 
-        <div className="ml-auto inline-flex shrink-0 rounded-lg border border-gold/20 bg-black/30 p-1 shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)]">
-          <ViewToggle
-            active={view === "card"}
-            onClick={() => changeView("card")}
-            label="Card"
-            icon={<LayoutGrid className="size-4" />}
-          />
-          <ViewToggle
-            active={view === "table"}
-            onClick={() => changeView("table")}
-            label="Tabella"
-            icon={<TableIcon className="size-4" />}
-          />
-        </div>
+        {/* Leva d'archivio: Codex (card illustrate) / Registro (consultazione) */}
+        <LeverToggle
+          className="ml-auto shrink-0"
+          label="Vista dell'archivio"
+          value={view}
+          onChange={changeView}
+          options={[
+            { value: "card", label: "Codex", icon: <LayoutGrid className="size-4" /> },
+            { value: "table", label: "Registro", icon: <TableIcon className="size-4" /> },
+          ]}
+        />
       </div>
 
       {isLoading ? (
@@ -318,37 +317,74 @@ export function EntityListPage({
   );
 }
 
-/** Vista a tabella/lista di entità (alternativa alle card). */
+/** Ordinali romani per le righe del Registro (I, II, III…). */
+const ROMAN: [number, string][] = [
+  [1000, "M"], [900, "CM"], [500, "D"], [400, "CD"],
+  [100, "C"], [90, "XC"], [50, "L"], [40, "XL"],
+  [10, "X"], [9, "IX"], [5, "V"], [4, "IV"], [1, "I"],
+];
+function toRoman(n: number): string {
+  let rest = n;
+  let out = "";
+  for (const [value, glyph] of ROMAN) {
+    while (rest >= value) {
+      out += glyph;
+      rest -= value;
+    }
+  }
+  return out;
+}
+
+/**
+ * Vista "Registro": libro mastro dell'archivista (DESIGN_SYSTEM_V2 §4.13).
+ * Intestazione incisa in Cinzel, righe rigate come un libro contabile,
+ * ordinale romano e glifo+etichetta del tipo (mai solo un pallino colorato:
+ * il colore da solo è una violazione di accessibilità).
+ */
 function EntityTable({ entities }: { entities: Entity[] }) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-gold/15">
+    <div className="overflow-x-auto rounded-xl border border-hairline-strong shadow-[inset_0_1px_0_rgba(232,201,121,0.10)]">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Nome</TableHead>
-            <TableHead className="hidden sm:table-cell">Dettagli</TableHead>
-            <TableHead>Stato</TableHead>
+          <TableRow className="border-b border-hairline-strong bg-stone-surface hover:bg-stone-surface">
+            <TableHead className="w-12 text-center font-heading text-xs tracking-[0.14em] text-gold/60 uppercase">
+              N.
+            </TableHead>
+            <TableHead className="font-heading text-xs tracking-[0.14em] text-gold/80 uppercase">
+              Nome
+            </TableHead>
+            <TableHead className="hidden font-heading text-xs tracking-[0.14em] text-gold/80 uppercase sm:table-cell">
+              Dettagli
+            </TableHead>
+            <TableHead className="font-heading text-xs tracking-[0.14em] text-gold/80 uppercase">
+              Stato
+            </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {entities.map((entity) => {
+          {entities.map((entity, index) => {
             const config = ENTITY_REGISTRY[entity.type];
             const meta = config.cardMeta?.(entity) ?? {};
+            const Icon = config.icon;
             return (
-              <TableRow key={entity.id}>
+              <TableRow
+                key={entity.id}
+                className="h-12 border-b border-gold-dim/20 transition-colors hover:bg-gold/[0.04]"
+              >
+                <TableCell className="text-center font-heading text-xs text-ash">
+                  {toRoman(index + 1)}
+                </TableCell>
                 <TableCell className="font-medium">
                   <Link
                     href={`/entita/${entity.id}`}
-                    className="flex items-center gap-2 hover:text-gold-bright"
+                    className="flex items-center gap-2.5 hover:text-gold-bright"
                   >
-                    <span
-                      className="size-2 shrink-0 rounded-full"
-                      style={{ backgroundColor: config.accent }}
-                    />
+                    <Icon className="size-5 shrink-0" aria-hidden />
                     <span className="truncate">{entity.name}</span>
+                    <span className="sr-only">({config.label})</span>
                   </Link>
                 </TableCell>
-                <TableCell className="hidden max-w-[10rem] truncate text-muted-foreground sm:table-cell">
+                <TableCell className="hidden max-w-[12rem] truncate text-muted-foreground sm:table-cell">
                   {meta.subtitle ?? "—"}
                 </TableCell>
                 <TableCell>
@@ -372,57 +408,3 @@ function EntityTable({ entities }: { entities: Entity[] }) {
   );
 }
 
-function ViewToggle({
-  active,
-  onClick,
-  label,
-  icon,
-}: {
-  active: boolean;
-  onClick: () => void;
-  label: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      title={label}
-      className={cn(
-        "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all",
-        active
-          ? "bg-gradient-to-b from-gold/25 to-gold/10 text-gold-bright shadow-[inset_0_1px_0_rgba(212,175,55,0.2)]"
-          : "text-muted-foreground hover:bg-gold/5 hover:text-foreground"
-      )}
-    >
-      {icon}
-      <span className="hidden sm:inline">{label}</span>
-    </button>
-  );
-}
-
-function FilterChip({
-  active,
-  label,
-  onClick,
-}: {
-  active: boolean;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "rounded-full border px-3.5 py-1.5 text-xs font-medium transition-all",
-        active
-          ? "border-gold/55 bg-gradient-to-b from-gold/25 to-gold/10 font-semibold text-gold-bright shadow-[inset_0_1px_0_rgba(212,175,55,0.25)]"
-          : "border-gold/20 bg-black/20 text-muted-foreground hover:border-gold/45 hover:text-foreground"
-      )}
-    >
-      {label}
-    </button>
-  );
-}

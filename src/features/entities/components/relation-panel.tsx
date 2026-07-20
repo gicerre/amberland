@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConsoleField, ImmersiveModal } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
+import { withAlpha } from "@/lib/color";
 import { cn } from "@/lib/utils";
 import type { Entity, Relation } from "@/types/entities";
 
@@ -26,15 +27,6 @@ import { ENTITY_REGISTRY, RELATION_LABEL_SUGGESTIONS } from "../registry";
 interface ResolvedRelation {
   relation: Relation;
   other: Entity;
-}
-
-/** Hex (#rrggbb) → rgba(), per derivare bordi/bagliori dal colore-accento del tipo. */
-function withAlpha(hex: string, alpha: number): string {
-  const h = hex.replace("#", "");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 /**
@@ -64,7 +56,6 @@ function RelationTile({
   const accentVars = {
     "--accent": accent,
     "--edge": withAlpha(accent, 0.28),
-    "--glow": withAlpha(accent, 0.32),
     "--tint": withAlpha(accent, 0.12),
   } as React.CSSProperties;
 
@@ -89,7 +80,7 @@ function RelationTile({
           "shadow-[0_6px_22px_-12px_rgba(0,0,0,0.85)]",
           "transition-[transform,box-shadow,border-color] duration-300",
           "hover:-translate-y-0.5 hover:border-[color:var(--accent)]",
-          "hover:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.9),0_0_22px_var(--glow)]"
+          "hover:shadow-[inset_0_1px_0_rgba(232,201,121,0.18),0_10px_30px_-10px_rgba(0,0,0,0.9)]"
         )}
       >
         {/* Filo verticale: il legame che corre lungo il bordo */}
@@ -110,7 +101,7 @@ function RelationTile({
         {/* Medaglione: ritratto o sigillo araldico */}
         <span className="relative size-14 shrink-0">
           <span
-            className="relative block size-full overflow-hidden rounded-full ring-1 ring-[color:var(--edge)] transition-all duration-300 group-hover:ring-[color:var(--accent)] group-hover:shadow-[0_0_14px_var(--glow)]"
+            className="relative block size-full overflow-hidden rounded-full ring-1 ring-[color:var(--edge)] transition-all duration-300 group-hover:ring-2 group-hover:ring-[color:var(--accent)]"
             style={{ backgroundColor: "var(--tint)" }}
           >
             {other.imageUrl ? (
@@ -220,7 +211,7 @@ export function RelationPanel({ entity }: { entity: Entity }) {
   const total = (resolved ?? []).length;
 
   return (
-    <section className="fantasy-stripe-top relative overflow-hidden rounded-2xl border border-gold/15 bg-gradient-to-br from-gold/12 via-card to-night/70 p-5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)] sm:p-6">
+    <section className="fantasy-stripe-top relative overflow-hidden rounded-2xl border border-hairline bg-gradient-to-br from-gold/12 via-card to-night/70 p-5 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.7)] sm:p-6">
       <span
         aria-hidden
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(212,175,55,0.14),transparent_60%)]"
@@ -377,7 +368,7 @@ function AddRelationDialog({
             onChange={(event) => setSearch(event.target.value)}
             placeholder="Nome o tipo…"
           />
-          <ScrollArea className="mt-2 h-56 rounded-lg border border-gold/15 bg-black/20">
+          <ScrollArea className="mt-2 h-56 rounded-lg border border-hairline bg-black/20">
             <ul className="p-1">
               {candidates.map((candidate) => {
                 const config = ENTITY_REGISTRY[candidate.type];

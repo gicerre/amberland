@@ -1,42 +1,31 @@
 "use client";
 
-import { BookOpen, CalendarDays, Plus } from "lucide-react";
-import Link from "next/link";
+import { BookOpen, Plus, ScrollText } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { EmptyState } from "@/components/shared/empty-state";
 import { ListPageHero } from "@/components/shared/list-page-hero";
-import { richTextToPlainText } from "@/components/shared/rich-text-utils";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/auth-provider";
+import { ChroniclesBook } from "@/features/chronicles/components/chronicles-book";
+import { useChronicles } from "@/features/chronicles/data";
 import { EntityCard } from "@/features/entities/components/entity-card";
 import { QuickCreateDialog } from "@/features/entities/components/quick-create-dialog";
 import { useEntitiesByType } from "@/features/entities/data";
-import type { Entity, EntityType } from "@/types/entities";
 
 /**
- * Cronache del regno: la timeline degli eventi storici
- * e il diario delle sessioni di gioco.
+ * Cronache: il Libro della Storia di Amberland — il codex narrativo
+ * ufficiale della campagna — e il diario delle sessioni di gioco.
  */
 export default function ChroniclesPage() {
   const { isMaster } = useAuth();
-  const [createType, setCreateType] = useState<EntityType | null>(null);
+  const [sessionOpen, setSessionOpen] = useState(false);
 
-  const { data: events, isLoading: eventsLoading } = useEntitiesByType("event");
+  const { data: chronicles } = useChronicles();
   const { data: sessions, isLoading: sessionsLoading } =
     useEntitiesByType("session");
-
-  const sortedEvents = useMemo(
-    () =>
-      [...(events ?? [])].sort(
-        (a, b) =>
-          Number(a.fields.eventOrder ?? 0) - Number(b.fields.eventOrder ?? 0)
-      ),
-    [events]
-  );
 
   const sortedSessions = useMemo(
     () =>
@@ -54,52 +43,36 @@ export default function ChroniclesPage() {
       <ListPageHero
         eyebrow="Ciò che è stato"
         title="Cronache"
-        subtitle="La storia del mondo e il diario del party: ciò che è stato, inciso per sempre."
-        accent="#f1c40f"
+        subtitle="Il Libro della Storia di Amberland: guerre, leggende, diari e profezie, incisi per sempre."
+        accent="var(--gold-light)"
       />
 
-      <Tabs defaultValue="eventi">
+      <Tabs defaultValue="libro">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <TabsList>
-            <TabsTrigger value="eventi" className="gap-2">
-              <CalendarDays className="size-4" />
-              Eventi ({sortedEvents.length})
+            <TabsTrigger value="libro" className="gap-2">
+              <ScrollText className="size-4" />
+              Il Libro delle Cronache
+              <TabCountSeal count={(chronicles ?? []).length} />
             </TabsTrigger>
             <TabsTrigger value="sessioni" className="gap-2">
               <BookOpen className="size-4" />
-              Sessioni ({sortedSessions.length})
+              Diario delle sessioni
+              <TabCountSeal count={sortedSessions.length} />
             </TabsTrigger>
           </TabsList>
         </div>
 
-        {/* ------------------------- Eventi ------------------------- */}
-        <TabsContent value="eventi">
-          {isMaster && (
-            <div className="mb-5 flex justify-end">
-              <Button onClick={() => setCreateType("event")}>
-                <Plus className="size-4" />
-                Evento
-              </Button>
-            </div>
-          )}
-          {eventsLoading ? (
-            <Skeleton className="h-64 w-full rounded-xl bg-muted/60" />
-          ) : sortedEvents.length === 0 ? (
-            <EmptyState
-              icon={CalendarDays}
-              title="La storia non è ancora stata scritta"
-              description="Guerre, incoronazioni, cataclismi: gli eventi del mondo appariranno qui in ordine cronologico."
-            />
-          ) : (
-            <Timeline events={sortedEvents} />
-          )}
+        {/* ------------------------- Il Libro ------------------------ */}
+        <TabsContent value="libro">
+          <ChroniclesBook />
         </TabsContent>
 
         {/* ------------------------ Sessioni ------------------------ */}
         <TabsContent value="sessioni">
           {isMaster && (
             <div className="mb-5 flex justify-end">
-              <Button onClick={() => setCreateType("session")}>
+              <Button onClick={() => setSessionOpen(true)}>
                 <Plus className="size-4" />
                 Sessione
               </Button>
@@ -123,11 +96,11 @@ export default function ChroniclesPage() {
         </TabsContent>
       </Tabs>
 
-      {isMaster && createType && (
+      {isMaster && (
         <QuickCreateDialog
-          open={createType !== null}
-          onOpenChange={(open) => !open && setCreateType(null)}
-          type={createType}
+          open={sessionOpen}
+          onOpenChange={setSessionOpen}
+          type="session"
           stay
         />
       )}
@@ -135,42 +108,11 @@ export default function ChroniclesPage() {
   );
 }
 
-/** Timeline verticale degli eventi storici. */
-function Timeline({ events }: { events: Entity[] }) {
+/** Conteggio in un sigillo sul nastro del segnalibro (niente "(12)"). */
+function TabCountSeal({ count }: { count: number }) {
   return (
-    <ol className="relative ml-3 space-y-6 border-l border-gold/25 pl-8">
-      {events.map((event) => (
-        <li key={event.id} className="relative">
-          <span
-            aria-hidden
-            className="absolute top-2 -left-[39px] size-3 rotate-45 border border-gold bg-gold/30"
-          />
-          <Link
-            href={`/entita/${event.id}`}
-            className="group block rounded-xl border border-gold/15 bg-card/60 p-5 transition-all hover:-translate-y-0.5 hover:border-gold/45"
-          >
-            <div className="flex flex-wrap items-center gap-2.5">
-              {typeof event.fields.eventDate === "string" &&
-                event.fields.eventDate && (
-                  <Badge
-                    variant="outline"
-                    className="border-gold/40 bg-gold/10 font-heading text-gold-bright"
-                  >
-                    {event.fields.eventDate}
-                  </Badge>
-                )}
-              <h3 className="font-heading text-lg font-semibold text-foreground group-hover:text-gold-bright">
-                {event.name}
-              </h3>
-            </div>
-            {richTextToPlainText(event.description) && (
-              <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">
-                {richTextToPlainText(event.description)}
-              </p>
-            )}
-          </Link>
-        </li>
-      ))}
-    </ol>
+    <span className="ml-0.5 inline-flex min-w-5 items-center justify-center rounded-full border border-gold/30 bg-night px-1.5 py-px font-heading text-[11px] leading-none text-gold/80">
+      {count}
+    </span>
   );
 }
