@@ -1531,66 +1531,195 @@ al massimo di 3 celle; due browser vedono lo stesso movimento entro ~300 ms.
 
 ---
 
+## 18. Battlemap Editor (fase E)
+
+La mappa non è un'immagine con una griglia sopra: è una **struttura
+tattica**. L'editor è il posto in cui la si costruisce, e il Combat System
+la consuma senza sapere da dove venga.
+
+### 18.1 Modello dati — `types/battlemap.ts`
+
+```
+TacticalMap
+├── cells      Record<"x,y", MapCell>   celle SPARSE
+├── objects    MapObject[]              ostacoli, muri, porte, leve, scale…
+├── traps      MapTrap[]                CD, tiro salvezza, danni, innesco
+├── hazards    MapHazard[]              fuoco, gas, corrente, crolli…
+├── areas      MapArea[]                indipendenti dalle celle
+├── layers     LayerStates              visibile / bloccato
+└── settings   MapSettings              terreno base, tabella CD, dislivelli
+```
+
+`MapCell` porta terreno, quota, costo (override compreso), blocco,
+copertura anche direzionale, prova richiesta e nota del Master.
+
+**Dove vive**: nel documento `battles/{id}`, campo `tactical`. Le celle
+sono sparse — si scrivono solo quelle diverse dal default — quindi una
+mappa 30×21 pesa decine di KB. Il limite del documento Firestore (1 MB) è
+protetto da `MAP_LIMITS` e da un tetto di 700 KB lato API.
+
+**Compatibilità**: `Battle.terrain` continua a esistere come PROIEZIONE
+derivata a ogni salvataggio (`deriveLegacyTerrain`), così le battaglie
+create prima dell'editor e ogni lettore del vecchio campo continuano a
+funzionare. La verità però è `tactical.cells`: `engine/movement` la
+preferisce quando c'è.
+
+### 18.2 Moduli puri
+
+| Modulo | Responsabilità |
+| --- | --- |
+| `engine/tactical.ts` | Interrogazione della mappa: costo effettivo, copertura, prove, ingombri degli oggetti, forme dei pennelli, flood fill, copia/incolla, normalizzazione |
+| `engine/history.ts` | Annulla/ripristina a **patch**, non a istantanee: ogni gesto produce una patch e la sua inversa, calcolata sullo stato di quel momento |
+| `engine/generator.ts` | 13 preset procedurali con seme deterministico (foresta, palude, montagna, castello, sotterraneo, rovine, campo di battaglia, villaggio, tempio, caverna, costa, fiume, vuoto) |
+| `features/battle/terrain.ts` | Libreria dei 21 terreni con costi, prove e linea di vista; tabella CD centrale |
+| `features/battle/library.ts` | Catalogo di 23 oggetti, 6 trappole, 12 pericoli, 6 aree preconfezionate |
+
+### 18.3 Architettura dell'editor
+
+```
+app/(battle)/battaglie/[id]/editor      route a schermo pieno
+└── features/battle/editor/
+    ├── battlemap-editor.tsx   guscio: testata, rail, canvas, pannelli, barra di stato, scorciatoie
+    ├── use-editor.ts          stato + storico + salvataggio (contesto React)
+    ├── operations.ts          gesto → patch (puro): l'unica strada per modificare la mappa
+    ├── editor-canvas.tsx      interazione: tratti, forme, selezione, prova sul campo
+    ├── map-layers.tsx         disegno dei livelli (run orizzontali fusi)
+    ├── tool-rail.tsx          strumenti + opzioni contestuali
+    ├── properties-panel.tsx   proprietà contestuali e modifica in blocco
+    ├── layers-panel.tsx       visibilità e blocco dei 12 livelli
+    ├── object-library.tsx     catalogo con ricerca e categorie
+    ├── test-battle.tsx        rapporto della prova sul campo
+    └── quick-map-wizard.tsx   creazione guidata in 5 passi
+```
+
+**Perché lo stato vive nel client**: la mappa si modifica in memoria e si
+salva con un gesto esplicito (`PUT /api/battles/[id]/map`). È l'unico
+modello che rende annulla/ripristina istantanei. Conseguenza dichiarata:
+se due Master lavorano insieme sulla stessa mappa, vince l'ultimo che
+salva.
+
+**Perché il viewport è condiviso**: `BattleCanvas` (zoom, pan, pinch,
+schermo intero) è lo stesso del Campo di Battaglia, esteso con
+`onCellPointer`. Con uno strumento attivo il tasto sinistro disegna e la
+panoramica resta su tasto centrale e barra spaziatrice.
+
+### 18.4 Prova sul campo
+
+Modalità `TEST`: si posa una pedina finta, si sceglie una destinazione e
+si legge distanza, costo del movimento, terreno, quota, copertura,
+pericoli, trappole e prova richiesta con la sua CD. Usa lo stesso
+`engine/movement` dello scontro vero, quindi ciò che dice è ciò che
+accadrà.
+
+---
+
 ## 17. Stato di avanzamento — handoff
 
 > Aggiornare questa sezione alla fine di ogni sessione di lavoro.
 > È il punto da cui ripartire: cosa è fatto, cosa manca, cosa è stato deciso.
 
-**Ultimo aggiornamento**: 24 agosto 2026
-**Fase corrente**: F0 — Fondamenta (parzialmente completata)
-**Stato git**: tutto **non committato** (untracked), ultimo commit `b9f8e49`
-**Verifica**: `npx tsc --noEmit` pulito
+**Ultimo aggiornamento**: 26 agosto 2026 (Battlemap Editor)
+**Fase corrente**: F0–F2 e **Battlemap Editor (E)** completati; prossima F3 (lobby, iniziativa, turni)
+**Stato git**: F0 iniziale in `cb743f6`; completamento F0, F1, F2 e Battlemap Editor nel working tree
+**Verifica**: `npx tsc --noEmit` pulito · `npm run check:combat` → 63 verifiche superate · `npx eslint` pulito · `next build` compila e supera il type-check (la raccolta pagine richiede un `.next` libero dal dev server)
 
-### Fatto
+### Fatto — F0 (Fondamenta)
 
 | File | Righe | Contenuto |
 | --- | --: | --- |
-| `docs/COMBAT_SYSTEM.md` | ~1600 | Questo documento: analisi + piano |
 | `src/types/battle.ts` | 564 | Modelli completi: `Battle`, `GridConfig`, `BackgroundImage`, `Combatant`, `CombatantSecret`, `BattleEvent`, `BattlePresence`, `InitiativeEntry`, `TurnState`, `CombatantView` + default (`DEFAULT_GRID`, `DEFAULT_BATTLE_RULES`, `BATTLE_LIMITS`) |
 | `src/features/battle/constants.ts` | 319 | Etichette diegetiche IT, badge di stato, categorie nemico con accenti, `TERRAIN_COST_MULTIPLIER`, soglie `HEALTH_BAND_THRESHOLDS`, `CELL_SIZE_PRESETS`, `duplicateSuffix()` |
-| `src/features/battle/engine/geometry.ts` | 522 | Distanze (4 metriche), `entityDistance` con ingombro, aree (raggio/cono/linea/rettangolo), Bresenham + `lineOfSight`, celle↔pixel, `suggestGrid`, `aspectMismatch` |
+| `src/features/battle/engine/geometry.ts` | 522 | Distanze (4 metriche), `entityDistance` con ingombro, aree, Bresenham + `lineOfSight`, celle↔pixel, `suggestGrid`, `aspectMismatch` |
 | `src/features/battle/engine/initiative.ts` | 142 | `buildOrder` con i 5 criteri di spareggio, `applyManualOrder`, `upsertEntry`, `findTies` |
+| `src/features/battle/engine/health.ts` | 226 | `healthBandFor`, `healthRatio`, `applyDamage`/`applyHealing`/`applyTempHp`/`setHitPoints`, `applyHealthOperation`, `applyDeathSave` |
+| `src/features/battle/schemas.ts` | 360 | Zod v4 condivisi client/server, limiti da `BATTLE_LIMITS` |
+| `scripts/check-combat-engine.ts` | 351 | 28 verifiche con `node:assert` (`npm run check:combat`) |
 
-Nessun file esistente è stato modificato. Nessuna dipendenza npm aggiunta.
+Modifiche additive: `COLLECTIONS.battles`/`battleTemplates`, `ImageFolder` con
+`"battlemap" | "token"`, `requireUser`/`requireRole`/`requireBattleMaster` in
+`api-helpers.ts` (con `requireAdmin`/`requireMaster` riscritte sopra `requireUser`),
+blocco `battles/**` in `firestore.rules`, i due indici, script `check:combat`.
 
-### Da fare per chiudere la F0
+**Rules pubblicate** dall'autore il 25 ago 2026.
 
-1. `src/features/battle/engine/health.ts` — `healthBandFor(hp)` dalle soglie già
-   definite in `constants.ts`; `applyDamage` / `applyHealing` puri (con HP
-   temporanei consumati per primi).
-2. `src/features/battle/schemas.ts` — Zod v4, condivisi client/server: schemi di
-   creazione/modifica battaglia, griglia, sfondo, combattente, movimento, HP,
-   turno. Limiti da `BATTLE_LIMITS`.
-3. `src/lib/constants.ts` — aggiungere a `COLLECTIONS`: `battles: "battles"`,
-   `battleTemplates: "battle_templates"`.
-4. `src/lib/upload/image-service.ts` — `ImageFolder` diventa
-   `EntityType | "misc" | "battlemap" | "token"`.
-5. `src/lib/server/api-helpers.ts` — aggiungere `requireUser`, `requireRole`,
-   `requireBattleMaster` (quest'ultima legge `battles/{id}` con l'Admin SDK e
-   verifica `role === "ADMIN" || masterIds.includes(uid)`).
-6. `firestore.rules` — blocco `battles/**` (vedi §6.3) **prima** del catch-all
-   `match /{document=**}`. ⚠️ **Da pubblicare a mano dalla console Firebase**:
-   finché non è pubblicato, la feature non è sicura.
-7. `firestore.indexes.json` — i due indici della §12.3 (oggi il file è vuoto).
-8. `scripts/check-combat-engine.ts` — verifica dei moduli puri con `node:assert`,
-   eseguibile via `tsx` (già dipendenza dev). Aggiungere lo script
-   `"check:combat": "tsx scripts/check-combat-engine.ts"` in `package.json`.
-   Niente framework di test: il progetto non ne ha e non serve introdurlo.
+### Fatto — F1 (Creazione della Battle Map)
 
-### Casi da coprire nello script di verifica
+| File | Contenuto |
+| --- | --- |
+| `src/app/api/battles/route.ts` | `POST` — crea in DRAFT con documento completo; il creatore è sempre fra i `masterIds` |
+| `src/app/api/battles/[id]/route.ts` | `PATCH` (griglia e sfondo solo in DRAFT/READY, terreno come patch sparsa fusa lato server) · `DELETE` (`recursiveDelete`, vietata in ACTIVE) |
+| `src/app/api/battles/[id]/state/route.ts` | `POST` — DRAFT ⇄ READY e archiviazione; ACTIVE/PAUSED/COMPLETED richiedono `turn.round ≥ 1` |
+| `src/features/battle/data.ts` | Lettura da Firestore consapevole del ruolo (i player filtrano sugli stati pubblici, query allineata all'indice) + mutazioni via API con React Query e toast |
+| `components/battle-grid.tsx` | Griglia e terreno in UN solo `<svg>` con `<pattern>`, calibrazione via `patternTransform` |
+| `components/battle-canvas.tsx` | Viewport: zoom ancorato al puntatore (Ctrl/⌘+rotellina, pinch a due dita, pulsanti), pan, "Adatta", schermo intero. Zoom e pan restano stato locale: il modello non cambia mai |
+| `components/map-editor.tsx` | Identità, griglia, unità e lato cella (preset + libero), metrica, sfondo con lettura delle dimensioni native, avviso proporzioni + "adatta la griglia", oscuramento, calibrazione, salva / dichiara pronta / elimina |
+| `components/battle-card.tsx`, `battle-create-dialog.tsx`, `battle-preparation.tsx`, `war-table-panel.tsx` | Elenco, creazione, guardia Master, pannello nella Sala del Master |
+| `src/app/(app)/battaglie/page.tsx` · `[id]/preparazione/page.tsx` | Elenco (bozze separate dagli scontri) e preparazione |
+| `src/components/layout/nav-config.ts` | Voce "Campi di Battaglia" nel gruppo Party + `activePaths` |
 
-- `cellDistance`: (0,0)→(3,3) = 3 con CHEBYSHEV, 6 con MANHATTAN,
-  4 con ALTERNATING (3 diagonali: 3 + floor(3/2) = 4), ~4,24 con EUCLIDEAN.
-- `worldDistance` con `cellSize: 3` → (0,0)→(3,0) = 9 m (il caso della richiesta:
-  9 metri di movimento = 3 celle).
-- `footprint`/`entityDistance` con taglia 2: due creature Grandi adiacenti
-  devono risultare a distanza `cellSize`, non `2 × cellSize`.
-- `buildOrder`: pareggio a 18 risolto dal `dexMod`; pareggio pieno risolto in
-  modo deterministico (stesso ordine su due invocazioni con input mescolato).
-- `applyManualOrder`: la sequenza scelta dal Master sopravvive a un successivo
-  `buildOrder`.
-- `duplicateSuffix`: 0→"A", 25→"Z", 26→"AA".
-- `suggestGrid(1920, 1080)` con lato lungo 20 → 20×11.
+**Da verificare dal vivo** (dev server): 30 × 21 m con celle da 3 m → griglia
+10 × 7, immagine allineata, zoom e pan fluidi, riapertura senza perdite.
+
+### Fatto — F2 (Nemici, schieramento, movimento)
+
+| File | Contenuto |
+| --- | --- |
+| `engine/movement.ts` | Dijkstra su griglia con parità delle diagonali (5-10-5), costo del terreno sull'intero ingombro, alleati attraversabili e nemici bloccanti, `reachableCells`, `pathTo`, `pathCost` (valida il percorso proposto dal client), `checkMove`, `buildOccupancy`, `autoPlace` |
+| `engine/visibility.ts` | `projectCombatant`/`projectField` (unico punto di verità sulla riservatezza), `canViewSecrets`, `canControlCombatant`, `publicHealthFor` (cosa finisce sul documento pubblico) |
+| `api/battles/[id]/combatants/route.ts` | `POST` — 1..N pedine con suffissi A/B/C, anelli di colore ciclici, posizionamento automatico a spirale; HP veri sempre in `secret/master` |
+| `api/battles/[id]/combatants/[cid]/route.ts` | `PATCH` (posizione validata contro griglia e occupazione, HP nel documento riservato con riflesso pubblico filtrato) · `DELETE` (ricorsivo + depennamento dall'ordine) |
+| `api/battles/[id]/combatants/[cid]/move/route.ts` | Movimento transazionale: turno, controllo della pedina, percorso ricalcolato dal server, `movementUsed`, evento `COMBATANT_MOVED`. Il Master può forzare, ma resta tracciato |
+| `lib/server/battle-events.ts` | Cronaca append-only; l'id del documento è l'`actionId` del client → un retry di rete non applica due volte l'azione |
+| `components/battle-token.tsx` | Pedina DOM+framer-motion, segnaposto generato (iniziale su disco della categoria), anello, barra di salute, trascinamento consapevole dello zoom |
+| `components/movement-overlay.tsx` | Celle raggiungibili + percorso (oro se nel budget, cremisi se oltre) |
+| `components/battle-field.tsx` | Campo condiviso fra preparazione e scontro: proiezione per ruolo, portata, anteprima del percorso, righello, movimento |
+| `components/combatant-form.tsx`, `combatant-roster.tsx` | Creazione pedine con import dal Bestiario e quantità; elenco schiere con visibilità e rimozione |
+
+`scripts/check-combat-engine.ts` copre ora **45 verifiche**, fra cui: 9 m con
+celle da 3 m = 3 celle di raggio; terreno difficile che dimezza la portata; muro
+aggirato; alleato attraversabile ma non occupabile; nemico bloccante; creatura
+Grande che non passa da una breccia di una cella; percorso con salto rifiutato;
+proiezione per ruolo su tutti i valori di `enemyHpDisplay`.
+
+**Da verificare dal vivo**: 8 Goblin creati in una sola operazione; una pedina
+con 9 m che si muove al massimo di 3 celle; due browser che vedono lo stesso
+movimento entro ~300 ms.
+
+### Fatto — E (Battlemap Editor)
+
+Riprogettazione completa della creazione e modifica delle mappe: modello
+dati tattico, editor a schermo pieno, generazione da preset. Dettaglio
+architetturale nella **§18**.
+
+| Area | File |
+| --- | --- |
+| Modello | `types/battlemap.ts` (celle, oggetti, trappole, pericoli, aree, layer, impostazioni, limiti) |
+| Regole | `features/battle/terrain.ts` (21 terreni), `library.ts` (23 oggetti, 6 trappole, 12 pericoli, 6 aree) |
+| Motori puri | `engine/tactical.ts`, `engine/history.ts`, `engine/generator.ts`; `engine/movement.ts` esteso con costi tattici e dislivelli |
+| Persistenza | `map-schemas.ts` (Zod), `PUT /api/battles/[id]/map` (valida, limita a 700 KB, deriva `terrain` legacy), `useSaveBattleMap` |
+| Editor | `features/battle/editor/` (11 moduli) su `app/(battle)/battaglie/[id]/editor` |
+| Integrazione | Pulsante nell'editor di preparazione; pedine importabili dal Bestiario **e** dai Personaggi; il campo di gioco e `/move` usano la mappa tattica quando c'è |
+
+Verifiche: `npm run check:combat` → **63 verifiche** (18 nuove su mappa
+tattica, storico, generatore e movimento con dislivelli); `tsc --noEmit`
+e `eslint` puliti; rotte `/battaglie`, `/battaglie/[id]/editor` e
+`/battaglie/[id]/preparazione` servite a 200 dal dev server.
+
+**Non incluso, dichiarato**: illuminazione e linea di vista dinamica (il
+layer `lighting` esiste nel modello ma non ha ancora strumenti); griglia
+esagonale; minimappa; trascinamento vero dalla libreria (si sceglie
+l'oggetto e si posa con un clic, gesto equivalente e migliore su tablet).
+
+### Prossimo passo — F3 (Lobby, iniziativa, turni)
+
+1. `POST /api/battles/[id]/publish` (DRAFT|READY → LOBBY, valida ≥1 pedina) e
+   `POST …/join` · `…/leave` per i giocatori.
+2. `POST …/start` (costruisce `order` con `engine/initiative`, round 1) e
+   `POST …/turn` con `expectedVersion` (compare-and-swap già previsto in
+   `TurnState`).
+3. Traccia iniziativa (barra orizzontale su mobile) e schermata di scontro nel
+   route group `app/(battle)/`, che riusa `BattleField` così com'è.
+4. `POST …/combatants/[cid]/hp` e `…/conditions`, con `engine/health` già pronto.
 
 ### Decisioni prese (default già scritti nel codice)
 
@@ -1605,11 +1734,18 @@ cambiarle è una riga in `DEFAULT_BATTLE_RULES` / `DEFAULT_GRID`.
 | Griglia predefinita | 20 × 15 | `DEFAULT_GRID` |
 | Movimento oltre budget | bloccato | `DEFAULT_BATTLE_RULES.enforceMovement` |
 | HP degli alleati visibili al party | sì | `DEFAULT_BATTLE_RULES.revealAllyHp` |
+| HP temporanei | non cumulativi, prevale il maggiore (5e) | `engine/health.ts` |
+| Cura da 0 HP | rimette in piedi; solo il Master dichiara `isDead` | `engine/health.ts` |
+| `isBattleMaster()` nelle Rules | richiede anche `role() == 'MASTER'` oltre a `masterIds` | `firestore.rules` |
+| Mappa tattica | dentro `battles/{id}.tactical`, celle sparse (nessuna nuova Rules da pubblicare) | `types/battlemap.ts` |
+| Salvataggio mappa | intera, esplicito; ultimo salvataggio vince | `PUT /api/battles/[id]/map` |
+| Dislivelli | salire costa `elevationStepCost` per livello, scendere è gratis; oltre `maxClimbableStep` non si sale | `engine/movement.ts` |
+| Rigenerazione da preset | azzera lo storico (una patch grande vanificherebbe le patch) | `use-editor.ts` |
 
 ### Ancora da confermare con l'autore
 
-1. **Un PC per giocatore o più?** `useMyCharacter()` restituisce oggi il primo PC
-   posseduto; la lobby può gestire la scelta multipla senza costi aggiuntivi.
+1. **Un PC per giocatore o più?** `joinBattleSchema` chiede già un `characterId`
+   esplicito, quindi la scelta multipla è supportata a livello di contratto.
 2. **Griglia esagonale**: `GRID_KINDS` la prevede, `geometry.ts` la ignora
    (tutte le funzioni assumono celle quadrate). Da implementare solo se serve.
 3. **Tiri di dado integrati**: non richiesti, ma il ciclo di combattimento resta
@@ -1620,8 +1756,7 @@ cambiarle è una riga in `DEFAULT_BATTLE_RULES` / `DEFAULT_GRID`.
 - I moduli `engine/` sono **puri**: nessun import da Firebase, React o DOM.
   Vanno importati sia dai componenti sia dalle API Route — è ciò che impedisce
   alla logica di divergere fra client e server. Non introdurre `"use client"`.
-- Le API di combattimento non esistono ancora: la prima va scritta in F1
-  (`POST /api/battles`), seguendo lo stile di `src/app/api/players/route.ts`
-  (`runtime = "nodejs"`, `try/catch` con `handleApiError`).
-- Le Security Rules del blocco `battles/**` non sono ancora scritte: finché non
-  lo sono, **nessun dato di battaglia deve essere scritto in produzione**.
+- Ogni modifica agli engine va accompagnata da un caso in
+  `scripts/check-combat-engine.ts`: è l'unica rete di sicurezza del progetto.
+- Gli HP numerici dei nemici stanno in `combatants/{cid}/secret/master`: le
+  Rules filtrano documenti, mai campi.

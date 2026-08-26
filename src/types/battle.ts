@@ -1,5 +1,6 @@
 import type { Timestamp } from "firebase/firestore";
 
+import type { TacticalMap } from "./battlemap";
 import type { CharacterSheet, ConditionEntry } from "./entities";
 import type { Role } from "./models";
 
@@ -231,9 +232,17 @@ export interface Battle {
 
   /**
    * Livello terreno come mappa SPARSA: chiave "x,y" → tipo.
-   * Una mappa vuota non occupa spazio; le celle NORMAL non si scrivono.
+   * PROIEZIONE del modello tattico, mantenuta per compatibilità con il
+   * motore di movimento e con le battaglie nate prima dell'editor.
    */
   terrain: Record<string, TerrainKind>;
+
+  /**
+   * Mappa tattica completa (celle, oggetti, trappole, pericoli, aree):
+   * è la verità del campo, prodotta dal Battlemap Editor. Assente sulle
+   * battaglie più vecchie — vedi `normalizeTacticalMap`.
+   */
+  tactical?: TacticalMap | null;
 
   links: BattleLinks;
 
@@ -480,7 +489,12 @@ export interface CombatantView {
   position: Position | null;
   turnState: CombatantTurnState;
   isDead: boolean;
-  healthBand: HealthBand;
+  /**
+   * Fascia di salute per chi guarda; `null` quando il Master ha scelto di
+   * non rivelare nulla (`enemyHpDisplay: "HIDDEN"`): nessuna informazione
+   * è più onesta di una fascia inventata.
+   */
+  healthBand: HealthBand | null;
   /** HP numerici, se chi guarda ha diritto di vederli. */
   hp: HitPoints | null;
   /** Rapporto 0–1 per la barra, se consentita senza numeri. */

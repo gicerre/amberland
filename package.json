@@ -10,6 +10,7 @@
     "seed:admin": "tsx scripts/create-admin.ts",
     "seed:users": "tsx scripts/seed-users.ts",
     "deploy:rules": "tsx scripts/deploy-rules.ts",
+    "check:combat": "tsx scripts/check-combat-engine.ts",
     "optimize:images": "node scripts/optimize-images.mjs",
     "emulators": "firebase emulators:start"
   },

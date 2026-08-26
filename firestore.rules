@@ -241,6 +241,60 @@ service cloud.firestore {
       allow write: if isSelf(userId) && isContributor();
     }
 
+    // ---------- Campo di Battaglia ----------
+    // NOTA: la query dei giocatori sull'elenco battaglie DEVE includere
+    // where('status', 'in', ['LOBBY','ACTIVE','PAUSED','COMPLETED']) —
+    // le bozze restano invisibili al party, come per `visibility` su entities.
+    match /battles/{battleId} {
+      function isBattleMaster() {
+        return isAdmin()
+          || (isSignedIn() && role() == 'MASTER'
+              && request.auth.uid in resource.data.masterIds);
+      }
+
+      allow read: if isBattleMaster()
+        || (isSignedIn() && resource.data.status in
+            ['LOBBY', 'ACTIVE', 'PAUSED', 'COMPLETED']);
+
+      // TUTTE le scritture passano dall'Admin SDK (API Route), che bypassa
+      // queste regole: le Rules non sanno eseguire un pathfinding né
+      // arbitrare un turno. Nessun client scrive direttamente.
+      allow write: if false;
+
+      match /combatants/{combatantId} {
+        allow read: if isSignedIn();   // dati pubblici per costruzione
+        allow write: if false;
+
+        // Cuore della segretezza: HP numerici, statblock e note dei nemici.
+        // Le Rules filtrano DOCUMENTI, mai campi: un campo "privato" su un
+        // documento leggibile sarebbe visibile via SDK.
+        match /secret/{docId} {
+          allow read, write: if isMaster();
+        }
+      }
+
+      match /events/{eventId} {
+        allow read: if isMaster()
+          || (isSignedIn() && resource.data.masterOnly == false);
+        allow write: if false;
+      }
+
+      match /presence/{uid} {
+        allow read: if isSignedIn();
+        // Unica eccezione al "solo Admin SDK": l'heartbeat, ad alta
+        // frequenza e impatto nullo. Ognuno scrive solo il proprio.
+        allow create, update: if isSelf(uid) && isContributor()
+          && request.resource.data.uid == request.auth.uid;
+        allow delete: if isSelf(uid) || isMaster();
+      }
+    }
+
+    // Scontri preconfezionati riutilizzabili dal Master.
+    match /battle_templates/{templateId} {
+      allow read: if isSignedIn();
+      allow write: if isMaster();
+    }
+
     // ---------- Tutto il resto: negato ----------
     match /{document=**} {
       allow read, write: if false;

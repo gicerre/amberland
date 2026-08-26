@@ -14,8 +14,11 @@
 
 import type { EntityType } from "@/types/entities";
 
-/** Cartelle logiche di destinazione (prefisso del folder Cloudinary): una per tipo di entità. */
-export type ImageFolder = EntityType | "misc";
+/**
+ * Cartelle logiche di destinazione (prefisso del folder Cloudinary): una per
+ * tipo di entità, più le cartelle del Campo di Battaglia (sfondi e pedine).
+ */
+export type ImageFolder = EntityType | "misc" | "battlemap" | "token";
 
 export const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 

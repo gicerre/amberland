@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { getAdminAuth } from "@/lib/firebase/admin";
+import { COLLECTIONS } from "@/lib/constants";
+import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
 import type { AdminUserDto, Role } from "@/types/models";
 
 /** Errore applicativo con status HTTP, da lanciare nei route handler. */
@@ -14,13 +15,18 @@ export class ApiError extends Error {
   }
 }
 
+/** Chiamante autenticato: uid e ruolo letti dai custom claims. */
+export interface Caller {
+  uid: string;
+  role: Role;
+}
+
 /**
- * Verifica il Bearer token Firebase del chiamante e richiede
- * il ruolo ADMIN (letto dai custom claims).
+ * Verifica il Bearer token Firebase del chiamante e ne restituisce
+ * identità e ruolo, senza pretendere alcun privilegio: è la base su cui
+ * si appoggiano tutti i controlli più stretti.
  */
-export async function requireAdmin(
-  request: NextRequest
-): Promise<{ uid: string }> {
+export async function requireUser(request: NextRequest): Promise<Caller> {
   const header = request.headers.get("authorization") ?? "";
   const token = header.startsWith("Bearer ") ? header.slice(7) : null;
   if (!token) throw new ApiError(401, "Autenticazione richiesta");
@@ -32,10 +38,37 @@ export async function requireAdmin(
     throw new ApiError(401, "Sessione non valida o scaduta");
   }
 
-  if (decoded.role !== "ADMIN") {
+  return { uid: decoded.uid, role: (decoded.role as Role) ?? "VISITOR" };
+}
+
+/**
+ * Richiede uno fra i ruoli indicati (ADMIN è sempre ammesso: il Custode
+ * del Regno può fare tutto ciò che può un Master).
+ */
+export async function requireRole(
+  request: NextRequest,
+  roles: Role[],
+  message = "Permessi insufficienti"
+): Promise<Caller> {
+  const caller = await requireUser(request);
+  if (caller.role !== "ADMIN" && !roles.includes(caller.role)) {
+    throw new ApiError(403, message);
+  }
+  return caller;
+}
+
+/**
+ * Verifica il Bearer token Firebase del chiamante e richiede
+ * il ruolo ADMIN (letto dai custom claims).
+ */
+export async function requireAdmin(
+  request: NextRequest
+): Promise<{ uid: string }> {
+  const caller = await requireUser(request);
+  if (caller.role !== "ADMIN") {
     throw new ApiError(403, "Operazione riservata agli amministratori");
   }
-  return { uid: decoded.uid };
+  return { uid: caller.uid };
 }
 
 /**
@@ -45,22 +78,47 @@ export async function requireAdmin(
 export async function requireMaster(
   request: NextRequest
 ): Promise<{ uid: string; role: Role }> {
-  const header = request.headers.get("authorization") ?? "";
-  const token = header.startsWith("Bearer ") ? header.slice(7) : null;
-  if (!token) throw new ApiError(401, "Autenticazione richiesta");
+  return requireRole(
+    request,
+    ["MASTER"],
+    "Operazione riservata al Dungeon Master"
+  );
+}
 
-  let decoded;
-  try {
-    decoded = await getAdminAuth().verifyIdToken(token);
-  } catch {
-    throw new ApiError(401, "Sessione non valida o scaduta");
-  }
-
-  const role = decoded.role as Role | undefined;
-  if (role !== "ADMIN" && role !== "MASTER") {
+/**
+ * Regia di UNA battaglia: ADMIN sempre, oppure un MASTER esplicitamente
+ * elencato in `masterIds` (co-DM). Legge il documento con l'Admin SDK,
+ * che bypassa le Rules — quelle vietano ogni scrittura client su
+ * `battles/**`, e il controllo di merito vive qui.
+ *
+ * Restituisce anche i dati della battaglia: chi chiama ne ha quasi
+ * sempre bisogno subito dopo, e una lettura in meno è una lettura
+ * risparmiata su ogni azione di combattimento.
+ */
+export async function requireBattleMaster(
+  request: NextRequest,
+  battleId: string
+): Promise<Caller & { battle: FirebaseFirestore.DocumentData }> {
+  const caller = await requireUser(request);
+  if (caller.role !== "ADMIN" && caller.role !== "MASTER") {
     throw new ApiError(403, "Operazione riservata al Dungeon Master");
   }
-  return { uid: decoded.uid, role };
+
+  const snapshot = await getAdminDb()
+    .collection(COLLECTIONS.battles)
+    .doc(battleId)
+    .get();
+  const battle = snapshot.data();
+  if (!snapshot.exists || !battle) {
+    throw new ApiError(404, "Battaglia non trovata");
+  }
+
+  const masterIds = (battle.masterIds as string[] | undefined) ?? [];
+  if (caller.role !== "ADMIN" && !masterIds.includes(caller.uid)) {
+    throw new ApiError(403, "Non sei fra i Master di questa battaglia");
+  }
+
+  return { ...caller, battle };
 }
 
 /** Converte errori in risposte JSON coerenti ({ error: string }). */
