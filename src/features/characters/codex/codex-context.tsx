@@ -5,7 +5,9 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -61,6 +63,11 @@ interface SavePayload {
   history?: CharacterHistoryEntry[];
 }
 
+/** Patch parziale, o funzione (scheda attuale) → patch parziale. */
+export type SheetPatch =
+  | Partial<CharacterSheet>
+  | ((current: CharacterSheet) => Partial<CharacterSheet>);
+
 interface CodexContextValue {
   entity: Entity;
   /** Scheda normalizzata (mai undefined nei campi nuovi). */
@@ -73,9 +80,13 @@ interface CodexContextValue {
   canEdit: boolean;
   /** Salvataggi in corso (per il segnale "sto scrivendo…"). */
   saving: boolean;
-  /** Applica una patch alla scheda e salva (optimistic). */
+  /**
+   * Applica una patch alla scheda e salva (optimistic). Accetta anche una
+   * funzione che riceve la scheda più recente: serve quando il nuovo valore
+   * dipende dal precedente (danno/cura ripetuti in rapida successione).
+   */
   patchSheet: (
-    patch: Partial<CharacterSheet>,
+    patch: SheetPatch,
     options?: { history?: CharacterHistoryEntry }
   ) => void;
   /** Patch dei fields dell'entità (razza, allineamento…). */
@@ -193,19 +204,35 @@ export function CodexProvider({
 
   const { mutate: saveMutate } = save;
 
+  // Ultima scheda promessa: si riallinea a quella reale solo quando non ci
+  // sono salvataggi in corso (altrimenti un refetch vecchio la riporterebbe
+  // indietro e le modifiche rapide si perderebbero a vicenda).
+  const latestSheetRef = useRef<CharacterSheet>(sheet);
+  useEffect(() => {
+    if (!save.isPending) latestSheetRef.current = sheet;
+  }, [sheet, save.isPending]);
+
   const patchSheet = useCallback(
     (
-      patch: Partial<CharacterSheet>,
+      patchOrUpdater: SheetPatch,
       options?: { history?: CharacterHistoryEntry }
     ) => {
       if (!canEdit) return;
-      const nextSheet: CharacterSheet = { ...sheet, ...patch };
+      // Si fonde sull'ultima scheda "promessa" (non su quella dell'ultimo
+      // render): due modifiche rapide su campi diversi non si sovrascrivono.
+      const base = latestSheetRef.current;
+      const patch =
+        typeof patchOrUpdater === "function"
+          ? patchOrUpdater(base)
+          : patchOrUpdater;
+      const nextSheet: CharacterSheet = { ...base, ...patch };
+      latestSheetRef.current = nextSheet;
       const payload: SavePayload = { sheet: nextSheet };
       let celebrateLevel = 0;
 
       // Le classi guidano i fields derivati (classe primaria, livello).
       if (patch.classes) {
-        const previousLevel = totalLevel(sheet, Number(entity.fields.level ?? 0));
+        const previousLevel = totalLevel(base, Number(entity.fields.level ?? 0));
         const nextLevel = totalLevel(nextSheet, previousLevel);
         payload.fields = {
           ...entity.fields,
@@ -239,7 +266,7 @@ export function CodexProvider({
         },
       });
     },
-    [canEdit, sheet, entity, saveMutate, triggerCelebration]
+    [canEdit, entity, saveMutate, triggerCelebration]
   );
 
   const patchFields = useCallback(

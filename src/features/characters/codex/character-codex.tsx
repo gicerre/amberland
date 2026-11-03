@@ -14,6 +14,7 @@ import {
   ScrollText,
   Skull,
   Sparkles,
+  Swords,
   Trash2,
   Users,
   Wand2,
@@ -53,6 +54,7 @@ import { CHARACTER_STATUS_LABELS, NPC_TYPE_LABELS } from "../constants";
 import { useCharacterMutations } from "../data";
 import { CharacterFormSheet } from "../components/character-form-sheet";
 import { CodexProvider, useCodex } from "./codex-context";
+import { CombatMode } from "./combat-mode";
 import { CodexDashboard } from "./dashboard";
 import { CodexInspector } from "./inspector";
 import { CodexNav, type CodexSection } from "./codex-nav";
@@ -104,6 +106,7 @@ function CodexScreen({
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [combatOpen, setCombatOpen] = useState(false);
 
   const kind = (entity.fields.kind as CharacterKind) ?? "NPC";
   const isPC = kind === "PC";
@@ -202,6 +205,17 @@ function CodexScreen({
 
   const actions = canEdit ? (
     <div className="flex shrink-0 items-center gap-2">
+      {hasSheet && (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => setCombatOpen(true)}
+          aria-label="Attiva modalità combattimento"
+        >
+          <Swords className="size-4" />
+          <span className="hidden sm:inline">Combattimento</span>
+        </Button>
+      )}
       <Button size="sm" onClick={() => setEditOpen(true)}>
         <Pencil className="size-4" />
         <span className="hidden sm:inline">Modifica</span>
@@ -327,6 +341,9 @@ function CodexScreen({
       {/* ════ Superfici flottanti ════ */}
       <CodexInspector />
 
+      {canEdit && hasSheet && (
+        <CombatMode open={combatOpen} onOpenChange={setCombatOpen} />
+      )}
       {canEdit && (
         <CharacterFormSheet
           open={editOpen}

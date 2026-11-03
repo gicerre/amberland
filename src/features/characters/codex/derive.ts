@@ -64,6 +64,43 @@ export function passivePerception(sheet: CharacterSheet): number {
   return 10 + skillMod(sheet, "perception");
 }
 
+/** Intero positivo da un input libero; 0 se non valido. */
+export function toAmount(value: string | number): number {
+  const n = typeof value === "number" ? value : Number.parseInt(value, 10);
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : 0;
+}
+
+/** Danno 5e: consuma prima i PF temporanei, poi quelli attuali (min 0). */
+export function damagePatch(
+  sheet: Pick<CharacterSheet, "currentHp" | "tempHp">,
+  amount: number
+): Pick<CharacterSheet, "currentHp" | "tempHp"> {
+  const damage = toAmount(amount);
+  if (damage === 0) return { currentHp: sheet.currentHp, tempHp: sheet.tempHp };
+  const absorbed = Math.min(sheet.tempHp, damage);
+  return {
+    tempHp: sheet.tempHp - absorbed,
+    currentHp: Math.max(0, sheet.currentHp - (damage - absorbed)),
+  };
+}
+
+/** Cura: somma ai PF attuali senza superare il massimo. */
+export function healPatch(
+  sheet: Pick<CharacterSheet, "currentHp" | "tempHp" | "maxHp">,
+  amount: number
+): Pick<CharacterSheet, "currentHp" | "tempHp"> {
+  const heal = toAmount(amount);
+  const cap = sheet.maxHp > 0 ? sheet.maxHp : Infinity;
+  return {
+    tempHp: sheet.tempHp,
+    // Mai sotto i PF attuali (anche se già oltre il massimo).
+    currentHp: Math.max(
+      sheet.currentHp,
+      Math.min(cap, sheet.currentHp + heal)
+    ),
+  };
+}
+
 /** Livello totale dalla multiclasse, con fallback sui fields. */
 export function totalLevel(
   sheet: CharacterSheet | undefined,

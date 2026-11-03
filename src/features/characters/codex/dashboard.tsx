@@ -35,8 +35,10 @@ import {
 import { useCodex } from "./codex-context";
 import {
   classesSummary,
+  damagePatch,
   factotum,
   genId,
+  healPatch,
   passivePerception,
   totalLevel,
 } from "./derive";
@@ -244,18 +246,8 @@ function HpConsole() {
   const mid = pct > 25 && pct <= 50;
 
   const applyDelta = (delta: number) => {
-    if (delta < 0) {
-      // Il danno consuma prima i PF temporanei (regola 5e).
-      let damage = -delta;
-      const absorbed = Math.min(tempHp, damage);
-      damage -= absorbed;
-      patchSheet({
-        tempHp: tempHp - absorbed,
-        currentHp: Math.max(0, currentHp - damage),
-      });
-    } else {
-      patchSheet({ currentHp: Math.min(maxHp, currentHp + delta) });
-    }
+    // Il danno consuma prima i PF temporanei (regola 5e).
+    patchSheet(delta < 0 ? damagePatch(sheet, -delta) : healPatch(sheet, delta));
   };
 
   return (

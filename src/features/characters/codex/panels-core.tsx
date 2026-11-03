@@ -1,6 +1,6 @@
 "use client";
 
-import { Dices, Plus, Star, Swords, User } from "lucide-react";
+import { Dices, Plus, Sparkles, Star, Swords, User } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { CodexPanel, PanelEyebrow } from "./codex-panel";
 import {
   abilityMod,
   abilityTotal,
+  factotum,
   genId,
   saveMod,
   skillMod,
@@ -75,6 +76,7 @@ function SkillRow({ skillKey }: { skillKey: string }) {
   const proficient = sheet.skills.includes(skillKey);
   const expert = sheet.expertise.includes(skillKey);
   const mod = skillMod(sheet, skillKey);
+  const jack = factotum(sheet);
 
   return (
     <button
@@ -105,6 +107,17 @@ function SkillRow({ skillKey }: { skillKey: string }) {
             aria-label="Expertise"
             className="ml-1 inline size-3 fill-gold text-gold"
           />
+        )}
+        {jack && !proficient && (
+          <span
+            title={`${jack.label} ${formatModifier(jack.bonus)} (metà competenza)`}
+            className="ml-1 inline-flex align-middle"
+          >
+            <Sparkles
+              aria-label={`${jack.label}: ${formatModifier(jack.bonus)} (metà competenza)`}
+              className="size-3 text-gold-bright"
+            />
+          </span>
         )}
       </span>
       <span className="text-[10px] tracking-wide text-muted-foreground/70 uppercase">
