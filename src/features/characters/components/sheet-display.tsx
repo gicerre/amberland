@@ -46,6 +46,7 @@ import {
   SKILL_KEYS,
   abilityModifier,
   formatModifier,
+  getHalfProficiencyTrait,
 } from "../constants";
 import { CompanionsGrid } from "./companion-sheet";
 
@@ -104,6 +105,12 @@ function skillModifier(sheet: CharacterSheet, key: string): number {
   const { ability } = SKILLS[key];
   let mod = abilityModifier(abilityTotal(sheet, ability));
   if (sheet.skills.includes(key)) mod += sheet.proficiencyBonus;
+  else {
+    // Factotum & simili: metà competenza sulle prove senza competenza
+    mod +=
+      getHalfProficiencyTrait(sheet.classes, sheet.proficiencyBonus)?.bonus ??
+      0;
+  }
   if (sheet.expertise.includes(key)) mod += sheet.proficiencyBonus;
   return mod;
 }
@@ -183,8 +190,17 @@ export function HpBar({
  * ============================================================ */
 
 export function QuickStats({ sheet }: { sheet: CharacterSheet }) {
+  const halfProf = getHalfProficiencyTrait(
+    sheet.classes,
+    sheet.proficiencyBonus
+  );
   return (
-    <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-5">
+    <div
+      className={cn(
+        "grid grid-cols-3 gap-2.5",
+        halfProf ? "sm:grid-cols-6" : "sm:grid-cols-5"
+      )}
+    >
       <StatTile
         icon={Shield}
         label="CA"
@@ -201,6 +217,14 @@ export function QuickStats({ sheet }: { sheet: CharacterSheet }) {
         label="Competenza"
         value={formatModifier(sheet.proficiencyBonus)}
       />
+      {halfProf && (
+        <StatTile
+          icon={Sparkles}
+          label={halfProf.label}
+          value={formatModifier(halfProf.bonus)}
+          sub="prove senza competenza"
+        />
+      )}
       <StatTile
         icon={Heart}
         label="PF"

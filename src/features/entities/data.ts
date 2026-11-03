@@ -52,6 +52,11 @@ export const RELATIONS_KEY = "relations";
 /* (richiesto anche dalle Security Rules).                             */
 /* ------------------------------------------------------------------ */
 
+/** Scarta entità con un `type` assente dal registro (dati legacy/corrotti). */
+function isKnownEntity(entity: Entity | null | undefined): entity is Entity {
+  return Boolean(entity) && entity!.type in ENTITY_REGISTRY;
+}
+
 function useVisibility() {
   const { isMaster, role } = useAuth();
   return { isMaster, ready: role !== null };
@@ -65,9 +70,11 @@ export function useAllEntities() {
     enabled: ready,
     queryFn: async () =>
       sortByName(
-        await entityService.list(
-          ...(isMaster ? [] : [where("visibility", "in", PLAYER_VISIBLE)])
-        )
+        (
+          await entityService.list(
+            ...(isMaster ? [] : [where("visibility", "in", PLAYER_VISIBLE)])
+          )
+        ).filter(isKnownEntity)
       ),
   });
 }
@@ -96,10 +103,12 @@ export function useChildren(parentId: string | undefined) {
     enabled: ready && Boolean(parentId),
     queryFn: async () =>
       sortByName(
-        await entityService.list(
-          where("parentId", "==", parentId),
-          ...(isMaster ? [] : [where("visibility", "in", PLAYER_VISIBLE)])
-        )
+        (
+          await entityService.list(
+            where("parentId", "==", parentId),
+            ...(isMaster ? [] : [where("visibility", "in", PLAYER_VISIBLE)])
+          )
+        ).filter(isKnownEntity)
       ),
   });
 }
@@ -112,7 +121,8 @@ export function useEntity(id: string | undefined) {
     enabled: ready && Boolean(id),
     queryFn: async () => {
       try {
-        return await entityService.get(id!);
+        const found = await entityService.get(id!);
+        return isKnownEntity(found) ? found : null;
       } catch {
         return null;
       }
@@ -154,7 +164,7 @@ export async function fetchEntitiesByIds(ids: string[]): Promise<Entity[]> {
       }
     })
   );
-  return results.filter((entity): entity is Entity => entity !== null);
+  return results.filter(isKnownEntity);
 }
 
 /* ------------------------------------------------------------------ */

@@ -33,7 +33,13 @@ import {
   formatModifier,
 } from "../constants";
 import { useCodex } from "./codex-context";
-import { classesSummary, genId, passivePerception, totalLevel } from "./derive";
+import {
+  classesSummary,
+  factotum,
+  genId,
+  passivePerception,
+  totalLevel,
+} from "./derive";
 import { InlineNumber, InlineText, Stepper } from "./inline-edit";
 
 /* ============================================================
@@ -353,6 +359,7 @@ function HpConsole() {
 
 function DefenseRow() {
   const { sheet, canEdit, patchSheet, inspect } = useCodex();
+  const jack = factotum(sheet);
 
   const tiles: {
     key: string;
@@ -436,10 +443,32 @@ function DefenseRow() {
         />
       ),
     },
+    ...(jack
+      ? [
+          {
+            key: "factotum",
+            icon: Sparkles,
+            label: jack.label,
+            content: (
+              <span
+                title="Metà competenza alle prove senza competenza"
+                className="font-heading text-2xl leading-none font-bold text-parchment"
+              >
+                {formatModifier(jack.bonus)}
+              </span>
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
-    <div className="mt-5 grid max-w-2xl grid-cols-3 gap-2 sm:grid-cols-5 sm:gap-2.5">
+    <div
+      className={cn(
+        "mt-5 grid max-w-2xl grid-cols-3 gap-2 sm:gap-2.5",
+        tiles.length > 5 ? "sm:grid-cols-6" : "sm:grid-cols-5"
+      )}
+    >
       {tiles.map((tile) => (
         <div
           key={tile.key}

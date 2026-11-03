@@ -137,7 +137,7 @@ export function CharacterView({ entity }: { entity: Entity }) {
   const ownerName = String(entity.fields.ownerName ?? "");
 
   // La scheda: per i PC sul doc, per gli NPC nei dati riservati (master).
-  const sheet = isPC ? entity.sheet : privateData?.reservedSheet;
+  const rawSheet = isPC ? entity.sheet : privateData?.reservedSheet;
 
   const race =
     String(entity.fields.race ?? "") ||
@@ -147,6 +147,24 @@ export function CharacterView({ entity }: { entity: Entity }) {
     (isMaster ? (privateData?.reservedClass ?? "") : "");
   const level = Number(entity.fields.level ?? 0);
   const alignment = String(entity.fields.alignment ?? "");
+
+  // Schede vecchie: `sheet.classes` può essere vuoto mentre classe e livello
+  // sono nei campi dell'entità. Solo per la visualizzazione (tratti di classe
+  // come il Factotum), la sorgente su Firestore non cambia.
+  const sheet =
+    rawSheet && rawSheet.classes.length === 0 && klass
+      ? {
+          ...rawSheet,
+          classes: [
+            {
+              id: "legacy-class",
+              className: klass,
+              subclass: "",
+              level: level || 1,
+            },
+          ],
+        }
+      : rawSheet;
 
   const totalLevel = sheet
     ? sheet.classes.reduce((sum, entry) => sum + (entry.level || 0), 0) || level

@@ -198,3 +198,28 @@ export function abilityModifier(score: number): number {
 export function formatModifier(value: number): string {
   return value >= 0 ? `+${value}` : `${value}`;
 }
+
+/** Tratti di classe che danno metà bonus di competenza alle prove senza competenza. */
+const HALF_PROFICIENCY_TRAITS: { className: string; minLevel: number; label: string }[] = [
+  { className: "Bardo", minLevel: 2, label: "Factotum" },
+];
+
+/**
+ * Restituisce il tratto "metà competenza" (es. Factotum del Bardo) se una delle
+ * classi lo possiede al livello raggiunto, con il bonus (metà, arrotondato per difetto).
+ */
+export function getHalfProficiencyTrait(
+  classes: { className: string; level: number }[],
+  proficiencyBonus: number
+): { label: string; bonus: number } | null {
+  const trait = HALF_PROFICIENCY_TRAITS.find((t) =>
+    classes.some(
+      (c) =>
+        // "Bardo", "Bard", "Bardo (Collegio…)", "Bardo/Ladro": basta il prefisso
+        c.className?.trim().toLowerCase().startsWith(t.className.toLowerCase().slice(0, 4)) &&
+        (c.level || 0) >= t.minLevel
+    )
+  );
+  if (!trait) return null;
+  return { label: trait.label, bonus: Math.floor(proficiencyBonus / 2) };
+}

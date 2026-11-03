@@ -1,6 +1,10 @@
 import type { Ability, CharacterSheet, Entity } from "@/types/entities";
 
-import { SKILLS, abilityModifier } from "../constants";
+import {
+  SKILLS,
+  abilityModifier,
+  getHalfProficiencyTrait,
+} from "../constants";
 
 /* ============================================================
  * Codex del Personaggio — derivazioni pure.
@@ -26,12 +30,23 @@ export function abilityMod(sheet: CharacterSheet, ability: Ability): number {
   return abilityModifier(abilityTotal(sheet, ability));
 }
 
-/** Modificatore skill: caratteristica + competenza (+ expertise). */
+/**
+ * Tratto "metà competenza" (Factotum del Bardo, dal 2° livello): metà bonus
+ * di competenza, per difetto, alle prove che non includono già la competenza.
+ */
+export function factotum(
+  sheet: CharacterSheet
+): { label: string; bonus: number } | null {
+  return getHalfProficiencyTrait(sheet.classes, sheet.proficiencyBonus);
+}
+
+/** Modificatore skill: caratteristica + competenza (+ expertise) o Factotum. */
 export function skillMod(sheet: CharacterSheet, key: string): number {
   const def = SKILLS[key];
   if (!def) return 0;
   let mod = abilityMod(sheet, def.ability);
   if (sheet.skills.includes(key)) mod += sheet.proficiencyBonus;
+  else mod += factotum(sheet)?.bonus ?? 0;
   if (sheet.expertise.includes(key)) mod += sheet.proficiencyBonus;
   return mod;
 }

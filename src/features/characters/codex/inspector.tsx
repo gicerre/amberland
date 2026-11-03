@@ -76,6 +76,7 @@ import { useCodex, type InspectorTarget } from "./codex-context";
 import {
   abilityMod,
   abilityTotal,
+  factotum,
   genId,
   matchEntityByName,
   saveMod,
@@ -519,6 +520,7 @@ function SkillBody({ skillKey }: { skillKey: string }) {
   const expert = sheet.expertise.includes(skillKey);
   const base = abilityMod(sheet, def.ability);
   const total = skillMod(sheet, skillKey);
+  const jack = factotum(sheet);
 
   const setProficient = (next: boolean) =>
     patchSheet({
@@ -570,6 +572,13 @@ function SkillBody({ skillKey }: { skillKey: string }) {
           <InspectorRow label="Expertise">
             <span className="tabular-nums text-gold-bright">
               {formatModifier(sheet.proficiencyBonus)}
+            </span>
+          </InspectorRow>
+        )}
+        {!proficient && jack && (
+          <InspectorRow label={`${jack.label} (metà competenza)`}>
+            <span className="tabular-nums text-gold-bright">
+              {formatModifier(jack.bonus)}
             </span>
           </InspectorRow>
         )}

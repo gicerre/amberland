@@ -48,7 +48,10 @@ export function GlobalSearchDialog({
   const results = useMemo(() => {
     const needle = term.trim().toLowerCase();
     const pool = (entities ?? []).filter(
-      (entity) => !typeFilter || entity.type === typeFilter
+      (entity) =>
+        // Ignora entità con un tipo sconosciuto al registro (dati legacy)
+        entity.type in ENTITY_REGISTRY &&
+        (!typeFilter || entity.type === typeFilter)
     );
     if (!needle) return pool.slice(0, 30);
     const scored = pool
