@@ -72,9 +72,9 @@ export default function LandingPage() {
 
         <motion.div variants={item} className="mt-10 w-full max-w-xs sm:max-w-sm">
           <Link href={destination} className="block">
-            {/* Reliquia: la piastra prende luce di torcia (flicker) e
-                affonda alla pressione — mai scale/brightness. */}
-            <Button className="glow-accent h-14 w-full px-6 font-heading text-sm font-bold tracking-[0.15em] uppercase transition-transform hover:-translate-y-px active:translate-y-0.5 sm:h-16 sm:px-10 sm:text-base sm:tracking-[0.2em]">
+            {/* CTA: nessun anello/alone attorno alla shell SVG; affonda
+                alla pressione — mai scale/brightness. */}
+            <Button className="h-14 w-full px-6 font-heading text-sm font-bold tracking-[0.15em] uppercase transition-transform hover:-translate-y-px active:translate-y-0.5 sm:h-16 sm:px-10 sm:text-base sm:tracking-[0.2em]">
               Entra in Amberland
             </Button>
           </Link>
