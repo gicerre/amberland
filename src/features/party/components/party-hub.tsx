@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-
 import { HubShell, type HubSection } from "@/components/shared/hub-shell";
 import { imageIcon } from "@/components/shared/image-icon";
 import { ListPageHero } from "@/components/shared/list-page-hero";
 
 import { PartyItemsSection } from "@/features/items/components/party-items-section";
+import { useSearchParamState } from "@/hooks/use-search-param-state";
 
 import { DiaryBook } from "../diary/diary-book";
 import { PartyCharacters } from "./party-characters";
@@ -46,8 +45,11 @@ const SECTIONS: HubSection[] = [
   },
 ];
 
+const SECTION_VALUES = ["personaggi", "borsa", "diario"] as const;
+
 export function PartyHub() {
-  const [active, setActive] = useState("personaggi");
+  // La sezione aperta sta nell'URL (?sezione=borsa): indietro e refresh la ritrovano.
+  const [active, setActive] = useSearchParamState("sezione", "personaggi", SECTION_VALUES);
 
   return (
     <>
@@ -67,7 +69,7 @@ export function PartyHub() {
         headerPanel={<PartyHeaderPanel />}
         sections={SECTIONS}
         active={active}
-        onSelect={setActive}
+        onSelect={(value) => setActive(value as (typeof SECTION_VALUES)[number])}
         bareIcons
         cardImage="/images/texture_boxes.webp"
         hideBanner

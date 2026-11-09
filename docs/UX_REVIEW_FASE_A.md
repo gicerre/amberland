@@ -295,8 +295,22 @@ Solo quelle da cui dipende davvero la direzione.
 | D-11 | 9 nov 2026 | **Tesoro del party** con trasferimenti di denaro | `purses/*`, vedi `PROPOSTA_INVENTARIO.md` §8 |
 | D-12 | 9 nov 2026 | **Tutti** i membri possono spostare oggetti da qualunque zaino | Rules permissive fra membri, log con autore |
 
-Domande ancora aperte: la struttura della vista da tavolo (da valutare
-su prototipo).
+| D-13 | 9 nov 2026 | **Niente prototipo: si implementa direttamente** sul branch `refactor/ux-live` (senza push) | Struttura della vista da tavolo decisa nel codice, da verificare al tavolo |
+
+### Stato dell'implementazione (branch `refactor/ux-live`)
+
+| Commit | Contenuto | Criticità/problemi risolti |
+| --- | --- | --- |
+| `bec618f` | Rimozione del Combat System (−25.000 righe) | C-3, D-6 |
+| `e826ccd` | Inventario unico: `party_items`, `purses`, `item_log`, transazioni, realtime, migrazione | C-5, C-8, U-8, D-9…D-12 |
+| `4771fe6` | Vista da tavolo `/pg`, navigazione per momento d'uso, `homeFor` | U-1, U-2, U-5, U-6, U-7, U-15 (parz.), C-6 (bottom bar) |
+| (questo) | Sezione degli hub nell'URL (Party, Area Personale) | C-7, U-9 |
+
+**Da fare a mano prima del merge**: pubblicare le Rules
+(`npm run deploy:rules`), lanciare `npm run migrate:inventory` (anteprima)
+e poi `-- --apply`, provare `/pg` al tavolo.
+
+Domande ancora aperte: verifica della vista da tavolo in una sessione reale.
 
 ---
 

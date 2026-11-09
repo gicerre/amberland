@@ -338,7 +338,9 @@ sessione.
 - **Security Rules** dettagliate e commentate: RBAC su custom claim,
   proprietario del PC con chiavi protette, quest aggiornabili dal party,
   segretezza degli HP nemici per **documento** (`secret/master`) [V].
-- **Indici**: 7 indici composti in `firestore.indexes.json`.
+- **Indici**: 2 indici composti in `firestore.indexes.json`, entrambi del
+  Combat System (correzione: la prima stesura riportava 7, era un conteggio
+  errato). Dopo la rimozione del Combat System il file è vuoto.
 - **Script**: seed admin/utenti, deploy rules, ottimizzazione immagini,
   check engine. Rules e indici vanno pubblicati a mano (memoria di progetto).
 - **Offline**: nessuna persistenza Firestore (`persistentLocalCache` non

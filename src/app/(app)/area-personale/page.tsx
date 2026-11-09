@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense } from "react";
 
 import { HubShell, type HubSection } from "@/components/shared/hub-shell";
 import { LoadingScreen } from "@/components/shared/loading-screen";
@@ -9,6 +9,7 @@ import { PcHeaderPanel } from "@/features/personal-area/components/pc-header-pan
 import { GoalsSection } from "@/features/personal-area/goals/goals-section";
 import { TimelinePanel } from "@/features/personal-area/timeline/timeline-panel";
 import { DiaryBook } from "@/features/party/diary/diary-book";
+import { useSearchParamState } from "@/hooks/use-search-param-state";
 import { imageIcon } from "@/components/shared/image-icon";
 
 /* ───────────────────────── ICONS ───────────────────────── */
@@ -36,9 +37,20 @@ const SECTIONS: HubSection[] = [
 
 /* ───────────────────────── PAGE ───────────────────────── */
 
+const SECTION_VALUES = ["obiettivi", "diario"] as const;
+
 export default function PersonalAreaPage() {
+  // La sezione aperta sta nell'URL (useSearchParams → Suspense).
+  return (
+    <Suspense fallback={<LoadingScreen className="min-h-[60svh]" />}>
+      <PersonalArea />
+    </Suspense>
+  );
+}
+
+function PersonalArea() {
   const { user } = useAuth();
-  const [active, setActive] = useState("obiettivi");
+  const [active, setActive] = useSearchParamState("sezione", "obiettivi", SECTION_VALUES);
 
   if (!user) {
     return <LoadingScreen className="min-h-[60svh]" />;
@@ -53,7 +65,7 @@ export default function PersonalAreaPage() {
 
       sections={SECTIONS}
       active={active}
-      onSelect={setActive}
+      onSelect={(value) => setActive(value as (typeof SECTION_VALUES)[number])}
 
       /* ───── STILE COERENTE PARTY / HOME ───── */
       bannerImage="/images/bg_personal.webp"
