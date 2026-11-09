@@ -85,42 +85,6 @@ export async function requireMaster(
   );
 }
 
-/**
- * Regia di UNA battaglia: ADMIN sempre, oppure un MASTER esplicitamente
- * elencato in `masterIds` (co-DM). Legge il documento con l'Admin SDK,
- * che bypassa le Rules — quelle vietano ogni scrittura client su
- * `battles/**`, e il controllo di merito vive qui.
- *
- * Restituisce anche i dati della battaglia: chi chiama ne ha quasi
- * sempre bisogno subito dopo, e una lettura in meno è una lettura
- * risparmiata su ogni azione di combattimento.
- */
-export async function requireBattleMaster(
-  request: NextRequest,
-  battleId: string
-): Promise<Caller & { battle: FirebaseFirestore.DocumentData }> {
-  const caller = await requireUser(request);
-  if (caller.role !== "ADMIN" && caller.role !== "MASTER") {
-    throw new ApiError(403, "Operazione riservata al Dungeon Master");
-  }
-
-  const snapshot = await getAdminDb()
-    .collection(COLLECTIONS.battles)
-    .doc(battleId)
-    .get();
-  const battle = snapshot.data();
-  if (!snapshot.exists || !battle) {
-    throw new ApiError(404, "Battaglia non trovata");
-  }
-
-  const masterIds = (battle.masterIds as string[] | undefined) ?? [];
-  if (caller.role !== "ADMIN" && !masterIds.includes(caller.uid)) {
-    throw new ApiError(403, "Non sei fra i Master di questa battaglia");
-  }
-
-  return { ...caller, battle };
-}
-
 /** Converte errori in risposte JSON coerenti ({ error: string }). */
 export function handleApiError(error: unknown): NextResponse {
   if (error instanceof ApiError) {

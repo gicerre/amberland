@@ -26,10 +26,6 @@ export const COLLECTIONS = {
   noteLog: "note_log",
   /** Cronologia operazioni sulle Cronache (pattern note_log). */
   chronicleLog: "chronicle_log",
-  /** Campo di Battaglia: una battaglia per documento (+ sottocollezioni). */
-  battles: "battles",
-  /** Scontri preconfezionati riutilizzabili dal Master. */
-  battleTemplates: "battle_templates",
 } as const;
 
 /**

@@ -11,7 +11,6 @@ import {
   ScrollText,
   Shield,
   Skull,
-  Swords,
   User,
   type LucideIcon,
 } from "lucide-react";
@@ -58,7 +57,7 @@ export const NAV_GROUPS: NavGroup[] = [
     id: "party",
     label: "Party",
     icon: DragonIcon,
-    activePaths: ["/party", "/battaglie"],
+    activePaths: ["/party"],
     entries: [
       {
         label: "Il Party",
@@ -67,7 +66,6 @@ export const NAV_GROUPS: NavGroup[] = [
         featured: true,
         tagline: "Il cuore del gruppo",
       },
-      { label: "Campi di Battaglia", href: "/battaglie", icon: Swords },
     ],
   },
   {

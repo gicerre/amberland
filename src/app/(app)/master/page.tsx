@@ -13,7 +13,6 @@ import {
   TomePanel,
   type StatItem,
 } from "@/design-system";
-import { WarTablePanel } from "@/features/battle/components/war-table-panel";
 import { QuickCreateDialog } from "@/features/entities/components/quick-create-dialog";
 import { useAllEntities, useEntityMutations } from "@/features/entities/data";
 import {
@@ -113,9 +112,6 @@ export default function MasterPage() {
 
       {/* ───────── PANORAMICA DEL REGNO ───────── */}
       <StatGrid items={overview} />
-
-      {/* ───────── TAVOLO DI GUERRA ───────── */}
-      <WarTablePanel />
 
       {/* ───────── SEGRETI PRONTI ALLA RIVELAZIONE ───────── */}
       {readyToReveal.length > 0 && (

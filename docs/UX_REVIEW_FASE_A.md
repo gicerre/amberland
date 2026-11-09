@@ -276,6 +276,30 @@ Solo quelle da cui dipende davvero la direzione.
 
 ---
 
+## Registro decisioni (Fase D)
+
+| # | Data | Decisione | Conseguenza |
+| --- | --- | --- | --- |
+| D-1 | 9 nov 2026 | Si gioca **in presenza, ognuno col proprio telefono, senza mappa** | Il cuore della sessione è la scheda del PG su mobile, usata a una mano |
+| D-2 | 9 nov 2026 | Il Master **quasi non usa l'app in sessione** (prepara e archivia) | Niente vista Master live, niente modalità Sessione Live condivisa (direzione B scartata) |
+| D-3 | 9 nov 2026 | La scheda la gestisce **il giocatore (99%)**; il Master corregge di rado | Realtime e patch granulari (C-1, C-2) non sono prerequisiti: bastano refetch al ritorno sulla pagina e salvataggi robusti |
+| D-4 | 9 nov 2026 | **Campi di Battaglia tolti per ora** | Direzione C scartata; modalità di rimozione da decidere (vedi sotto) |
+| D-5 | 9 nov 2026 | Direzione adottata: **A — "il personaggio al centro"** | Prossimo passo: definire la vista da tavolo del PG |
+
+| D-6 | 9 nov 2026 | Campi di Battaglia: **eliminare il codice** (recuperabile dal commit `8c64ce5` sul branch `refactor/ux-live`) | Da eseguire come primo passo dell'implementazione, dopo il via |
+| D-7 | 9 nov 2026 | La vista da tavolo deve coprire **tutto ciò che un PG può fare**: PF, incantesimi e slot, abilità/TS/bonus, risorse, condizioni, oggetti | Serve una gerarchia: sempre visibile / un tocco / approfondimento |
+| D-8 | 9 nov 2026 | **Spoiler: non importa** (gruppo di fiducia) | C-4 non si corregge; le Rules possono restare permissive fra membri del party |
+| D-9 | 9 nov 2026 | Inventario: **Borsa Conservante + Zaino del PG come un unico sistema**, con vista globale "Oggetti del party", trasferimenti atomici e parziali | Proposta in `docs/PROPOSTA_INVENTARIO.md`, da valutare |
+
+| D-10 | 9 nov 2026 | **Oggetti liberi** ammessi (senza catalogo né approvazione) | `catalogId: null` |
+| D-11 | 9 nov 2026 | **Tesoro del party** con trasferimenti di denaro | `purses/*`, vedi `PROPOSTA_INVENTARIO.md` §8 |
+| D-12 | 9 nov 2026 | **Tutti** i membri possono spostare oggetti da qualunque zaino | Rules permissive fra membri, log con autore |
+
+Domande ancora aperte: la struttura della vista da tavolo (da valutare
+su prototipo).
+
+---
+
 ## Prossimi passi proposti (dopo il confronto)
 
 1. Mettere al sicuro il working tree (commit) — lo faccio solo se me lo chiedi.
