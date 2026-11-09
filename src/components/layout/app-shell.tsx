@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { PcCreationGate } from "@/features/characters/components/pc-creation-gate";
 import { GlobalSearchDialog } from "@/features/entities/components/global-search";
+import { PartyItemsSync } from "@/features/items/data";
 import { cn } from "@/lib/utils";
 
 import { NAV_GROUPS, getActiveGroupId } from "./nav-config";
@@ -171,6 +172,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <MobileBottomNav />
 
         <GlobalSearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+        <PartyItemsSync />
       </div>
     </PcCreationGate>
     </CelebrationProvider>

@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Backpack,
   BedDouble,
   Coins,
   FlaskConical,
@@ -44,6 +45,8 @@ import {
   formatModifier,
   type CoinKey,
 } from "../constants";
+import { TakeFromBagDialog } from "@/features/items/components/take-from-bag-dialog";
+
 import { makeHistoryEntry } from "../data";
 import { useCodex } from "./codex-context";
 import { CodexPanel, PanelEyebrow } from "./codex-panel";
@@ -128,39 +131,47 @@ function ItemCard({ item }: { item: EquipmentItem }) {
 }
 
 export function PanelInventory({ storageScope }: { storageScope: string }) {
-  const { sheet, canEdit, patchSheet, inspect } = useCodex();
-  const equipped = sheet.equipment.filter((item) => item.equipped);
-  const backpack = sheet.equipment.filter((item) => !item.equipped);
+  const { items, canEdit, addItem, inspect, money, setCoin, place } = useCodex();
+  const [fromBagOpen, setFromBagOpen] = useState(false);
+  const equipped = items.filter((item) => item.equipped);
+  const backpack = items.filter((item) => !item.equipped);
 
-  const addItem = () => {
-    const item: EquipmentItem = {
-      id: genId(),
-      name: "Nuovo oggetto",
-      category: "misc",
-      quantity: 1,
-      equipped: false,
-      notes: "",
-    };
-    patchSheet({ equipment: [...sheet.equipment, item] });
-    inspect({ type: "item", id: item.id });
+  const onAdd = async () => {
+    const id = await addItem();
+    if (id) inspect({ type: "item", id });
   };
 
   return (
     <CodexPanel
       id="inventario"
       icon={Package}
-      title="Inventario"
-      meta={sheet.equipment.length > 0 ? `${sheet.equipment.length} oggetti` : undefined}
+      title="Zaino"
+      meta={items.length > 0 ? `${items.length} oggetti` : undefined}
       storageScope={storageScope}
       actions={
         canEdit ? (
-          <Button variant="ghost" size="sm" onClick={addItem}>
-            <Plus className="size-3.5" />
-            Oggetto
-          </Button>
+          <div className="flex items-center gap-1">
+            {place && (
+              <Button variant="ghost" size="sm" onClick={() => setFromBagOpen(true)}>
+                <Backpack className="size-3.5" />
+                Dalla Borsa
+              </Button>
+            )}
+            <Button variant="ghost" size="sm" onClick={() => void onAdd()}>
+              <Plus className="size-3.5" />
+              Oggetto
+            </Button>
+          </div>
         ) : undefined
       }
     >
+      {place && (
+        <TakeFromBagDialog
+          open={fromBagOpen}
+          onOpenChange={setFromBagOpen}
+          to={place}
+        />
+      )}
       {equipped.length > 0 && (
         <div className="mb-5">
           <PanelEyebrow>Equipaggiato</PanelEyebrow>
@@ -183,7 +194,7 @@ export function PanelInventory({ storageScope }: { storageScope: string }) {
         </div>
       )}
 
-      {sheet.equipment.length === 0 && (
+      {items.length === 0 && (
         <p className="mb-5 text-sm text-muted-foreground italic">
           Lo zaino è vuoto.
           {canEdit && " Aggiungi il primo oggetto con il pulsante qui sopra."}
@@ -199,11 +210,9 @@ export function PanelInventory({ storageScope }: { storageScope: string }) {
             className="flex flex-col items-center gap-0.5 rounded-xl border border-hairline bg-surface-0/60 px-2 py-2.5"
           >
             <InlineNumber
-              value={sheet.money[coin]}
+              value={money[coin]}
               min={0}
-              onCommit={(value) =>
-                patchSheet({ money: { ...sheet.money, [coin]: value } })
-              }
+              onCommit={(value) => setCoin(coin, value)}
               disabled={!canEdit}
               ariaLabel={`Monete di ${COIN_LABELS[coin].toLowerCase()}`}
               className={cn(

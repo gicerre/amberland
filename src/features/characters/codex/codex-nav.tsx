@@ -52,7 +52,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
 }
 
 export function CodexNav({ sections }: { sections: CodexSection[] }) {
-  const { sheet, hasSheet, inspect } = useCodex();
+  const { sheet, hasSheet, inspect, items } = useCodex();
   const [active, setActive] = useState(sections[0]?.id ?? "");
   const [query, setQuery] = useState("");
   const [searchOpen, setSearchOpen] = useState(false);
@@ -119,7 +119,7 @@ export function CodexNav({ sections }: { sections: CodexSection[] }) {
     const matches = (value: string) => normalizeName(value).includes(needle);
 
     if (hasSheet) {
-      for (const item of sheet.equipment) {
+      for (const item of items) {
         if (matches(item.name)) {
           results.push({
             key: `item-${item.id}`,
@@ -208,7 +208,7 @@ export function CodexNav({ sections }: { sections: CodexSection[] }) {
       }
     }
     return results.slice(0, 10);
-  }, [query, sheet, hasSheet]);
+  }, [query, sheet, hasSheet, items]);
 
   const selectHit = (hit: SearchHit) => {
     setQuery("");

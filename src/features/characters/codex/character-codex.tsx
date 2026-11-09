@@ -43,6 +43,7 @@ import {
   useEntityMutations,
   useEntityPrivate,
 } from "@/features/entities/data";
+import { useItemMutations } from "@/features/items/data";
 import { NoteLinksPanel } from "@/features/party/diary/note-links-panel";
 import {
   CHARACTER_STATUSES,
@@ -103,6 +104,7 @@ function CodexScreen({
 
   const { remove, setVisibility } = useEntityMutations();
   const { setStatus, convertToFull, setPartyMember } = useCharacterMutations();
+  const { returnToBag } = useItemMutations();
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -182,12 +184,14 @@ function CodexScreen({
       )}
       {isPC && (
         <DropdownMenuItem
-          onSelect={() =>
-            setPartyMember.mutate({
-              entity,
-              member: entity.fields.partyMember !== true,
-            })
-          }
+          onSelect={() => {
+            const leaving = entity.fields.partyMember === true;
+            setPartyMember.mutate(
+              { entity, member: !leaving },
+              // Chi lascia il party riconsegna zaino e monete alla Borsa.
+              { onSuccess: () => leaving && returnToBag.mutate(entity.id) }
+            );
+          }}
         >
           <Users className="size-4" />
           {entity.fields.partyMember === true
@@ -358,14 +362,16 @@ function CodexScreen({
           title={`Eliminare «${entity.name}»?`}
           description="Il personaggio e tutti i suoi collegamenti verranno rimossi per sempre dalle cronache."
           loading={remove.isPending}
-          onConfirm={() =>
+          onConfirm={async () => {
+            // Prima lo zaino torna nella Borsa: nessun oggetto orfano.
+            if (isPC) await returnToBag.mutateAsync(entity.id).catch(() => 0);
             remove.mutate(entity, {
               onSuccess: () => {
                 setDeleteOpen(false);
                 router.push("/personaggi");
               },
-            })
-          }
+            });
+          }}
         />
       )}
     </div>

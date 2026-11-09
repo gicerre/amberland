@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowRightLeft,
   ArrowUpRight,
   Copy,
   FlaskConical,
@@ -44,6 +45,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useEntitiesByType, useEntity } from "@/features/entities/data";
 import { ENTITY_REGISTRY } from "@/features/entities/registry";
+import { TransferItemDialog } from "@/features/items/components/transfer-item-dialog";
+import { useItemMutations } from "@/features/items/data";
 import { RichTextRenderer } from "@/components/shared/rich-text-lazy";
 import {
   isEmptyRichText,
@@ -72,7 +75,11 @@ import {
   abilityModifier,
   formatModifier,
 } from "../constants";
-import { useCodex, type InspectorTarget } from "./codex-context";
+import {
+  useCodex,
+  type CodexItemPatch,
+  type InspectorTarget,
+} from "./codex-context";
 import {
   abilityMod,
   abilityTotal,
@@ -229,28 +236,28 @@ function InspectorArt({
  * ============================================================ */
 
 function ItemBody({ id }: { id: string }) {
-  const { sheet, canEdit, patchSheet, inspect } = useCodex();
+  const { items, canEdit, updateItem, removeItem, duplicateItem, inspect, place } =
+    useCodex();
   const router = useRouter();
-  const item = sheet.equipment.find((entry) => entry.id === id);
-  // Arricchimento: se nel Codex del mondo esiste un oggetto omonimo,
-  // l'inspector ne mostra artwork, effetti e collegamento.
+  const { consume } = useItemMutations();
+  const [moveOpen, setMoveOpen] = useState(false);
+  const item = items.find((entry) => entry.id === id);
+  // Arricchimento: il modello del catalogo collegato (o, in mancanza,
+  // un oggetto omonimo) fornisce artwork, effetti e collegamento.
   const { data: itemEntities } = useEntitiesByType("item");
-  const linked = item ? matchEntityByName(itemEntities, item.name) : undefined;
+  const linked = item
+    ? (itemEntities ?? []).find((entity) => entity.id === item.catalogId) ??
+      matchEntityByName(itemEntities, item.name)
+    : undefined;
 
   if (!item) return <MissingBody />;
   const Icon = EQUIP_ICON[item.category];
 
-  const patchItem = (patch: Partial<typeof item>) =>
-    patchSheet({
-      equipment: sheet.equipment.map((entry) =>
-        entry.id === id ? { ...entry, ...patch } : entry
-      ),
-    });
+  const patchItem = (patch: CodexItemPatch) => updateItem(id, patch);
 
-  const duplicate = () => {
-    const copy = { ...item, id: genId(), name: `${item.name} (copia)`, equipped: false };
-    patchSheet({ equipment: [...sheet.equipment, copy] });
-    inspect({ type: "item", id: copy.id });
+  const duplicate = async () => {
+    const copyId = await duplicateItem(id);
+    if (copyId) inspect({ type: "item", id: copyId });
   };
 
   return (
@@ -333,7 +340,59 @@ function ItemBody({ id }: { id: string }) {
             aria-label="Equipaggiato"
           />
         </InspectorRow>
+        {place && (
+          <>
+            <InspectorRow label="Sintonizzato">
+              <Switch
+                checked={item.attuned}
+                onCheckedChange={(attuned) => patchItem({ attuned })}
+                disabled={!canEdit}
+                aria-label="Sintonizzato"
+              />
+            </InspectorRow>
+            <InspectorRow label="Impilabile">
+              <Switch
+                checked={item.stackable}
+                onCheckedChange={(stackable) => patchItem({ stackable })}
+                disabled={!canEdit}
+                aria-label="Impilabile (si unisce agli oggetti uguali)"
+              />
+            </InspectorRow>
+          </>
+        )}
       </InspectorSection>
+
+      {place && canEdit && (
+        <InspectorSection>
+          <div className="flex flex-wrap items-center gap-2">
+            {item.category === "consumable" && (
+              <Button
+                size="sm"
+                onClick={() => consume.mutate({ itemId: id, quantity: 1 })}
+                disabled={consume.isPending}
+              >
+                <FlaskConical className="size-3.5" />
+                Usa uno
+              </Button>
+            )}
+            <Button variant="outline" size="sm" onClick={() => setMoveOpen(true)}>
+              <ArrowRightLeft className="size-3.5" />
+              Sposta…
+            </Button>
+          </div>
+          <TransferItemDialog
+            open={moveOpen}
+            onOpenChange={setMoveOpen}
+            item={{
+              id: item.id,
+              name: item.name,
+              quantity: item.quantity,
+              stackable: item.stackable,
+              from: place,
+            }}
+          />
+        </InspectorSection>
+      )}
 
       <InspectorSection title="Note e proprietà">
         <InlineTextarea
@@ -385,7 +444,7 @@ function ItemBody({ id }: { id: string }) {
       {canEdit && (
         <InspectorSection>
           <div className="flex items-center justify-between gap-2">
-            <Button variant="outline" size="sm" onClick={duplicate}>
+            <Button variant="outline" size="sm" onClick={() => void duplicate()}>
               <Copy className="size-3.5" />
               Duplica
             </Button>
@@ -393,9 +452,7 @@ function ItemBody({ id }: { id: string }) {
               label="Elimina"
               confirmLabel="Confermi?"
               onConfirm={() => {
-                patchSheet({
-                  equipment: sheet.equipment.filter((entry) => entry.id !== id),
-                });
+                removeItem(id);
                 inspect(null);
               }}
             />

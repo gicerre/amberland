@@ -6,7 +6,8 @@ import { HubShell, type HubSection } from "@/components/shared/hub-shell";
 import { imageIcon } from "@/components/shared/image-icon";
 import { ListPageHero } from "@/components/shared/list-page-hero";
 
-import { BagSection } from "../bag/bag-section";
+import { PartyItemsSection } from "@/features/items/components/party-items-section";
+
 import { DiaryBook } from "../diary/diary-book";
 import { PartyCharacters } from "./party-characters";
 import { PartyHeaderPanel } from "./party-header-panel";
@@ -33,8 +34,8 @@ const SECTIONS: HubSection[] = [
   },
   {
     value: "borsa",
-    label: "Borsa Conservante",
-    description: "Il deposito condiviso",
+    label: "Oggetti e tesoro",
+    description: "Borsa, zaini e monete",
     icon: BagIcon,
   },
   {
@@ -74,7 +75,7 @@ export function PartyHub() {
         <div className="space-y-6">
           <QuestOverviewBox />
           {active === "personaggi" && <PartyCharacters />}
-          {active === "borsa" && <BagSection />}
+          {active === "borsa" && <PartyItemsSection />}
           {active === "diario" && <DiaryBook scope="party" />}
         </div>
       </HubShell>

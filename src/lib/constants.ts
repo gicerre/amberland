@@ -18,6 +18,12 @@ export const COLLECTIONS = {
   bagItems: "bag_items",
   /** Cronologia movimenti della Borsa Conservante. */
   bagLog: "bag_log",
+  /** Oggetti posseduti dal party: Borsa Conservante + zaini dei PG. */
+  partyItems: "party_items",
+  /** Monete: "BAG" = tesoro del party, altrimenti id del PG. */
+  purses: "purses",
+  /** Cronologia di oggetti e denaro (append-only). */
+  itemLog: "item_log",
   /** Diario di Campagna: note condivise. */
   notes: "notes",
   /** Collegamenti bidirezionali nota ↔ entità. */

@@ -255,7 +255,9 @@ function publicCardRef(entityId: string) {
 
 /** Deriva la card pubblica di un PC dai suoi dati (campi + scheda). */
 export function buildPublicCard(
-  source: Pick<Entity, "name" | "imageUrl" | "fields" | "sheet">
+  source: Pick<Entity, "name" | "imageUrl" | "fields" | "sheet">,
+  /** Nomi degli oggetti equipaggiati (da party_items); se assente, dalla scheda. */
+  equippedNames?: string[]
 ): EntityPublicCard {
   const sheet = source.sheet;
   const classes = sheet?.classes ?? [];
@@ -269,10 +271,12 @@ export function buildPublicCard(
   const level = classes.length
     ? classes.reduce((sum, c) => sum + (c.level || 0), 0)
     : Number(source.fields.level ?? 0);
-  const publicEquipment = (sheet?.equipment ?? [])
-    .filter((item) => item.equipped)
-    .map((item) => item.name)
-    .filter(Boolean);
+  const publicEquipment =
+    equippedNames ??
+    (sheet?.equipment ?? [])
+      .filter((item) => item.equipped)
+      .map((item) => item.name)
+      .filter(Boolean);
   // Compagno in evidenza (uno solo) mostrato accanto alla card del Party.
   const featured = (sheet?.companions ?? []).find(
     (companion) => companion.featured && companion.imageUrl
@@ -300,9 +304,10 @@ export function buildPublicCard(
 /** Scrive/aggiorna la card pubblica di un PC. */
 export async function writePublicCard(
   entityId: string,
-  source: Pick<Entity, "name" | "imageUrl" | "fields" | "sheet">
+  source: Pick<Entity, "name" | "imageUrl" | "fields" | "sheet">,
+  equippedNames?: string[]
 ) {
-  await setDoc(publicCardRef(entityId), buildPublicCard(source));
+  await setDoc(publicCardRef(entityId), buildPublicCard(source, equippedNames));
 }
 
 /* ----------------- Dati riservati (private/master) ----------------- */

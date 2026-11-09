@@ -17,7 +17,7 @@ import {
 } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
 import { usePartyPublicCards } from "@/features/characters/data";
-import { useBagLog } from "@/features/party/bag/data";
+import { useItemLog } from "@/features/items/data";
 import { useNotes } from "@/features/party/diary/data";
 
 import { cn } from "@/lib/utils";
@@ -45,7 +45,7 @@ export function PartyHeaderPanel() {
   const { data: config } = usePartyConfig();
   const { data: cards } = usePartyPublicCards();
   const { data: notes } = useNotes();
-  const { data: bagLog } = useBagLog();
+  const { data: bagLog } = useItemLog();
   const [editOpen, setEditOpen] = useState(false);
 
   const name = config?.name ?? "La Compagnia";

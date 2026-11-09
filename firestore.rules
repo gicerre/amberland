@@ -163,6 +163,59 @@ service cloud.firestore {
       allow update, delete: if isContributor();
     }
 
+    // ---------- Oggetti del party (modello unico) ----------
+    // Ogni oggetto posseduto è UN documento che dice dove si trova:
+    // Borsa Conservante (location BAG) o zaino di un PG (location PC).
+    // Gruppo di fiducia (decisioni D-8, D-12): ogni membro può spostare
+    // qualunque oggetto; le Rules verificano solo la FORMA dei dati.
+    // I movimenti sono transazioni client + voce in item_log.
+    function validPlace(data) {
+      return (data.location == 'BAG' && data.characterId == null)
+        || (data.location == 'PC' && data.characterId is string
+            && data.characterId.size() > 0);
+    }
+
+    match /party_items/{itemId} {
+      allow read: if isSignedIn();
+      allow create, update: if isContributor()
+        && request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.quantity is int
+        && request.resource.data.quantity >= 1
+        && request.resource.data.stackable is bool
+        && validPlace(request.resource.data);
+      allow delete: if isContributor();
+    }
+
+    // Borse di monete: id "BAG" = tesoro del party, altrimenti id del PG.
+    match /purses/{purseId} {
+      function validCoins(data) {
+        return data.pp is int && data.pp >= 0
+          && data.gp is int && data.gp >= 0
+          && data.ep is int && data.ep >= 0
+          && data.sp is int && data.sp >= 0
+          && data.cp is int && data.cp >= 0;
+      }
+      allow read: if isSignedIn();
+      allow create, update: if isContributor()
+        && validCoins(request.resource.data)
+        && validPlace(request.resource.data)
+        && (purseId == 'BAG') == (request.resource.data.location == 'BAG');
+      allow delete: if isMaster();
+    }
+
+    // Cronologia di oggetti e denaro (append-only per i giocatori).
+    match /item_log/{logId} {
+      allow read: if isSignedIn();
+      allow create: if isContributor()
+        && request.resource.data.byId == request.auth.uid;
+      allow update, delete: if isMaster();
+    }
+
+    // ---------- LEGACY: Borsa e inventario pre-migrazione ----------
+    // Restano finché la produzione (branch main) li usa e la migrazione
+    // (scripts/migrate-inventory.ts) non è stata applicata e verificata.
+
     // ---------- Inventario personale (oggetti del singolo PC) ----------
     match /inventory_items/{itemId} {
       allow read: if isMaster()

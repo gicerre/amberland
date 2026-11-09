@@ -74,9 +74,9 @@ const CATEGORY_ORDER: EquipmentCategory[] = [
 /* ── Arsenale ─────────────────────────────────────────────── */
 
 export function ArsenalTab() {
-  const { sheet, patchSheet } = useCodex();
+  const { items, updateItem } = useCodex();
 
-  const sorted = [...sheet.equipment].sort(
+  const sorted = [...items].sort(
     (a, b) =>
       Number(b.equipped) - Number(a.equipped) ||
       CATEGORY_ORDER.indexOf(a.category) - CATEGORY_ORDER.indexOf(b.category)
@@ -84,12 +84,10 @@ export function ArsenalTab() {
   const equipped = sorted.filter((item) => item.equipped);
   const carried = sorted.filter((item) => !item.equipped);
 
-  const toggleEquipped = (id: string) =>
-    patchSheet((cur) => ({
-      equipment: cur.equipment.map((entry) =>
-        entry.id === id ? { ...entry, equipped: !entry.equipped } : entry
-      ),
-    }));
+  const toggleEquipped = (id: string) => {
+    const target = items.find((item) => item.id === id);
+    if (target) updateItem(id, { equipped: !target.equipped });
+  };
 
   if (sorted.length === 0) {
     return (
