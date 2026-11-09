@@ -1,59 +1,118 @@
-import { objectFromTemplate, OBJECT_LIBRARY } from "@/features/battle/library";
+import { templateById } from "@/features/battle/catalog";
+import { connectedRegions } from "@/features/battle/engine/analysis";
+import { instanceFromTemplate } from "@/features/battle/engine/elements";
+import type { CombatantSide, GridConfig } from "@/types/battle";
 import {
   DEFAULT_MAP_SETTINGS,
   EMPTY_TACTICAL_MAP,
   type MapCell,
   type MapCells,
   type MapObject,
+  type MapPoi,
+  type MapZone,
+  type PoiKind,
   type TacticalMap,
   type TerrainId,
+  type ZoneKind,
 } from "@/types/battlemap";
 
 /* ============================================================
- * Generatore di mappe — MODULO PURO.
+ * Generatore di STRUTTURA TATTICA — MODULO PURO.
  *
- * I preset non sono immagini: producono una STRUTTURA TATTICA completa
- * (terreni, quote, muri, porte, alberi) che il Master può poi modificare
- * cella per cella. Servono a non partire mai dal foglio bianco.
+ * Non disegna nulla: l'immagine resta compito del Master (o di chi la
+ * produce). Qui nasce ciò che il motore deve sapere — caselle con i loro
+ * costi, quote, elementi ambientali dal catalogo, ZONE semantiche
+ * ("cortile", "torre", "bosco") e PUNTI DI INTERESSE (ingressi,
+ * schieramenti, posizioni dominanti, obiettivi).
  *
- * Il rumore è deterministico: lo stesso seme dà la stessa mappa, così
- * "rigenera" è un gesto ripetibile e non una lotteria.
+ * Il seme rende tutto ripetibile: stesse opzioni, stessa mappa. È ciò
+ * che permette di rigenerare una variante, condividere una struttura o
+ * tornare su quella che piaceva.
  * ============================================================ */
 
-export const MAP_PRESETS = [
-  { id: "FOREST", label: "Foresta", description: "Alberi fitti, radure e sottobosco difficile." },
-  { id: "SWAMP", label: "Palude", description: "Acquitrini, melma e isolotti di terra ferma." },
-  { id: "MOUNTAIN", label: "Montagna", description: "Creste rocciose e forti dislivelli." },
-  { id: "CASTLE", label: "Castello", description: "Sale murate, corridoi e porte." },
-  { id: "DUNGEON", label: "Sotterraneo", description: "Stanze scavate, cunicoli e porte." },
-  { id: "RUINS", label: "Rovine", description: "Muri crollati, macerie e colonne spezzate." },
-  { id: "BATTLEFIELD", label: "Campo di battaglia", description: "Terreno aperto, barricate e carri." },
-  { id: "VILLAGE", label: "Villaggio", description: "Case, strade sterrate e recinti." },
-  { id: "TEMPLE", label: "Tempio", description: "Pianta simmetrica, colonne e altare." },
-  { id: "CAVE", label: "Caverna", description: "Grotte irregolari scavate nella roccia." },
-  { id: "COAST", label: "Costa", description: "Sabbia, bassi fondali e mare aperto." },
-  { id: "RIVER", label: "Fiume", description: "Un corso d'acqua che taglia il campo." },
-  { id: "EMPTY", label: "Campo aperto", description: "Nessun ostacolo: si parte da zero." },
+export const ENVIRONMENTS = [
+  { id: "FOREST", label: "Foresta", description: "Alberi fitti, radure, sottobosco." },
+  { id: "DUNGEON", label: "Sotterraneo", description: "Stanze scavate, corridoi, porte." },
+  { id: "CASTLE", label: "Castello", description: "Sale murate, cortile, torri." },
+  { id: "RUINS", label: "Rovine", description: "Muri spezzati, macerie, colonne." },
+  { id: "VILLAGE", label: "Villaggio", description: "Case, strade, recinti, piazza." },
+  { id: "SWAMP", label: "Palude", description: "Acquitrini, isolotti, canneti." },
+  { id: "MOUNTAIN", label: "Montagna", description: "Creste, dislivelli forti, massi." },
+  { id: "DESERT", label: "Deserto", description: "Dune, rocce isolate, spazi aperti." },
+  { id: "COAST", label: "Costa", description: "Sabbia, bassi fondali, scogli." },
+  { id: "GLACIER", label: "Ghiacciaio", description: "Ghiaccio, crepacci, neve." },
+  { id: "VOLCANO", label: "Vulcano", description: "Colate, cenere, roccia nera." },
+  { id: "CAVE", label: "Caverna", description: "Grotte irregolari, strettoie." },
+  { id: "TEMPLE", label: "Tempio", description: "Pianta simmetrica, colonne, altare." },
+  { id: "FORTRESS", label: "Fortezza", description: "Mura spesse, camminamenti, cancelli." },
+  { id: "OPEN", label: "Campo aperto", description: "Terreno libero, pochi ripari." },
 ] as const;
 
-export type PresetId = (typeof MAP_PRESETS)[number]["id"];
+export type EnvironmentId = (typeof ENVIRONMENTS)[number]["id"];
 
-export interface GeneratorOptions {
-  preset: PresetId;
+export interface GenerationOptions {
+  environment: EnvironmentId;
   cols: number;
   rows: number;
-  seed?: number;
-  /** Quanto è "affollata" la mappa: alberi, macerie, stanze. */
-  density?: number;
-  /** Ampiezza dei dislivelli, 0 = tutto piano. */
-  elevation?: number;
-  /** Aggiunge acqua dove il preset la prevede. */
-  water?: boolean;
+  seed: number;
+  /** 0–1: quanto terreno costa doppio. */
+  difficultTerrain: number;
+  /** 0–1: quanta acqua. */
+  water: number;
+  /** 0–1: quante strutture costruite. */
+  structures: number;
+  /** 0–1: quanti ripari. */
+  cover: number;
+  /** 0–1: quanti ostacoli invalicabili. */
+  obstacles: number;
+  /** 0–1: quanto dislivello. */
+  verticality: number;
+  /** 0–1: quanta vegetazione. */
+  vegetation: number;
+  /** Quanti punti di interesse piazzare. */
+  poiCount: number;
+  /** 0–1: quanto è ostile l'ambiente (trappole e pericoli naturali). */
+  danger: number;
+  symmetry: boolean;
+  /** Scontro previsto: dimensiona spazio e distanza fra gli schieramenti. */
+  partySize?: number;
+  enemyCount?: number;
 }
 
-/* ------------------------------- Rumore ---------------------------- */
+export const DEFAULT_GENERATION: Omit<GenerationOptions, "cols" | "rows" | "seed"> = {
+  environment: "FOREST",
+  difficultTerrain: 0.35,
+  water: 0.2,
+  structures: 0.3,
+  cover: 0.45,
+  obstacles: 0.3,
+  verticality: 0.3,
+  vegetation: 0.5,
+  poiCount: 6,
+  danger: 0.2,
+  symmetry: false,
+};
 
-/** PRNG deterministico e minuscolo (mulberry32). */
+/** Parti rigenerabili singolarmente: si tiene ciò che va bene. */
+export const GENERATION_LAYERS = [
+  "terrain",
+  "elevation",
+  "water",
+  "structures",
+  "vegetation",
+  "obstacles",
+  "poi",
+] as const;
+export type GenerationLayer = (typeof GENERATION_LAYERS)[number];
+
+export interface GenerationResult {
+  map: TacticalMap;
+  /** Che cosa è stato generato, in italiano: finisce nel riepilogo. */
+  report: string[];
+}
+
+/* ------------------------------- Rumore ----------------------------- */
+
 function rng(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
@@ -64,18 +123,18 @@ function rng(seed: number): () => number {
   };
 }
 
-/** Campo di rumore morbido: rumore bianco + qualche passata di sfocatura. */
-function noiseField(
+/** Campo morbido: rumore bianco più qualche passata di media locale. */
+function noise(
   cols: number,
   rows: number,
   random: () => number,
-  smoothing = 3
+  passes = 3
 ): number[][] {
   let field = Array.from({ length: rows }, () =>
     Array.from({ length: cols }, () => random())
   );
 
-  for (let pass = 0; pass < smoothing; pass++) {
+  for (let pass = 0; pass < passes; pass++) {
     const next = field.map((row) => [...row]);
     for (let y = 0; y < rows; y++) {
       for (let x = 0; x < cols; x++) {
@@ -96,7 +155,6 @@ function noiseField(
     field = next;
   }
 
-  // Rinormalizza: la sfocatura comprime i valori verso 0,5.
   let min = 1;
   let max = 0;
   for (const row of field) {
@@ -109,33 +167,40 @@ function noiseField(
   return field.map((row) => row.map((value) => (value - min) / range));
 }
 
-/* ------------------------------ Utilità ---------------------------- */
+/* ------------------------------ Utilità ----------------------------- */
 
 const key = (x: number, y: number) => `${x},${y}`;
 
-function setCell(cells: MapCells, x: number, y: number, patch: Partial<MapCell>) {
-  const current = cells[key(x, y)] ?? { terrain: "NORMAL", elevation: 0 };
-  cells[key(x, y)] = { ...current, ...patch };
-}
-
-interface Room {
+interface Rect {
   x: number;
   y: number;
   w: number;
   h: number;
 }
 
-/** Stanze rettangolari non sovrapposte, con un margine fra loro. */
+function rectCellsOf(rect: Rect): string[] {
+  const cells: string[] = [];
+  for (let y = rect.y; y < rect.y + rect.h; y++) {
+    for (let x = rect.x; x < rect.x + rect.w; x++) cells.push(key(x, y));
+  }
+  return cells;
+}
+
+function centerOf(rect: Rect): string {
+  return key(Math.floor(rect.x + rect.w / 2), Math.floor(rect.y + rect.h / 2));
+}
+
+/** Stanze non sovrapposte, con un corridoio di margine fra loro. */
 function placeRooms(
   cols: number,
   rows: number,
   random: () => number,
-  attempts: number,
-  min = 4,
-  max = 9
-): Room[] {
-  const rooms: Room[] = [];
-  for (let attempt = 0; attempt < attempts * 6 && rooms.length < attempts; attempt++) {
+  count: number,
+  min: number,
+  max: number
+): Rect[] {
+  const rooms: Rect[] = [];
+  for (let attempt = 0; attempt < count * 8 && rooms.length < count; attempt++) {
     const w = min + Math.floor(random() * (max - min));
     const h = min + Math.floor(random() * (max - min));
     const x = 1 + Math.floor(random() * Math.max(1, cols - w - 2));
@@ -153,355 +218,459 @@ function placeRooms(
   return rooms;
 }
 
-/** Perimetro murato di una stanza; l'interno resta calpestabile. */
-function walledRoom(cells: MapCells, room: Room, floor: TerrainId) {
-  for (let y = room.y; y < room.y + room.h; y++) {
-    for (let x = room.x; x < room.x + room.w; x++) {
-      const edge =
-        x === room.x ||
-        y === room.y ||
-        x === room.x + room.w - 1 ||
-        y === room.y + room.h - 1;
-      setCell(cells, x, y, { terrain: edge ? "WALL" : floor });
-    }
-  }
+/* ---------------------------- Generatore ---------------------------- */
+
+let counter = 0;
+const newId = (prefix: string) =>
+  `${prefix}-${Date.now().toString(36)}-${(counter++).toString(36)}`;
+
+interface Palette {
+  ground: TerrainId;
+  rough: TerrainId;
+  water: TerrainId;
+  deepWater: TerrainId;
+  blocked: TerrainId;
+  vegetation: TerrainId;
+  hazard: TerrainId | null;
+  /** Elementi del catalogo usati come ostacoli e ripari. */
+  obstacle: string;
+  cover: string;
+  tree: string;
+  structureWall: string;
+  door: string;
 }
 
-/** Corridoio a L fra due punti: prima in orizzontale, poi in verticale. */
-function carveCorridor(
-  cells: MapCells,
-  from: { x: number; y: number },
-  to: { x: number; y: number },
-  floor: TerrainId
-) {
-  for (let x = Math.min(from.x, to.x); x <= Math.max(from.x, to.x); x++) {
-    setCell(cells, x, from.y, { terrain: floor, blocked: false });
-  }
-  for (let y = Math.min(from.y, to.y); y <= Math.max(from.y, to.y); y++) {
-    setCell(cells, to.x, y, { terrain: floor, blocked: false });
-  }
+const PALETTES: Record<EnvironmentId, Palette> = {
+  FOREST: { ground: "GRASS", rough: "TALL_GRASS", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "ROCK", vegetation: "FOREST", hazard: null, obstacle: "nature.rock.large", cover: "nature.rock.medium", tree: "nature.tree.adult", structureWall: "structure.wall.wood", door: "structure.door.simple" },
+  DUNGEON: { ground: "NORMAL", rough: "RUBBLE", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "WALL", vegetation: "NORMAL", hazard: null, obstacle: "dungeon.cage", cover: "structure.column", tree: "nature.mushrooms", structureWall: "structure.wall.stone", door: "structure.door.sturdy" },
+  CASTLE: { ground: "ROCK", rough: "RUBBLE", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "WALL", vegetation: "GRASS", hazard: null, obstacle: "structure.column", cover: "structure.wall.low", tree: "nature.tree.adult", structureWall: "structure.wall.fortified", door: "structure.door.reinforced" },
+  FORTRESS: { ground: "ROCK", rough: "RUBBLE", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "WALL", vegetation: "GRASS", hazard: null, obstacle: "field.chevaux", cover: "field.sandbags", tree: "nature.tree.dead", structureWall: "structure.wall.fortified", door: "structure.door.fortified" },
+  RUINS: { ground: "RUBBLE", rough: "RUBBLE", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "WALL", vegetation: "TALL_GRASS", hazard: null, obstacle: "structure.column", cover: "structure.wall.ruined", tree: "nature.tree.dead", structureWall: "structure.wall.ruined", door: "structure.door.simple" },
+  VILLAGE: { ground: "NORMAL", rough: "MUD", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "WALL", vegetation: "GRASS", hazard: null, obstacle: "field.cart", cover: "structure.fence", tree: "nature.tree.adult", structureWall: "structure.wall.wood", door: "structure.door.simple" },
+  SWAMP: { ground: "MUD", rough: "SWAMP", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "ROCK", vegetation: "TALL_GRASS", hazard: null, obstacle: "nature.log", cover: "nature.reeds", tree: "nature.tree.dead", structureWall: "structure.wall.wood", door: "structure.door.simple" },
+  MOUNTAIN: { ground: "ROCK", rough: "RUBBLE", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "WALL", vegetation: "SNOW", hazard: null, obstacle: "nature.rock.large", cover: "nature.rock.medium", tree: "nature.tree.dead", structureWall: "structure.wall.stone", door: "structure.door.sturdy" },
+  DESERT: { ground: "SAND", rough: "SAND", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "ROCK", vegetation: "TALL_GRASS", hazard: null, obstacle: "nature.rock.large", cover: "nature.rock.small", tree: "nature.tree.dead", structureWall: "structure.wall.ruined", door: "structure.door.simple" },
+  COAST: { ground: "SAND", rough: "RUBBLE", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "ROCK", vegetation: "TALL_GRASS", hazard: null, obstacle: "nature.rock.spire", cover: "nature.rock.medium", tree: "nature.tree.adult", structureWall: "structure.palisade", door: "structure.door.simple" },
+  GLACIER: { ground: "SNOW", rough: "ICE", water: "ICE", deepWater: "DEEP_WATER", blocked: "ROCK", vegetation: "SNOW", hazard: "ICE", obstacle: "nature.rock.spire", cover: "nature.rock.medium", tree: "nature.tree.dead", structureWall: "structure.wall.stone", door: "structure.door.sturdy" },
+  VOLCANO: { ground: "ASH", rough: "UNSTABLE", water: "LAVA", deepWater: "LAVA", blocked: "ROCK", vegetation: "ASH", hazard: "LAVA", obstacle: "nature.rock.spire", cover: "nature.rock.large", tree: "nature.tree.dead", structureWall: "structure.wall.stone", door: "structure.door.sturdy" },
+  CAVE: { ground: "ROCK", rough: "RUBBLE", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "WALL", vegetation: "NORMAL", hazard: null, obstacle: "nature.rock.large", cover: "nature.rock.medium", tree: "nature.mushrooms", structureWall: "structure.wall.stone", door: "structure.door.hatch" },
+  TEMPLE: { ground: "ROCK", rough: "RUBBLE", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "WALL", vegetation: "GRASS", hazard: null, obstacle: "structure.column", cover: "prop.altar", tree: "nature.tree.great", structureWall: "structure.wall.stone", door: "structure.door.gate" },
+  OPEN: { ground: "GRASS", rough: "TALL_GRASS", water: "SHALLOW_WATER", deepWater: "DEEP_WATER", blocked: "ROCK", vegetation: "TALL_GRASS", hazard: null, obstacle: "nature.rock.medium", cover: "field.barricade", tree: "nature.tree.adult", structureWall: "structure.fence", door: "structure.door.simple" },
+};
+
+/** Quante caselle libere servono a uno scontro di questa taglia. */
+export function requiredOpenCells(partySize: number, enemyCount: number): number {
+  // Regola pratica del tavolo: ogni combattente vuole attorno a sé un
+  // quadrato di manovra, più il doppio di spazio per muoversi.
+  return (partySize + enemyCount) * 9;
 }
-
-let objectCounter = 0;
-const nextId = (prefix: string) =>
-  `${prefix}-${Date.now().toString(36)}-${(objectCounter++).toString(36)}`;
-
-function template(id: string) {
-  return OBJECT_LIBRARY.find((entry) => entry.id === id)!;
-}
-
-function addObject(
-  objects: MapObject[],
-  templateId: string,
-  cells: string[]
-): void {
-  objects.push(objectFromTemplate(template(templateId), nextId("obj"), cells));
-}
-
-/* ---------------------------- Generatore --------------------------- */
 
 /**
- * Costruisce una mappa tattica completa dal preset scelto.
- * Il risultato è dato ordinario: ogni cella resta modificabile a mano.
+ * Genera la struttura tattica completa: caselle, quote, elementi, zone e
+ * punti di interesse. Nessun pixel — solo ciò che il motore userà.
  */
-export function generateTacticalMap(options: GeneratorOptions): TacticalMap {
+export function generateTacticalStructure(
+  options: GenerationOptions
+): GenerationResult {
   const {
-    preset,
+    environment,
     cols,
     rows,
-    seed = Math.floor(Math.random() * 1_000_000),
-    density = 0.5,
-    elevation = 0.4,
-    water = true,
+    seed,
+    difficultTerrain,
+    water,
+    structures,
+    cover,
+    obstacles,
+    verticality,
+    vegetation,
+    poiCount,
+    danger,
+    symmetry,
+    partySize = 4,
+    enemyCount = 4,
   } = options;
 
   const random = rng(seed);
+  const palette = PALETTES[environment];
+  const report: string[] = [];
+
   const cells: MapCells = {};
   const objects: MapObject[] = [];
+  const zones: MapZone[] = [];
+  const poi: MapPoi[] = [];
 
-  const terrainNoise = noiseField(cols, rows, random, 3);
-  const heightNoise = noiseField(cols, rows, random, 4);
+  const terrainField = noise(cols, rows, random, 3);
+  const heightField = noise(cols, rows, random, 4);
 
-  /** Quota derivata dal rumore, con l'ampiezza scelta dal Master. */
-  const heightAt = (x: number, y: number, amplitude: number) => {
-    if (elevation <= 0 || amplitude <= 0) return 0;
-    const value = heightNoise[y]![x]!;
-    return Math.round((value - 0.5) * 2 * amplitude * elevation * 4);
+  const setCell = (x: number, y: number, patch: Partial<MapCell>) => {
+    const current = cells[key(x, y)] ?? { terrain: palette.ground, elevation: 0 };
+    cells[key(x, y)] = { ...current, ...patch };
   };
 
-  const paint = (
-    thresholds: { limit: number; terrain: TerrainId }[],
-    amplitude = 1
+  const addObject = (templateId: string, cellKeys: string[]) => {
+    const template = templateById(templateId);
+    if (!template) return;
+    objects.push(instanceFromTemplate(template, newId("el"), cellKeys));
+  };
+
+  const addZone = (kind: ZoneKind, name: string, cellKeys: string[], color: string) => {
+    if (cellKeys.length === 0) return;
+    zones.push({ id: newId("zone"), kind, name, cells: cellKeys, color, note: "" });
+  };
+
+  const addPoi = (
+    kind: PoiKind,
+    name: string,
+    cell: string,
+    extra: Partial<MapPoi> = {}
   ) => {
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const value = terrainNoise[y]![x]!;
-        const match =
-          thresholds.find((entry) => value <= entry.limit) ??
-          thresholds[thresholds.length - 1]!;
-        const height = heightAt(x, y, amplitude);
-        setCell(cells, x, y, {
-          terrain: match.terrain,
-          elevation: height,
-        });
-      }
-    }
+    poi.push({
+      id: newId("poi"),
+      kind,
+      name,
+      cell,
+      side: null,
+      cells: [],
+      note: "",
+      visibleToPlayers: false,
+      ...extra,
+    });
   };
 
-  /** Sparge oggetti dove il rumore supera una soglia. */
-  const scatter = (templateId: string, chance: number, onTerrain?: TerrainId[]) => {
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < cols; x++) {
-        const cell = cells[key(x, y)];
-        if (onTerrain && cell && !onTerrain.includes(cell.terrain)) continue;
-        if (random() > chance * density) continue;
-        addObject(objects, templateId, [key(x, y)]);
+  /* ------------------------- Terreno di base ----------------------- */
+
+  const mirror = (x: number) => (symmetry ? Math.min(x, cols - 1 - x) : x);
+
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      const value = terrainField[y]![mirror(x)]!;
+      const height =
+        verticality > 0
+          ? Math.round((heightField[y]![mirror(x)]! - 0.5) * 2 * verticality * 4)
+          : 0;
+
+      let terrain: TerrainId = palette.ground;
+      if (value < water * 0.5) terrain = palette.deepWater;
+      else if (value < water) terrain = palette.water;
+      else if (value > 1 - vegetation * 0.35) terrain = palette.vegetation;
+      else if (value > 1 - vegetation * 0.35 - difficultTerrain * 0.4) {
+        terrain = palette.rough;
       }
-    }
-  };
 
-  switch (preset) {
-    case "FOREST":
-      paint([
-        { limit: 0.32, terrain: "TALL_GRASS" },
-        { limit: 0.62, terrain: "GRASS" },
-        { limit: 0.85, terrain: "FOREST" },
-        { limit: 1, terrain: "ROCK" },
-      ]);
-      scatter("tree", 0.16, ["FOREST", "GRASS"]);
-      scatter("bush", 0.08, ["GRASS", "TALL_GRASS"]);
-      scatter("log", 0.02, ["GRASS"]);
-      break;
-
-    case "SWAMP":
-      paint([
-        { limit: 0.3, terrain: "SHALLOW_WATER" },
-        { limit: 0.52, terrain: "SWAMP" },
-        { limit: 0.78, terrain: "MUD" },
-        { limit: 1, terrain: "TALL_GRASS" },
-      ], 0.3);
-      scatter("tree", 0.05, ["MUD", "TALL_GRASS"]);
-      scatter("log", 0.04, ["SWAMP", "MUD"]);
-      break;
-
-    case "MOUNTAIN":
-      paint(
-        [
-          { limit: 0.35, terrain: "ROCK" },
-          { limit: 0.6, terrain: "RUBBLE" },
-          { limit: 0.85, terrain: "ROCK" },
-          { limit: 1, terrain: "SNOW" },
-        ],
-        2.2
-      );
-      scatter("boulder", 0.1, ["ROCK", "RUBBLE"]);
-      break;
-
-    case "CAVE": {
-      // Automa cellulare: roccia dove il rumore è alto, poi si smussa.
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          const border = x === 0 || y === 0 || x === cols - 1 || y === rows - 1;
-          const solid = border || terrainNoise[y]![x]! > 0.62 - density * 0.1;
-          setCell(cells, x, y, {
-            terrain: solid ? "WALL" : "ROCK",
-            elevation: solid ? 0 : heightAt(x, y, 0.6),
-          });
-        }
-      }
-      scatter("boulder", 0.06, ["ROCK"]);
-      if (water) {
-        for (let y = 0; y < rows; y++) {
-          for (let x = 0; x < cols; x++) {
-            if (cells[key(x, y)]?.terrain === "ROCK" && terrainNoise[y]![x]! < 0.2) {
-              setCell(cells, x, y, { terrain: "SHALLOW_WATER" });
-            }
-          }
-        }
-      }
-      break;
-    }
-
-    case "DUNGEON":
-    case "CASTLE": {
-      const floor: TerrainId = preset === "CASTLE" ? "ROCK" : "NORMAL";
-      // Tutto pieno, poi si scava: è il modo più semplice di ottenere
-      // stanze davvero chiuse.
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          setCell(cells, x, y, { terrain: "WALL", elevation: 0 });
-        }
-      }
-      const rooms = placeRooms(
-        cols,
-        rows,
-        random,
-        Math.max(3, Math.round((cols * rows) / 90)),
-        preset === "CASTLE" ? 5 : 4,
-        preset === "CASTLE" ? 11 : 8
-      );
-      for (const room of rooms) walledRoom(cells, room, floor);
-
-      for (let index = 1; index < rooms.length; index++) {
-        const a = rooms[index - 1]!;
-        const b = rooms[index]!;
-        const from = {
-          x: Math.floor(a.x + a.w / 2),
-          y: Math.floor(a.y + a.h / 2),
-        };
-        const to = { x: Math.floor(b.x + b.w / 2), y: Math.floor(b.y + b.h / 2) };
-        carveCorridor(cells, from, to, floor);
-        // Una porta dove il corridoio incontra il muro della stanza.
-        addObject(objects, "door", [key(to.x, Math.max(1, b.y))]);
-      }
-      if (preset === "CASTLE") {
-        for (const room of rooms.slice(0, 2)) {
-          addObject(objects, "column", [key(room.x + 1, room.y + 1)]);
-          addObject(objects, "column", [
-            key(room.x + room.w - 2, room.y + room.h - 2),
-          ]);
-        }
-      }
-      break;
-    }
-
-    case "RUINS":
-      paint([
-        { limit: 0.4, terrain: "RUBBLE" },
-        { limit: 0.7, terrain: "GRASS" },
-        { limit: 1, terrain: "ROCK" },
-      ], 0.5);
-      for (const room of placeRooms(cols, rows, random, 3, 4, 8)) {
-        // Muri spezzati: solo una parte del perimetro sopravvive.
-        for (let x = room.x; x < room.x + room.w; x++) {
-          if (random() > 0.35) setCell(cells, x, room.y, { terrain: "WALL" });
-          if (random() > 0.35)
-            setCell(cells, x, room.y + room.h - 1, { terrain: "WALL" });
-        }
-        for (let y = room.y; y < room.y + room.h; y++) {
-          if (random() > 0.35) setCell(cells, room.x, y, { terrain: "WALL" });
-        }
-      }
-      scatter("column", 0.04, ["RUBBLE", "GRASS"]);
-      scatter("debris", 0.05, ["RUBBLE"]);
-      break;
-
-    case "BATTLEFIELD":
-      paint([
-        { limit: 0.35, terrain: "MUD" },
-        { limit: 0.75, terrain: "GRASS" },
-        { limit: 1, terrain: "RUBBLE" },
-      ], 0.4);
-      scatter("barricade", 0.03, ["GRASS", "MUD"]);
-      scatter("cart", 0.015, ["GRASS"]);
-      scatter("debris", 0.04, ["RUBBLE", "MUD"]);
-      scatter("tent", 0.01, ["GRASS"]);
-      break;
-
-    case "VILLAGE": {
-      paint([
-        { limit: 0.45, terrain: "GRASS" },
-        { limit: 0.8, terrain: "NORMAL" },
-        { limit: 1, terrain: "TALL_GRASS" },
-      ], 0.2);
-      const houses = placeRooms(cols, rows, random, 4, 4, 7);
-      houses.forEach((house, index) => {
-        walledRoom(cells, house, "NORMAL");
-        const doorX = house.x + Math.floor(house.w / 2);
-        setCell(cells, doorX, house.y + house.h - 1, { terrain: "NORMAL" });
-        addObject(objects, "door", [key(doorX, house.y + house.h - 1)]);
-        if (index % 2 === 0) {
-          addObject(objects, "cart", [key(house.x - 1, house.y + house.h)]);
-        }
+      setCell(x, y, {
+        terrain,
+        elevation: terrain === palette.deepWater ? Math.min(height, -1) : height,
       });
-      break;
     }
+  }
+  report.push(`Terreno base: ${environment.toLowerCase()}, ${cols}×${rows} caselle.`);
 
-    case "TEMPLE": {
-      // Pianta simmetrica: navata centrale, colonnati ai lati.
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          const border = x === 0 || y === 0 || x === cols - 1 || y === rows - 1;
-          setCell(cells, x, y, { terrain: border ? "WALL" : "ROCK" });
-        }
-      }
-      const step = 3;
-      for (let y = 2; y < rows - 2; y += step) {
-        addObject(objects, "column", [key(2, y)]);
-        addObject(objects, "column", [key(cols - 3, y)]);
-      }
-      const altarY = Math.max(2, Math.floor(rows / 6));
-      addObject(objects, "altar", [key(Math.floor(cols / 2), altarY)]);
-      for (let x = Math.floor(cols / 2) - 2; x <= Math.floor(cols / 2) + 2; x++) {
-        setCell(cells, x, altarY + 1, { terrain: "ROCK", elevation: 1 });
-      }
-      break;
-    }
+  /* --------------------------- Strutture --------------------------- */
 
-    case "COAST": {
-      for (let y = 0; y < rows; y++) {
-        for (let x = 0; x < cols; x++) {
-          // La costa corre in verticale: mare a sinistra, terra a destra.
-          const shore = (x / cols) * 0.9 + terrainNoise[y]![x]! * 0.2;
-          const terrain: TerrainId =
-            shore < 0.28
-              ? "DEEP_WATER"
-              : shore < 0.42
-                ? "SHALLOW_WATER"
-                : shore < 0.58
-                  ? "SAND"
-                  : shore < 0.85
-                    ? "GRASS"
-                    : "ROCK";
-          setCell(cells, x, y, {
-            terrain,
-            elevation: shore < 0.42 ? -1 : heightAt(x, y, 0.5),
+  const built = environment === "DUNGEON" || environment === "CASTLE" ||
+    environment === "FORTRESS" || environment === "VILLAGE" ||
+    environment === "TEMPLE" || environment === "RUINS";
+
+  if (built && structures > 0) {
+    const roomCount = Math.max(2, Math.round((cols * rows) / 120 * structures * 2));
+    const rooms = placeRooms(cols, rows, random, roomCount, 4, 9);
+
+    rooms.forEach((room, index) => {
+      // Perimetro murato, interno calpestabile.
+      for (let y = room.y; y < room.y + room.h; y++) {
+        for (let x = room.x; x < room.x + room.w; x++) {
+          const edge =
+            x === room.x ||
+            y === room.y ||
+            x === room.x + room.w - 1 ||
+            y === room.y + room.h - 1;
+          setCell(x, y, {
+            terrain: edge ? palette.blocked : palette.ground,
+            elevation: 0,
+            blocked: edge ? true : undefined,
+            movementCost: edge ? null : undefined,
           });
         }
       }
-      scatter("boulder", 0.03, ["SAND", "ROCK"]);
-      break;
-    }
 
-    case "RIVER": {
-      paint([
-        { limit: 0.45, terrain: "GRASS" },
-        { limit: 0.8, terrain: "TALL_GRASS" },
-        { limit: 1, terrain: "ROCK" },
-      ], 0.4);
-      // Il fiume serpeggia da nord a sud.
-      let course = Math.floor(cols / 2);
-      const width = Math.max(2, Math.round(cols / 12));
-      for (let y = 0; y < rows; y++) {
-        course += Math.round((random() - 0.5) * 2);
-        course = Math.max(1, Math.min(cols - width - 1, course));
-        for (let x = course; x < course + width; x++) {
-          const deep = x > course && x < course + width - 1;
-          setCell(cells, x, y, {
-            terrain: deep ? "DEEP_WATER" : "SHALLOW_WATER",
-            elevation: -1,
+      // Una porta sul lato basso, e un corridoio verso la stanza prima.
+      const doorX = room.x + Math.floor(room.w / 2);
+      const doorY = room.y + room.h - 1;
+      setCell(doorX, doorY, {
+        terrain: palette.ground,
+        blocked: undefined,
+        movementCost: undefined,
+      });
+      addObject(palette.door, [key(doorX, doorY)]);
+
+      if (index > 0) {
+        const previous = rooms[index - 1]!;
+        const from = { x: doorX, y: doorY };
+        const to = {
+          x: Math.floor(previous.x + previous.w / 2),
+          y: previous.y + previous.h - 1,
+        };
+        for (let x = Math.min(from.x, to.x); x <= Math.max(from.x, to.x); x++) {
+          setCell(x, from.y, {
+            terrain: palette.ground,
+            blocked: undefined,
+            movementCost: undefined,
+          });
+        }
+        for (let y = Math.min(from.y, to.y); y <= Math.max(from.y, to.y); y++) {
+          setCell(to.x, y, {
+            terrain: palette.ground,
+            blocked: undefined,
+            movementCost: undefined,
           });
         }
       }
-      // Un guado di pietre a metà corso.
-      const fordY = Math.floor(rows / 2);
-      for (let x = 0; x < cols; x++) {
-        if (cells[key(x, fordY)]?.terrain !== "NORMAL") {
-          const cell = cells[key(x, fordY)];
-          if (cell?.terrain === "DEEP_WATER" || cell?.terrain === "SHALLOW_WATER") {
-            setCell(cells, x, fordY, { terrain: "SHALLOW_WATER", elevation: 0 });
-          }
-        }
-      }
-      break;
-    }
 
-    case "EMPTY":
-    default:
-      break;
+      addZone(
+        environment === "CASTLE" && index === 0 ? "COURTYARD" : "ROOM",
+        environment === "CASTLE" && index === 0
+          ? "Cortile"
+          : `Sala ${index + 1}`,
+        rectCellsOf(room),
+        "#8a8f9c"
+      );
+    });
+
+    report.push(`${rooms.length} ambienti murati con porte e collegamenti.`);
+
+    // Torri agli angoli delle fortezze.
+    if (environment === "CASTLE" || environment === "FORTRESS") {
+      const towers: Rect[] = [
+        { x: 1, y: 1, w: 3, h: 3 },
+        { x: cols - 4, y: 1, w: 3, h: 3 },
+      ];
+      for (const [index, tower] of towers.entries()) {
+        for (const cell of rectCellsOf(tower)) {
+          const [x, y] = cell.split(",").map(Number);
+          setCell(x!, y!, { terrain: palette.ground, elevation: 3 });
+        }
+        // Rampa a gradini: senza, la sommità sarebbe un'isola in quota
+        // e nessuno potrebbe salirci camminando.
+        const rampX = tower.x + Math.floor(tower.w / 2);
+        for (let step = 1; step <= 3; step++) {
+          const y = tower.y + tower.h - 1 + step;
+          if (y >= rows) break;
+          setCell(rampX, y, {
+            terrain: palette.ground,
+            elevation: 3 - step,
+            blocked: undefined,
+            movementCost: undefined,
+          });
+        }
+        addZone("TOWER", `Torre ${index + 1}`, rectCellsOf(tower), "#9aa0ad");
+        addPoi("VANTAGE", `Sommità della torre ${index + 1}`, centerOf(tower));
+      }
+      report.push("Due torri con posizione dominante (quota +3).");
+    }
   }
 
-  // Le celle identiche al default non si scrivono: la mappa resta sparsa.
+  /* --------------------------- Vegetazione ------------------------- */
+
+  if (vegetation > 0 && !built) {
+    let planted = 0;
+    for (let y = 1; y < rows - 1; y++) {
+      for (let x = 1; x < cols - 1; x++) {
+        const cell = cells[key(x, y)];
+        if (cell?.terrain !== palette.vegetation) continue;
+        if (random() > vegetation * 0.12) continue;
+        addObject(palette.tree, [key(x, y)]);
+        planted++;
+      }
+    }
+    if (planted > 0) report.push(`${planted} alberi come ripari naturali.`);
+  }
+
+  /* ------------------------ Ostacoli e ripari ---------------------- */
+
+  let coverCount = 0;
+  let obstacleCount = 0;
+  for (let y = 1; y < rows - 1; y++) {
+    for (let x = 1; x < cols - 1; x++) {
+      const cell = cells[key(x, y)];
+      if (!cell || cell.blocked) continue;
+      if (cell.terrain === palette.water || cell.terrain === palette.deepWater) {
+        continue;
+      }
+      const roll = random();
+      if (roll < obstacles * 0.04) {
+        addObject(palette.obstacle, [key(x, y)]);
+        obstacleCount++;
+      } else if (roll < obstacles * 0.04 + cover * 0.16) {
+        addObject(palette.cover, [key(x, y)]);
+        coverCount++;
+      }
+    }
+  }
+  report.push(`${coverCount} ripari e ${obstacleCount} ostacoli invalicabili.`);
+
+  /* ------------------------------ Acqua ---------------------------- */
+
+  if (water > 0) {
+    const waterCells: string[] = [];
+    for (const [cellId, cell] of Object.entries(cells)) {
+      if (cell.terrain === palette.water || cell.terrain === palette.deepWater) {
+        waterCells.push(cellId);
+      }
+    }
+    if (waterCells.length > 0) {
+      addZone(
+        environment === "VOLCANO" ? "DANGER" as ZoneKind : "WATER",
+        environment === "VOLCANO" ? "Colata" : "Acque",
+        waterCells,
+        "#4a8ec2"
+      );
+      report.push(`${waterCells.length} caselle d'acqua.`);
+    }
+
+    // Un ponte dove l'acqua taglia la mappa a metà altezza.
+    const midY = Math.floor(rows / 2);
+    const crossing: string[] = [];
+    for (let x = 0; x < cols; x++) {
+      const cell = cells[key(x, midY)];
+      if (cell?.terrain === palette.water || cell?.terrain === palette.deepWater) {
+        crossing.push(key(x, midY));
+      }
+    }
+    if (crossing.length >= 2 && structures > 0.2) {
+      addObject("structure.bridge.wood", crossing);
+      addZone("BRIDGE", "Ponte", crossing, "#9c7a4d");
+      addPoi("CHOKEPOINT", "Ponte", crossing[Math.floor(crossing.length / 2)]!);
+      report.push("Un ponte attraversa l'acqua: passaggio obbligato.");
+    }
+  }
+
+  /* --------------------------- Pericoli ---------------------------- */
+
+  if (danger > 0.4 && palette.hazard) {
+    let hazardCells = 0;
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        if (random() > danger * 0.03) continue;
+        setCell(x, y, { terrain: palette.hazard });
+        hazardCells++;
+      }
+    }
+    if (hazardCells > 0) report.push(`${hazardCells} caselle pericolose.`);
+  }
+
+  /* ----------------------- Schieramenti e POI ---------------------- */
+
+  const openCells: string[] = [];
+  const occupied = new Set(objects.flatMap((object) => object.cells));
+  for (const [cellId, cell] of Object.entries(cells)) {
+    if (cell.blocked || occupied.has(cellId)) continue;
+    if (cell.terrain === palette.deepWater) continue;
+    openCells.push(cellId);
+  }
+
+  const needed = requiredOpenCells(partySize, enemyCount);
+  if (openCells.length < needed) {
+    report.push(
+      `Attenzione: ${openCells.length} caselle libere per uno scontro che ne chiede ${needed}.`
+    );
+  }
+
+  /** Schieramento: un blocco di caselle libere attorno a un angolo. */
+  const spawnBlock = (originX: number, originY: number, size: number) => {
+    const block: string[] = [];
+    for (let dy = 0; dy < size; dy++) {
+      for (let dx = 0; dx < size; dx++) {
+        const cellId = key(
+          Math.max(0, Math.min(cols - 1, originX + dx)),
+          Math.max(0, Math.min(rows - 1, originY + dy))
+        );
+        const cell = cells[cellId];
+        if (cell?.blocked || occupied.has(cellId)) continue;
+        block.push(cellId);
+      }
+    }
+    return block;
+  };
+
+  const side = Math.max(2, Math.ceil(Math.sqrt(partySize)));
+  const players = spawnBlock(1, rows - 1 - side, side);
+  const enemies = spawnBlock(cols - 1 - side, 1, Math.max(2, Math.ceil(Math.sqrt(enemyCount))));
+
+  if (players.length > 0) {
+    addPoi("SPAWN", "Schieramento del party", players[0]!, {
+      side: "PC" as CombatantSide,
+      cells: players,
+      visibleToPlayers: true,
+    });
+    addZone("OPEN_FIELD", "Ingresso del party", players, "#d6b25e");
+  }
+  if (enemies.length > 0) {
+    addPoi("SPAWN", "Schieramento nemico", enemies[0]!, {
+      side: "ENEMY" as CombatantSide,
+      cells: enemies,
+    });
+  }
+  report.push("Due schieramenti agli estremi opposti del campo.");
+
+  // Posizioni dominanti: le caselle più alte che restano libere.
+  const highest = [...Object.entries(cells)]
+    .filter(([cellId, cell]) => !cell.blocked && !occupied.has(cellId))
+    .sort((a, b) => b[1].elevation - a[1].elevation)
+    .slice(0, Math.max(1, Math.round(poiCount / 3)));
+  for (const [cellId, cell] of highest) {
+    if (cell.elevation <= 0) break;
+    addPoi("VANTAGE", `Posizione dominante (quota ${cell.elevation})`, cellId);
+  }
+
+  // Obiettivo e tesoro: al centro e in un angolo lontano dagli spawn.
+  const center = key(Math.floor(cols / 2), Math.floor(rows / 2));
+  addPoi("OBJECTIVE", "Obiettivo dello scontro", center, { visibleToPlayers: true });
+  if (openCells.length > 0) {
+    const treasure = openCells[Math.floor(random() * openCells.length)]!;
+    addPoi("TREASURE", "Bottino", treasure);
+  }
+  report.push(`${poi.length} punti di interesse.`);
+
+  /* --------------------- Collegamento delle regioni ---------------- */
+
+  const draft: TacticalMap = {
+    ...EMPTY_TACTICAL_MAP,
+    cells,
+    objects,
+    zones,
+    poi,
+  };
+  const carved = connectAllRegions(draft, { cols, rows }, cells, palette);
+  if (carved > 0) {
+    report.push(`${carved} passaggi scavati per collegare zone isolate.`);
+  }
+
+  /* --------------------- Punti di interesse validi ----------------- */
+
+  const reachable = new Set(
+    connectedRegions({ ...draft, cells }, {
+      cols,
+      rows,
+      cellSize: 1.5,
+      unit: "m",
+      kind: "SQUARE",
+      metric: "CHEBYSHEV",
+      visible: true,
+      offsetX: 0,
+      offsetY: 0,
+      imageScale: 1,
+    })[0] ?? []
+  );
+
+  const usable = poi.filter((entry) => reachable.has(entry.cell));
+  const dropped = poi.length - usable.length;
+  if (dropped > 0) {
+    report.push(`${dropped} punti di interesse scartati perché irraggiungibili.`);
+  }
+
+  /* ---------------------------- Ripulitura ------------------------- */
+
   const pruned: MapCells = {};
   for (const [cellId, cell] of Object.entries(cells)) {
     if (
@@ -516,12 +685,141 @@ export function generateTacticalMap(options: GeneratorOptions): TacticalMap {
   }
 
   return {
-    ...EMPTY_TACTICAL_MAP,
-    cells: pruned,
-    objects,
-    settings: {
-      ...DEFAULT_MAP_SETTINGS,
-      preset,
+    map: {
+      ...EMPTY_TACTICAL_MAP,
+      cells: pruned,
+      objects,
+      zones,
+      poi: usable,
+      settings: {
+        ...DEFAULT_MAP_SETTINGS,
+        preset: environment,
+        seed,
+      },
     },
+    report,
   };
+}
+
+/**
+ * Rigenerazione parziale: si tiene la struttura che va bene e si rifà
+ * solo un livello. Il Master che ha passato mezz'ora sulle stanze non
+ * deve rifarle per cambiare la vegetazione.
+ */
+export function regenerateLayer(
+  current: TacticalMap,
+  layer: GenerationLayer,
+  options: GenerationOptions
+): GenerationResult {
+  const fresh = generateTacticalStructure(options);
+
+  switch (layer) {
+    case "poi":
+      return {
+        map: { ...current, zones: fresh.map.zones, poi: fresh.map.poi },
+        report: ["Punti di interesse e zone rigenerati."],
+      };
+    case "vegetation":
+    case "obstacles":
+    case "structures":
+      return {
+        map: { ...current, objects: fresh.map.objects },
+        report: [`Elementi rigenerati (${fresh.map.objects.length}).`],
+      };
+    case "terrain":
+    case "water": {
+      // Il terreno cambia, le quote restano: si riusa l'elevazione già
+      // approvata, casella per casella.
+      const cells: MapCells = {};
+      for (const [cellId, cell] of Object.entries(fresh.map.cells)) {
+        cells[cellId] = {
+          ...cell,
+          elevation: current.cells[cellId]?.elevation ?? cell.elevation,
+        };
+      }
+      return { map: { ...current, cells }, report: ["Terreno rigenerato."] };
+    }
+    case "elevation": {
+      const cells: MapCells = { ...current.cells };
+      for (const [cellId, cell] of Object.entries(fresh.map.cells)) {
+        const existing = cells[cellId];
+        if (existing) cells[cellId] = { ...existing, elevation: cell.elevation };
+        else cells[cellId] = cell;
+      }
+      return { map: { ...current, cells }, report: ["Quote rigenerate."] };
+    }
+  }
+}
+
+/** Griglia suggerita dallo scontro previsto. */
+export function suggestSize(
+  partySize: number,
+  enemyCount: number
+): Pick<GridConfig, "cols" | "rows"> {
+  const cells = requiredOpenCells(partySize, enemyCount) * 2.2;
+  const side = Math.max(16, Math.min(60, Math.round(Math.sqrt(cells))));
+  return { cols: side, rows: Math.round(side * 0.75) };
+}
+
+/**
+ * Scava finché ogni angolo percorribile è raggiungibile dal resto.
+ *
+ * Una mappa generata non deve avere stanze murate dentro: è il difetto
+ * che l'analizzatore segnala per primo, e conviene che il generatore non
+ * lo produca affatto.
+ */
+function connectAllRegions(
+  map: TacticalMap,
+  size: { cols: number; rows: number },
+  cells: MapCells,
+  palette: Palette
+): number {
+  const grid: GridConfig = {
+    cols: size.cols,
+    rows: size.rows,
+    cellSize: 1.5,
+    unit: "m",
+    kind: "SQUARE",
+    metric: "CHEBYSHEV",
+    visible: true,
+    offsetX: 0,
+    offsetY: 0,
+    imageScale: 1,
+  };
+
+  let carved = 0;
+  for (let pass = 0; pass < 6; pass++) {
+    const regions = connectedRegions({ ...map, cells }, grid);
+    if (regions.length <= 1) break;
+
+    const main = regions[0]!;
+    const orphan = regions[1]!;
+    const from = orphan[Math.floor(orphan.length / 2)]!;
+    // Cella del blocco principale più vicina all'orfana.
+    const target = main.reduce((best, candidate) => {
+      const distance = manhattan(from, candidate);
+      return distance < manhattan(from, best) ? candidate : best;
+    }, main[0]!);
+
+    const [fx, fy] = from.split(",").map(Number);
+    const [tx, ty] = target.split(",").map(Number);
+    const open = (x: number, y: number) => {
+      const current = cells[key(x, y)];
+      cells[key(x, y)] = {
+        terrain: palette.ground,
+        elevation: Math.max(-1, Math.min(1, current?.elevation ?? 0)),
+      };
+      carved++;
+    };
+
+    for (let x = Math.min(fx!, tx!); x <= Math.max(fx!, tx!); x++) open(x, fy!);
+    for (let y = Math.min(fy!, ty!); y <= Math.max(fy!, ty!); y++) open(tx!, y);
+  }
+  return carved;
+}
+
+function manhattan(a: string, b: string): number {
+  const [ax, ay] = a.split(",").map(Number);
+  const [bx, by] = b.split(",").map(Number);
+  return Math.abs(ax! - bx!) + Math.abs(ay! - by!);
 }

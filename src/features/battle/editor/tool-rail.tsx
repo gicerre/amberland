@@ -3,7 +3,6 @@
 import {
   Boxes,
   Circle,
-  DoorClosed,
   Droplets,
   Eraser,
   Hand,
@@ -18,7 +17,6 @@ import {
   Sparkles,
   Square,
   TriangleAlert,
-  Waves,
   Brush as BrushIcon,
   BrickWall,
   type LucideIcon,
@@ -50,11 +48,11 @@ import { isPaintingTool } from "./operations";
 import { useEditor } from "./use-editor";
 
 /* ============================================================
- * Barra degli strumenti.
+ * Barra degli strumenti tattici.
  *
- * Icone e scorciatoie, nessuna emoji. Sotto agli strumenti compaiono
- * SOLO le opzioni di quello attivo: il pannello non diventa mai un
- * elenco di controlli inerti.
+ * Nessuno strumento disegna sull'immagine: ognuno assegna un significato
+ * alle caselle che coprono qualcosa di già visibile. Sotto compaiono SOLO
+ * le opzioni dello strumento attivo.
  * ============================================================ */
 
 interface ToolEntry {
@@ -65,19 +63,17 @@ interface ToolEntry {
 }
 
 export const TOOL_ENTRIES: ToolEntry[] = [
-  { tool: "SELECT", label: "Seleziona", icon: MousePointer2, shortcut: "V" },
+  { tool: "SELECT", label: "Seleziona caselle", icon: MousePointer2, shortcut: "V" },
   { tool: "PAN", label: "Sposta la vista", icon: Hand, shortcut: "H" },
-  { tool: "TERRAIN", label: "Terreno", icon: BrushIcon, shortcut: "T" },
+  { tool: "TERRAIN", label: "Profilo del terreno", icon: BrushIcon, shortcut: "T" },
+  { tool: "BLOCK", label: "Rendi invalicabile", icon: BrickWall, shortcut: "W" },
   { tool: "ELEVATION", label: "Quote e dislivelli", icon: MountainSnow, shortcut: "E" },
-  { tool: "WATER", label: "Acqua", icon: Waves, shortcut: "Q" },
-  { tool: "WALL", label: "Muri", icon: BrickWall, shortcut: "W" },
-  { tool: "OBSTACLE", label: "Ostacoli", icon: Boxes, shortcut: "O" },
-  { tool: "DOOR", label: "Porte e meccanismi", icon: DoorClosed, shortcut: "D" },
+  { tool: "ELEMENT", label: "Elemento ambientale", icon: Boxes, shortcut: "O" },
   { tool: "TRAP", label: "Trappole", icon: TriangleAlert, shortcut: "R" },
   { tool: "HAZARD", label: "Pericoli", icon: Droplets, shortcut: "Z" },
   { tool: "AREA", label: "Aree d'effetto", icon: Sparkles, shortcut: "A" },
   { tool: "COVER", label: "Copertura", icon: Shield, shortcut: "C" },
-  { tool: "ERASER", label: "Cancella", icon: Eraser, shortcut: "X" },
+  { tool: "ERASER", label: "Azzera configurazione", icon: Eraser, shortcut: "X" },
 ];
 
 const BRUSH_ENTRIES: { shape: BrushShape; label: string; icon: LucideIcon }[] = [
@@ -183,22 +179,6 @@ export function ToolRail() {
 
         {tools.tool === "TERRAIN" && <TerrainPalette />}
 
-        {tools.tool === "WATER" && (
-          <section>
-            <RailHeading>Profondità</RailHeading>
-            <OptionList
-              options={[
-                { value: "SHALLOW_WATER", label: "Acqua bassa" },
-                { value: "SWAMP", label: "Palude" },
-                { value: "DEEP_WATER", label: "Acqua profonda" },
-              ]}
-              value={tools.waterTerrain}
-              onChange={(value) =>
-                setTools((current) => ({ ...current, waterTerrain: value }))
-              }
-            />
-          </section>
-        )}
 
         {tools.tool === "ELEVATION" && (
           <section>
@@ -321,19 +301,25 @@ export function ToolRail() {
           </section>
         )}
 
-        {(tools.tool === "OBSTACLE" ||
-          tools.tool === "DOOR" ||
-          tools.tool === "OBJECT") && (
-          <p className="rounded-lg border border-hairline bg-surface-2/60 p-2.5 text-[11px] text-muted-foreground">
+        {tools.tool === "ELEMENT" && (
+          <p className="rounded-lg border border-hairline bg-surface-2/60 p-2.5 text-[11px] leading-relaxed text-muted-foreground">
             <Layers className="mr-1 inline size-3.5" />
-            Scegli l&apos;oggetto dalla Libreria, poi fai clic sulla mappa per
-            posarlo.
+            Scegli il profilo nella scheda <span className="text-foreground">
+            Profili</span>, poi trascina sulle caselle che l&apos;elemento
+            occupa nell&apos;immagine. Le caselle diventano un elemento solo.
+          </p>
+        )}
+
+        {tools.tool === "BLOCK" && (
+          <p className="rounded-lg border border-hairline bg-surface-2/60 p-2.5 text-[11px] leading-relaxed text-muted-foreground">
+            Segna le caselle in cui l&apos;immagine mostra un muro, una parete
+            o un baratro: diventano invalicabili e danno copertura totale.
           </p>
         )}
 
         {tools.tool === "SELECT" && (
           <p className="rounded-lg border border-hairline bg-surface-2/60 p-2.5 text-[11px] leading-relaxed text-muted-foreground">
-            Trascina per selezionare un&apos;area. <br />
+            Trascina per selezionare le caselle di un elemento. <br />
             <span className="text-foreground">Shift</span> aggiunge,{" "}
             <span className="text-foreground">Ctrl</span> inverte.
             <br />
@@ -394,7 +380,10 @@ function TerrainPalette() {
 
   return (
     <section>
-      <RailHeading>Terreni</RailHeading>
+      <RailHeading>Profilo delle caselle</RailHeading>
+      <p className="mb-2 text-[11px] leading-relaxed text-muted-foreground">
+        Che cosa sono, per il regolamento, le caselle che stai per marcare.
+      </p>
       <div className="space-y-3">
         {categories.map((category) => (
           <div key={category}>

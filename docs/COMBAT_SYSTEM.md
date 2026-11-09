@@ -1531,85 +1531,330 @@ al massimo di 3 celle; due browser vedono lo stesso movimento entro ~300 ms.
 
 ---
 
-## 18. Battlemap Editor (fase E)
+## 18. Battlemap: immagine + strato tattico invisibile
 
-La mappa non è un'immagine con una griglia sopra: è una **struttura
-tattica**. L'editor è il posto in cui la si costruisce, e il Combat System
-la consuma senza sapere da dove venga.
+**PRINCIPIO.** L'ambiente è già disegnato nell'immagine: muri, porte,
+rocce, alberi, casse, acqua, dislivelli. Il Master non li ridisegna — li
+**interpreta**. Seleziona le caselle che coprono un elemento visibile e
+dichiara che cosa quell'elemento è e che cosa ci si può fare.
 
-### 18.1 Modello dati — `types/battlemap.ts`
+Il sistema non è quindi un editor grafico, ma un **editor tattico** che
+rende interattiva una mappa che esiste già.
+
+```
+Immagine        ciò che si vede: non viene MAI modificata
+Griglia         coordinate, scala, allineamento all'immagine
+Metadata        configurazione invisibile agganciata alle caselle
+Elementi        porzioni d'immagine con significato di gioco
+Interazioni     ciò che si può fare su un elemento
+Pedine          personaggi e creature
+Motore          movimento, distanze, copertura, linea di vista, interazioni
+```
+
+### 18.1 Modello — `types/battlemap.ts`
 
 ```
 TacticalMap
-├── cells      Record<"x,y", MapCell>   celle SPARSE
-├── objects    MapObject[]              ostacoli, muri, porte, leve, scale…
-├── traps      MapTrap[]                CD, tiro salvezza, danni, innesco
-├── hazards    MapHazard[]              fuoco, gas, corrente, crolli…
+├── cells      Record<"x,y", MapCell>   metadata SPARSI per casella
+├── objects    MapObject[]              elementi ambientali dell'immagine
+├── traps      MapTrap[]
+├── hazards    MapHazard[]
 ├── areas      MapArea[]                indipendenti dalle celle
-├── layers     LayerStates              visibile / bloccato
-└── settings   MapSettings              terreno base, tabella CD, dislivelli
+├── layers     LayerStates              visibile / bloccato (solo editor)
+└── settings   MapSettings              profilo base, tabella CD, dislivelli
 ```
 
-`MapCell` porta terreno, quota, costo (override compreso), blocco,
-copertura anche direzionale, prova richiesta e nota del Master.
+`MapCell` porta profilo tattico, quota, costo (con override), blocco,
+copertura anche direzionale, prova con CD e nota del Master. `MapObject`
+porta le caselle occupate, passabilità, linea di vista, copertura,
+altezza, HP/CA, stato, **interazioni** e `interactionRange` — cioè la
+distinzione fra caselle OCCUPATE dall'elemento e caselle utilizzabili
+attorno.
 
-**Dove vive**: nel documento `battles/{id}`, campo `tactical`. Le celle
-sono sparse — si scrivono solo quelle diverse dal default — quindi una
-mappa 30×21 pesa decine di KB. Il limite del documento Firestore (1 MB) è
-protetto da `MAP_LIMITS` e da un tetto di 700 KB lato API.
+Vive in `battles/{id}.tactical`. Nessuna Rules nuova. `Battle.terrain`
+resta come proiezione derivata a ogni scrittura — anche quando una porta
+si apre a metà scontro.
 
-**Compatibilità**: `Battle.terrain` continua a esistere come PROIEZIONE
-derivata a ogni salvataggio (`deriveLegacyTerrain`), così le battaglie
-create prima dell'editor e ogni lettore del vecchio campo continuano a
-funzionare. La verità però è `tactical.cells`: `engine/movement` la
-preferisce quando c'è.
-
-### 18.2 Moduli puri
+### 18.2 Motori puri
 
 | Modulo | Responsabilità |
 | --- | --- |
-| `engine/tactical.ts` | Interrogazione della mappa: costo effettivo, copertura, prove, ingombri degli oggetti, forme dei pennelli, flood fill, copia/incolla, normalizzazione |
-| `engine/history.ts` | Annulla/ripristina a **patch**, non a istantanee: ogni gesto produce una patch e la sua inversa, calcolata sullo stato di quel momento |
-| `engine/generator.ts` | 13 preset procedurali con seme deterministico (foresta, palude, montagna, castello, sotterraneo, rovine, campo di battaglia, villaggio, tempio, caverna, costa, fiume, vuoto) |
-| `features/battle/terrain.ts` | Libreria dei 21 terreni con costi, prove e linea di vista; tabella CD centrale |
-| `features/battle/library.ts` | Catalogo di 23 oggetti, 6 trappole, 12 pericoli, 6 aree preconfezionate |
+| `engine/tactical.ts` | Che cosa c'è in una casella: costo, blocco, copertura, prove, ingombri, selezioni, copia/incolla |
+| `engine/cover.ts` | Copertura come RELAZIONE attaccante → elemento → bersaglio: percorre la retta di tiro, somma i ripari attraversati, considera parapetti direzionali e vantaggio di quota |
+| `engine/interactions.ts` | Portata, azioni disponibili per ruolo, applicazione dell'effetto dichiarato |
+| `engine/history.ts` | Annulla/ripristina a patch |
+| `engine/movement.ts` | Dijkstra con costi tattici e dislivelli |
 
-### 18.3 Architettura dell'editor
+### 18.3 Due modalità, due verità visive
+
+**Editor (Master)** — overlay temporanei: profili colorati, quote con
+curve di livello, coperture, elementi, trappole, pericoli, aree,
+evidenziazione tattica di ciò che è difficile o invalicabile.
+
+**Gioco (giocatore)** — immagine, griglia, pedine, e solo le informazioni
+che il gioco deve comunicare: dove può arrivare, il percorso, la distanza,
+le azioni disponibili sull'ambiente vicino. Nessun profilo di terreno,
+nessuna CD, nessuna quota numerica, nessuna coordinata, nessun overlay
+dell'editor. La modalità "Vista giocatore" dell'editor mostra al Master
+esattamente ciò che vedrà il tavolo.
+
+La copertura calcolata è una lettura da regia: compare al Master, mai al
+giocatore.
+
+### 18.4 Interazioni
+
+Ogni elemento porta le proprie azioni, con effetto **dichiarativo**:
+`setsState`, `setsBlocksMovement`, `setsBlocksSight`, `setsCover`, più
+prova con CD, visibilità ai giocatori e "una volta sola". Le porte
+nascono con apri/chiudi/blocca/scassina/sfonda, le casse con
+apri/ispeziona, le leve con attiva/disattiva, gli ostacoli con
+ripàrati/scavalca.
+
+`POST /api/battles/[id]/elements/[elementId]/interact` esegue: il Master
+sempre, il giocatore solo con una pedina che controlla, nel proprio turno
+e dentro `interactionRange`. L'effetto aggiorna la mappa, la proiezione
+legacy e la cronaca (`ELEMENT_INTERACTED`), ed è idempotente per
+`actionId`.
+
+### 18.5 Un solo posto: l'editor
+
+Non esiste più una schermata di preparazione. Il flusso è tutto dentro
+`/battaglie/[id]/editor`:
 
 ```
-app/(battle)/battaglie/[id]/editor      route a schermo pieno
-└── features/battle/editor/
-    ├── battlemap-editor.tsx   guscio: testata, rail, canvas, pannelli, barra di stato, scorciatoie
-    ├── use-editor.ts          stato + storico + salvataggio (contesto React)
-    ├── operations.ts          gesto → patch (puro): l'unica strada per modificare la mappa
-    ├── editor-canvas.tsx      interazione: tratti, forme, selezione, prova sul campo
-    ├── map-layers.tsx         disegno dei livelli (run orizzontali fusi)
-    ├── tool-rail.tsx          strumenti + opzioni contestuali
-    ├── properties-panel.tsx   proprietà contestuali e modifica in blocco
-    ├── layers-panel.tsx       visibilità e blocco dei 12 livelli
-    ├── object-library.tsx     catalogo con ricerca e categorie
-    ├── test-battle.tsx        rapporto della prova sul campo
-    └── quick-map-wizard.tsx   creazione guidata in 5 passi
+Nuova battaglia → immagine → griglia allineata → elementi →
+proprietà tattiche → interazioni → (autosalvataggio) → pronta al gioco
 ```
 
-**Perché lo stato vive nel client**: la mappa si modifica in memoria e si
-salva con un gesto esplicito (`PUT /api/battles/[id]/map`). È l'unico
-modello che rende annulla/ripristina istantanei. Conseguenza dichiarata:
-se due Master lavorano insieme sulla stessa mappa, vince l'ultimo che
-salva.
+La scheda **Battaglia** del pannello destro contiene nome, descrizione,
+immagine, griglia, allineamento, stato (bozza ⇄ pronta), schiere ed
+eliminazione. `/battaglie/[id]/preparazione` resta solo come
+reindirizzamento all'editor, per i collegamenti già in giro.
 
-**Perché il viewport è condiviso**: `BattleCanvas` (zoom, pan, pinch,
-schermo intero) è lo stesso del Campo di Battaglia, esteso con
-`onCellPointer`. Con uno strumento attivo il tasto sinistro disegna e la
-panoramica resta su tasto centrale e barra spaziatrice.
+**Salvataggio**: mappa tattica e dati di battaglia partono insieme.
+Autosalvataggio dopo 4 secondi di quiete, `Ctrl+S` per forzare, e uno
+stato sempre leggibile nella testata — salvata / modifiche non salvate /
+salvataggio in corso / errore (cliccabile per riprovare). Griglia e
+immagine vengono inviate solo quando la battaglia è ancora in
+preparazione: dopo, l'API le rifiuterebbe.
 
-### 18.4 Prova sul campo
+### 18.6 Controlli
 
-Modalità `TEST`: si posa una pedina finta, si sceglie una destinazione e
-si legge distanza, costo del movimento, terreno, quota, copertura,
-pericoli, trappole e prova richiesta con la sua CD. Usa lo stesso
-`engine/movement` dello scontro vero, quindi ciò che dice è ciò che
-accadrà.
+| Gesto | Effetto |
+| --- | --- |
+| Rotella | Zoom ancorato al puntatore, progressivo (listener nativo non passivo: `preventDefault` funziona davvero e la pagina non scorre) |
+| Rotella premuta | Panoramica; lo scorrimento automatico del browser è disinnescato |
+| Barra spaziatrice + trascina | Panoramica temporanea anche con uno strumento attivo |
+| Click sinistro | Applica lo strumento; con SELECT trascina una selezione rettangolare |
+| Shift / Ctrl + click | Aggiunge / inverte la selezione |
+| Click destro | Menu contestuale: su un elemento le sue azioni, su una casella i profili tattici |
+
+Con una selezione attiva compare una **barra volante** con le operazioni
+che si ripetono di continuo: difficile, invalicabile, copertura, quota
+±1, crea elemento, copia, azzera. Se il click destro cade dentro la
+selezione, il menu lavora su tutta la selezione.
+
+Scorciatoie: `Ctrl+Z` / `Ctrl+Y` / `Ctrl+Shift+Z`, `Ctrl+C` / `Ctrl+V`,
+`Ctrl+S`, `Ctrl+A` (tutte le caselle configurate), `Canc`, `Esc`,
+`+` / `−`, `0` (adatta), `F` (centra sulla selezione), `[` / `]`
+(pennello), `B` / `P` (pannelli), `?` (elenco comandi). Le lettere degli
+strumenti stanno nei tooltip e nella finestra dei comandi.
+
+### 18.7 Catalogo degli elementi ambientali
+
+Il Master guarda l'immagine, riconosce una porta rinforzata e la dichiara
+tale: da quella **singola scelta** nascono dimensioni, materiale,
+passabilità, copertura, altezza, stati, interazioni, metodi di
+risoluzione, CD, esiti e soglie di rottura.
+
+**Due livelli, mai confusi**
+
+| | Dove vive | Chi lo cambia |
+| --- | --- | --- |
+| **Template** | `features/battle/catalog/` (codice) | Lo sviluppatore, per tutte le mappe |
+| **Istanza** (`MapObject`) | Dentro la mappa salvata | Il Master, solo per quell'elemento |
+
+L'istanza nasce da una **copia profonda** del template: da lì vive di
+vita propria. Ritoccare la CD della porta del castello non tocca né il
+template né le altre porte; e una mappa salvata resta giocabile identica
+anche se domani il catalogo cambia.
+
+**Archetipi, non liste**
+
+Il catalogo è costruito da nove archetipi comportamentali
+(`catalog/builders.ts`): barriera apribile, barriera solida, riparo
+basso, contenitore, pianta, attraversamento, meccanismo, corso d'acqua,
+dislivello, trama arcana. Ogni archetipo sa già come si comporta la sua
+famiglia; la variante fornisce solo ciò che la distingue — materiale,
+robustezza, ingombro. Aggiungere una porta nuova è **una riga**.
+
+Stato attuale: **107 template** in 7 categorie, con 367 interazioni,
+437 metodi di risoluzione e 768 esiti dichiarati.
+
+**Robustezza come scala**
+
+`FLIMSY → ORDINARY → STURDY → REINFORCED → FORTIFIED` decide insieme la
+CD delle prove (10/12/15/18/20), i punti ferita (5/15/30/60/120), la CA e
+la soglia di durezza. È così che una porta di legno e una fortificata
+differiscono davvero senza che nessuno inventi numeri a mano.
+
+**Interazione → metodo → esito**
+
+```
+Porta (LOCKED)
+└── Scassina
+    ├── Usa la chiave        → automatico     → CLOSED
+    ├── Grimaldelli          → Rapidità CD 18 → CLOSED | fallimento | arnese spezzato
+    └── Apertura arcana      → Arcano CD 18   (riservata al Master)
+```
+
+Ogni esito dichiara stato risultante, danno, condizione, movimento
+consumato e se il Master va avvisato. `engine/elements.ts` applica: il
+cambio di stato riscrive passabilità, copertura, linea di vista e altezza
+dell'istanza — e i campi "piatti" restano allineati, così movimento e
+copertura continuano a leggerli senza sapere nulla di stati.
+
+**Stati e disponibilità**
+
+Le azioni compaiono solo negli stati in cui hanno senso: una porta
+sfondata non si scassina più, una aperta si può chiudere e attraversare.
+Il filtro è in `availableInteractions`, che considera anche portata,
+linea di vista, dislivello, ruolo di chi guarda e azioni già consumate.
+
+**Distruzione strutturata**
+
+Soglia di durezza (un pugnale non scalfisce la pietra), resistenze,
+vulnerabilità (il fuoco conta doppio su un albero), immunità, e soglie di
+stato: integro → danneggiato → breccia → crollato. Ogni passaggio cambia
+la mappa tattica da solo.
+
+---
+
+### 18.8 Camera e touch
+
+In `ACTIVE` la camera segue il combattente di turno: si centra la sua
+casella con uno zoom che lascia leggere l'intorno tattico. Pan e zoom
+manuali restano liberi e non vengono annullati finché non cambia il
+turno. Il viewport è touch-first: pinch, trascinamento a un dito, tap su
+pedine e caselle.
+
+---
+
+## 20. Lettura dell'immagine
+
+Sì, si può partire dall'immagine — ma con una distinzione netta.
+
+**Quello che NON si può fare qui**: riconoscere OGGETTI ("questa è una
+porta, quello è un albero"). Serve un modello di visione, e questo
+progetto non ne ha collegato nessuno.
+
+**Quello che si fa davvero**, interamente nel browser e senza alcun
+servizio esterno: leggere i PIXEL. `engine/image-analysis.ts` (puro) più
+`editor/image-sampler.ts` (canvas).
+
+### 20.1 Trovare la griglia disegnata
+
+Molte battlemap hanno già una griglia stampata sopra. Si calcola
+l'energia dei bordi per colonna e per riga, e si cerca il passo che
+allinea meglio i picchi — una correlazione, non un riconoscimento di
+forme, quindi funziona anche su linee sottili purché regolari.
+
+Due trappole trovate durante le verifiche, e come sono state chiuse:
+
+- un passo DIMEZZATO spiega gli stessi picchi campionando il doppio dei
+  punti: sommando l'energia vincerebbe sempre lui. Si usa la forza MEDIA
+  delle linee campionate, così metà campioni sul vuoto affossano il
+  punteggio;
+- la finestra di ±1 px rende equivalenti tre scostamenti vicini: alla
+  fine si raffina scegliendo quello che cade sulla linea vera.
+
+Sul rumore il punteggio resta sotto la soglia e il sistema **non propone
+nulla**, invece di inventare una griglia.
+
+### 20.2 Proporre i terreni
+
+Ogni casella viene classificata per colore e trama: acqua profonda e
+bassa, prato, erba alta, bosco, sabbia, fango, roccia, macerie,
+struttura, neve, ghiaccio, lava, vuoto. Le caselle contigue dello stesso
+tipo diventano ZONE già nominate.
+
+Due accorgimenti che vengono da errori reali:
+
+- la lava deve essere ROSSA per davvero (il rosso domina gli altri
+  canali), altrimenti una sabbia calda passa per colata incandescente;
+- vicino al bianco la saturazione HSL esplode: si usa il CROMA, o un
+  grigio-perla appena azzurrino verrebbe letto come acqua.
+
+Il risultato è una **bozza con confidenza dichiarata**, non una verità:
+entra come una sola voce di storico, quindi `Ctrl+Z` la annulla in
+blocco. Le caselle ambigue restano terreno normale con confidenza bassa,
+perché il Master le veda e decida.
+
+Limite operativo: leggere i pixel di un'immagine ospitata altrove
+richiede che quel server conceda il CORS. Cloudinary lo fa; un URL
+incollato a caso può rifiutare, e in quel caso lo si dice.
+
+---
+
+## 19. Battle Map Engine: generazione e analisi
+
+Due funzioni che fanno lavorare il motore al posto del Master.
+
+### 19.1 Generatore di struttura tattica
+
+`engine/generator.ts` — **non disegna nulla**. L'immagine resta quella
+che il Master carica; qui nasce ciò che il motore userà: caselle con
+costi e quote, elementi ambientali presi dal catalogo (già completi di
+stati, interazioni, prove e CD), **zone semantiche** ("cortile", "torre",
+"ponte", "acque") e **punti di interesse** (schieramenti, obiettivo,
+bottino, posizioni dominanti, strettoie).
+
+15 ambienti — foresta, sotterraneo, castello, rovine, villaggio, palude,
+montagna, deserto, costa, ghiacciaio, vulcano, caverna, tempio,
+fortezza, campo aperto — ognuno con la propria tavolozza di terreni ed
+elementi. Nove manopole (terreno difficile, acqua, strutture, coperture,
+ostacoli, verticalità, vegetazione, pericolosità, simmetria) e la taglia
+dello scontro previsto, che dimensiona lo spazio e la distanza fra gli
+schieramenti.
+
+**Seme**: stesse opzioni e stesso seme danno la stessa struttura.
+Rigenerare è ripetibile, non una lotteria.
+
+**Rigenerazione parziale**: si tiene ciò che va bene e si rifà solo un
+livello — terreno, quote, acque, strutture, vegetazione, ostacoli, o
+zone e punti di interesse.
+
+**Il generatore si autocorregge**: prima di restituire la mappa collega
+tutte le regioni isolate scavando passaggi, dà alle torri una rampa a
+gradini invece di un salto di quota insuperabile, e scarta i punti di
+interesse che resterebbero irraggiungibili. Sono esattamente i difetti
+che l'analizzatore segnalerebbe: meglio non produrli.
+
+### 19.2 Analisi della battlemap
+
+`engine/analysis.ts` — il controllo tecnico che al tavolo si fa troppo
+tardi. Non giudica il gusto: verifica se la mappa **sta in piedi**.
+
+| Verifica | Perché |
+| --- | --- |
+| Regioni connesse | Zone murate dentro: chi ci finisce non esce |
+| Schieramenti | Troppo vicini (primo turno già mischia), troppo lontani (turni di sola corsa), scollegati (scontro impossibile) |
+| Copertura | Assente (chi tira domina) o ovunque (i tiri diventano inutili) — conta il riparo **adiacente**, che è come ci si copre davvero |
+| Terreno difficile | Oltre il 60% lo scontro si impantana |
+| Spazio | Caselle libere contro combattenti previsti |
+| Strettoie | Caselle con due sole uscite: ottime per una difesa, pessime se sono l'unico passaggio |
+| Punti di interesse | Un tesoro murato dentro è un errore, non una sorpresa |
+
+La connettività considera anche il **dislivello**: un salto di quota
+oltre `maxClimbableStep` è un muro, anche se il terreno è libero.
+
+**Punteggio 0–100** su sette dimensioni (accessibilità, copertura,
+varietà, verticalità, percorsi, schieramenti, densità), con il dettaglio
+di ciascuna. Ogni problema porta le proprie caselle: un clic le seleziona
+sulla mappa, così si corregge dove serve invece di cercare.
+
+Riferimento: le strutture generate a 30×22 con impostazioni predefinite
+ottengono 85–93 su 100, senza errori bloccanti.
 
 ---
 
@@ -1618,10 +1863,10 @@ accadrà.
 > Aggiornare questa sezione alla fine di ogni sessione di lavoro.
 > È il punto da cui ripartire: cosa è fatto, cosa manca, cosa è stato deciso.
 
-**Ultimo aggiornamento**: 26 agosto 2026 (Battlemap Editor)
-**Fase corrente**: F0–F2 e **Battlemap Editor (E)** completati; prossima F3 (lobby, iniziativa, turni)
+**Ultimo aggiornamento**: 27 agosto 2026 (generazione e analisi della battlemap)
+**Fase corrente**: F0–F2 ed **E (editor tattico)** completati; prossima F3 (lobby, iniziativa, turni)
 **Stato git**: F0 iniziale in `cb743f6`; completamento F0, F1, F2 e Battlemap Editor nel working tree
-**Verifica**: `npx tsc --noEmit` pulito · `npm run check:combat` → 63 verifiche superate · `npx eslint` pulito · `next build` compila e supera il type-check (la raccolta pagine richiede un `.next` libero dal dev server)
+**Verifica**: `npx tsc --noEmit` pulito · `npm run check:combat` → 105 verifiche superate · `npx eslint` pulito · `next build` compila e supera il type-check (la raccolta pagine richiede un `.next` libero dal dev server)
 
 ### Fatto — F0 (Fondamenta)
 
@@ -1685,30 +1930,53 @@ proiezione per ruolo su tutti i valori di `enemyHpDisplay`.
 con 9 m che si muove al massimo di 3 celle; due browser che vedono lo stesso
 movimento entro ~300 ms.
 
-### Fatto — E (Battlemap Editor)
+### Fatto — E (Battlemap: editor tattico)
 
-Riprogettazione completa della creazione e modifica delle mappe: modello
-dati tattico, editor a schermo pieno, generazione da preset. Dettaglio
-architetturale nella **§18**.
+Il 26 ago l'editor era nato come editor GRAFICO (pennelli, generatore di
+mappe da preset, oggetti disegnati con icone). Il 27 ago il principio è
+cambiato: **l'ambiente è già nell'immagine**, il Master lo interpreta.
+Dettaglio in **§18**.
 
 | Area | File |
 | --- | --- |
-| Modello | `types/battlemap.ts` (celle, oggetti, trappole, pericoli, aree, layer, impostazioni, limiti) |
-| Regole | `features/battle/terrain.ts` (21 terreni), `library.ts` (23 oggetti, 6 trappole, 12 pericoli, 6 aree) |
-| Motori puri | `engine/tactical.ts`, `engine/history.ts`, `engine/generator.ts`; `engine/movement.ts` esteso con costi tattici e dislivelli |
-| Persistenza | `map-schemas.ts` (Zod), `PUT /api/battles/[id]/map` (valida, limita a 700 KB, deriva `terrain` legacy), `useSaveBattleMap` |
-| Editor | `features/battle/editor/` (11 moduli) su `app/(battle)/battaglie/[id]/editor` |
-| Integrazione | Pulsante nell'editor di preparazione; pedine importabili dal Bestiario **e** dai Personaggi; il campo di gioco e `/move` usano la mappa tattica quando c'è |
+| Modello | `types/battlemap.ts` — metadata per casella + elementi ambientali con interazioni e raggio d'azione |
+| Catalogo | `types/element-catalog.ts` + `features/battle/catalog/` — 107 template comportamentali da 9 archetipi (§18.7); `terrain.ts` (21 profili di casella); `library.ts` (6 trappole, 12 pericoli, 6 aree) |
+| Motori puri | `engine/tactical.ts`, `engine/cover.ts`, `engine/elements.ts` (template→istanza, stati, metodi, distruzione), `engine/generator.ts` (struttura + zone + POI, §19.1), `engine/analysis.ts` (validazione + punteggio, §19.2), `engine/interactions.ts`, `engine/history.ts`; `engine/movement.ts` con costi tattici e dislivelli |
+| Persistenza | `map-schemas.ts`, `PUT /api/battles/[id]/map`, `POST …/elements/[elementId]/interact`, `lib/server/battle-map.ts` |
+| Editor | `features/battle/editor/` — guscio, canvas, strumenti, proprietà, layer, profili, interazioni, azioni rapide e menu contestuale, comandi, scheda Battaglia, prova sul campo |
+| Gioco | `battle-field.tsx` ripulito: immagine, griglia, pedine, portata, azioni ambientali; camera che segue il turno |
 
-Verifiche: `npm run check:combat` → **63 verifiche** (18 nuove su mappa
-tattica, storico, generatore e movimento con dislivelli); `tsc --noEmit`
-e `eslint` puliti; rotte `/battaglie`, `/battaglie/[id]/editor` e
-`/battaglie/[id]/preparazione` servite a 200 dal dev server.
+**Rimosso col cambio di principio**: `engine/generator.ts` e i 13 preset
+procedurali, gli strumenti "acqua" e "posa oggetto con icona", le tinte
+di terreno nella vista giocatore. Generare una mappa contraddiceva il
+principio: l'immagine viene da fuori.
 
-**Non incluso, dichiarato**: illuminazione e linea di vista dinamica (il
-layer `lighting` esiste nel modello ma non ha ancora strumenti); griglia
-esagonale; minimappa; trascinamento vero dalla libreria (si sceglie
-l'oggetto e si posa con un clic, gesto equivalente e migliore su tablet).
+**Rimossa la preparazione separata** (27 ago, seconda passata):
+`components/map-editor.tsx` e `battle-preparation.tsx` non esistono più;
+`/battaglie/[id]/preparazione` reindirizza all'editor, che è l'unico
+posto in cui si crea e configura una battlemap. In cambio l'editor ha
+guadagnato scheda Battaglia, autosalvataggio con stato esplicito, menu
+contestuale, barra di azioni rapide, zoom con rotella ancorato al
+puntatore, pan con rotella premuta e il set completo di scorciatoie
+(vedi §18.5 e §18.6).
+
+Verifiche: `npm run check:combat` → **70 verifiche** (fra cui copertura
+attaccante→elemento→bersaglio, parapetti direzionali, vantaggio di quota,
+linea di vista, apertura di una porta che rende la casella attraversabile,
+azioni "una volta sola" e riservate al Master); `tsc --noEmit` e `eslint`
+puliti.
+
+**Non incluso, dichiarato**: generazione dell'IMMAGINE e riconoscimento
+degli OGGETTI da un'immagine caricata — servono un modello di immagini e
+uno di visione, che questo progetto non ha collegati. Si generano la
+struttura tattica (§19) e la lettura cromatica dell'immagine (§20), non
+il disegno né la semantica degli oggetti. Restano fuori anche:
+illuminazione dinamica e fog of war (il layer `lighting` è nel modello ma
+non ha strumenti); trigger e reazioni a catena; griglia esagonale;
+minimappa; tiri di dado integrati — l'esito di una
+prova lo dichiara chi arbitra, il sistema applica le conseguenze.
+Nell'editor sono modificabili le CD di ogni metodo, non i testi degli
+esiti: quelli descrivono che cosa accade, non quanto è difficile.
 
 ### Prossimo passo — F3 (Lobby, iniziativa, turni)
 
@@ -1738,6 +2006,9 @@ cambiarle è una riga in `DEFAULT_BATTLE_RULES` / `DEFAULT_GRID`.
 | Cura da 0 HP | rimette in piedi; solo il Master dichiara `isDead` | `engine/health.ts` |
 | `isBattleMaster()` nelle Rules | richiede anche `role() == 'MASTER'` oltre a `masterIds` | `firestore.rules` |
 | Mappa tattica | dentro `battles/{id}.tactical`, celle sparse (nessuna nuova Rules da pubblicare) | `types/battlemap.ts` |
+| L'ambiente sta nell'immagine | il Master configura, non disegna: niente generatore, niente oggetti dipinti | `docs/COMBAT_SYSTEM.md` §18 |
+| Vista giocatore | immagine + griglia + pedine + informazioni di gioco; overlay tattici solo nell'editor | `battle-field.tsx`, `map-layers.tsx` |
+| Copertura | relazione attaccante → elemento → bersaglio, non proprietà della casella | `engine/cover.ts` |
 | Salvataggio mappa | intera, esplicito; ultimo salvataggio vince | `PUT /api/battles/[id]/map` |
 | Dislivelli | salire costa `elevationStepCost` per livello, scendere è gratis; oltre `maxClimbableStep` non si sale | `engine/movement.ts` |
 | Rigenerazione da preset | azzera lo storico (una patch grande vanificherebbe le patch) | `use-editor.ts` |

@@ -51,15 +51,15 @@ export function WarTablePanel() {
     >
       {recent.length === 0 ? (
         <p className="text-sm text-muted-foreground">
-          Nessun campo tracciato: la prima mappa si disegna in pochi minuti,
-          griglia e sfondo si regolano con l&apos;anteprima dal vivo.
+          Nessun campo tracciato: carica l&apos;immagine di una mappa,
+          allinea la griglia e configura ciò che vi è disegnato.
         </p>
       ) : (
         <ul className="space-y-2">
           {recent.map((battle) => (
             <li key={battle.id}>
               <Link
-                href={`/battaglie/${battle.id}/preparazione`}
+                href={`/battaglie/${battle.id}/editor`}
                 className="flex items-center gap-3 rounded-lg border border-hairline bg-surface-2/60 px-3 py-2 transition-colors hover:border-gold/40"
               >
                 <Swords className="size-4 shrink-0 text-muted-foreground" />

@@ -26,7 +26,7 @@ import {
   type CombatantSecret,
 } from "@/types/battle";
 
-import type { SaveMapValues } from "./map-schemas";
+import type { InteractValues, SaveMapValues } from "./map-schemas";
 import type {
   CreateBattleValues,
   CreateCombatantValues,
@@ -431,5 +431,30 @@ export function useSaveBattleMap(battleId: string) {
     },
     onError: (error: Error) =>
       toast.error("Mappa non salvata", { description: error.message }),
+  });
+}
+
+/**
+ * Interazione con un elemento ambientale (apri la porta, tira la leva).
+ * Il permesso lo decide il server: qui si chiede soltanto.
+ */
+export function useInteractWithElement(battleId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      elementId,
+      ...body
+    }: InteractValues & { elementId: string }) =>
+      authedFetch<{ duplicate: boolean; state?: string }>(
+        `/api/battles/${battleId}/elements/${elementId}/interact`,
+        { method: "POST", body: JSON.stringify(body) }
+      ),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: [BATTLES_KEY, "detail", battleId],
+      });
+    },
+    onError: (error: Error) =>
+      toast.error("Azione non riuscita", { description: error.message }),
   });
 }

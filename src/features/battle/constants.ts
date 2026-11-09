@@ -272,6 +272,7 @@ export const BATTLE_EVENT_LABELS: Record<BattleEventType, string> = {
   COMBATANT_HEALED: "Cura",
   COMBATANT_DIED: "Caduto",
   COMBATANT_REVIVED: "Rialzato",
+  ELEMENT_INTERACTED: "Interazione con l'ambiente",
   CONDITION_ADDED: "Condizione applicata",
   CONDITION_REMOVED: "Condizione rimossa",
   INITIATIVE_SET: "Iniziativa dichiarata",

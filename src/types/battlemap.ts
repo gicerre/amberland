@@ -1,19 +1,33 @@
-import type { Position } from "./battle";
+import type { CombatantSide, Position } from "./battle";
+import type {
+  ClimbProfile,
+  DestructionProfile,
+  MovableProfile,
+  ResolutionMethod,
+  SpatialRequirement,
+  StateBehaviour,
+} from "./element-catalog";
 
 /* ============================================================
- * Mappa tattica — il modello dati del Battlemap Editor.
+ * Strato tattico della battlemap.
  *
- * Una battlemap NON è un'immagine con sopra una griglia: è una
- * STRUTTURA TATTICA. Ogni cella conosce il proprio terreno, la propria
- * quota, il costo di movimento e la copertura; oggetti, trappole,
- * pericoli e aree vivono accanto alle celle con identità propria e
- * possono referenziarsi fra loro (la leva A apre la porta B).
+ * PRINCIPIO: l'ambiente è GIÀ nell'immagine. Muri, porte, rocce, alberi,
+ * casse, acqua e dislivelli sono disegnati lì dentro; il Master non li
+ * ridisegna, li INTERPRETA. Seleziona le caselle che corrispondono a un
+ * elemento visibile e dichiara che cosa quell'elemento è e che cosa si
+ * può farci.
  *
- * Dove vive: dentro il documento `battles/{id}`, campo `tactical`.
- * Le celle sono SPARSE — si scrivono solo quelle diverse dal default —
- * così una mappa 30×21 pesa decine di KB e resta lontana dal limite di
- * 1 MB del documento. `Battle.terrain` continua a esistere come
- * proiezione derivata, per non rompere ciò che già la legge.
+ * Questo modello è quindi un livello di METADATA invisibile agganciato
+ * alle coordinate della griglia. Non tocca l'immagine, non la modifica
+ * mai, e può essere riscritto in qualunque momento senza conseguenze
+ * grafiche. I colori che compaiono qui dentro servono SOLO agli overlay
+ * dell'editor: in partita il giocatore vede immagine, griglia e pedine.
+ *
+ * Dove vive: nel documento `battles/{id}`, campo `tactical`. Le celle
+ * sono SPARSE — si scrivono solo quelle configurate — così una mappa
+ * 30×21 pesa decine di KB e resta lontana dal limite di 1 MB del
+ * documento. `Battle.terrain` resta come proiezione derivata, per non
+ * rompere ciò che già la legge.
  * ============================================================ */
 
 /** Versione del formato: serve il giorno in cui il modello cambierà. */
@@ -74,6 +88,11 @@ export const TERRAIN_CATEGORIES = [
 ] as const;
 export type TerrainCategory = (typeof TERRAIN_CATEGORIES)[number];
 
+/**
+ * Profilo tattico di una casella: NON è una texture da dipingere, è la
+ * regola che governa quella porzione di immagine ("qui è fango: costa
+ * doppio e serve una prova di Atletica").
+ */
 export interface TerrainDefinition {
   id: TerrainId;
   label: string;
@@ -172,13 +191,83 @@ export interface ObjectChecks {
   disarm?: TacticalCheck | null;
 }
 
+export const INTERACTION_KINDS = [
+  "OPEN",
+  "CLOSE",
+  "LOCK",
+  "UNLOCK",
+  "DESTROY",
+  "INSPECT",
+  "ACTIVATE",
+  "DEACTIVATE",
+  "CLIMB",
+  "PASS",
+  "TAKE_COVER",
+  "CUSTOM",
+] as const;
+export type InteractionKind = (typeof INTERACTION_KINDS)[number];
+
+/**
+ * Azione eseguibile su un elemento ambientale durante il combattimento.
+ *
+ * L'effetto è dichiarativo: l'interazione dice in che stato mette
+ * l'elemento e se ne cambia passabilità, vista o copertura. Il motore
+ * applica, la UI si limita a offrire il pulsante a chi è nel raggio.
+ */
+export interface ElementInteraction {
+  id: string;
+  kind: InteractionKind;
+  /** Etichetta mostrata al tavolo ("Apri la porta", "Scavalca"). */
+  label: string;
+  description: string;
+  /**
+   * Modi diversi di riuscirci: la porta si apre con la maniglia, con la
+   * spalla o con i grimaldelli. Ogni metodo ha la sua prova e i suoi
+   * esiti. Vuoto = azione automatica.
+   */
+  methods?: ResolutionMethod[];
+  /** Stati in cui l'azione ha senso; vuoto = sempre. */
+  availableStates?: string[];
+  /** Requisiti spaziali specifici (distanza, vista, dislivello). */
+  requires?: SpatialRequirement;
+  /** Prova unica — forma breve, ancora usata dalle azioni semplici. */
+  check: TacticalCheck | null;
+  /** Stato in cui finisce l'elemento dopo l'azione. */
+  setsState: ObjectState | null;
+  /** Nuovi valori di passabilità, vista e copertura (null = invariato). */
+  setsBlocksMovement: boolean | null;
+  setsBlocksSight: boolean | null;
+  setsCover: CoverLevel | null;
+  /** Offerta anche ai giocatori, o riservata al Master. */
+  visibleToPlayers: boolean;
+  /** Una volta sola per scontro (una porta sfondata resta sfondata). */
+  once: boolean;
+  /** Già usata in questo scontro. */
+  used: boolean;
+}
+
+/**
+ * Elemento ambientale: una porzione dell'immagine a cui il Master ha
+ * dato un significato di gioco. Non viene disegnato in partita — è già
+ * nell'immagine — ma esiste per il motore e, nell'editor, come overlay.
+ */
 export interface MapObject {
   id: string;
+  /**
+   * Template del catalogo da cui nasce ("structure.door.reinforced").
+   * Serve alla provenienza e al "ripristina i valori di catalogo": i
+   * valori veri stanno QUI, sull'istanza, perché modificare un template
+   * non deve cambiare le mappe già configurate.
+   */
+  templateId?: string | null;
   kind: MapObjectKind;
   name: string;
-  /** Celle occupate ("x,y"): un oggetto può coprirne più d'una. */
+  /**
+   * Caselle OCCUPATE dall'elemento ("x,y"). Una grande roccia 3×2 è un
+   * elemento solo, con sei caselle: si configura una volta.
+   */
   cells: string[];
-  /** Nome dell'icona nel catalogo (vedi features/battle/library.ts). */
+  /** Icona e colore: overlay dell'EDITOR, mai visibili in partita. */
   icon: string;
   color: string;
   blocksMovement: boolean;
@@ -192,6 +281,28 @@ export interface MapObject {
   material: string;
   state: ObjectState;
   checks: ObjectChecks;
+  /** Azioni disponibili su questo elemento. */
+  interactions: ElementInteraction[];
+  /**
+   * Distanza massima, in caselle, da cui si può interagire. 1 = dalle
+   * caselle adiacenti (il caso normale): è così che si distingue fra le
+   * caselle OCCUPATE dall'elemento e quelle utilizzabili attorno.
+   */
+  interactionRange: number;
+  /**
+   * Stati possibili con il rispettivo comportamento. Cambiare stato
+   * riscrive passabilità, copertura, vista e altezza dell'istanza: è il
+   * meccanismo con cui una porta aperta smette davvero di sbarrare.
+   */
+  stateBehaviours?: Record<string, StateBehaviour>;
+  /** Come si rompe: HP, CA, soglie e stati intermedi. */
+  destruction?: DestructionProfile | null;
+  /** Come si sposta: peso, prova, caselle. */
+  movable?: MovableProfile | null;
+  /** Come si scala: prova, quota raggiunta, caduta. */
+  climb?: ClimbProfile | null;
+  /** Danni già subiti, per le soglie di distruzione. */
+  damageTaken?: number;
   /** Collegamenti ad altri oggetti: la leva A apre la porta B. */
   linkedIds: string[];
   /** Scale e rampe: quali quote collegano. */
@@ -316,6 +427,82 @@ export interface MapArea {
 }
 
 /* ------------------------------------------------------------------ */
+/* Zone e punti di interesse                                          */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Zona semantica: che cos'È quella porzione di mappa ("cortile",
+ * "torre", "bosco"). Non è un effetto di gioco — è il modo in cui il
+ * motore e il Master parlano della mappa senza indicare coordinate.
+ */
+export const ZONE_KINDS = [
+  "ROOM",
+  "CORRIDOR",
+  "COURTYARD",
+  "WALLS",
+  "TOWER",
+  "GATE",
+  "BRIDGE",
+  "MOAT",
+  "RUBBLE",
+  "FOREST",
+  "CLEARING",
+  "WATER",
+  "ROAD",
+  "CAMP",
+  "CAVE",
+  "SHRINE",
+  "HIGH_GROUND",
+  "OPEN_FIELD",
+] as const;
+export type ZoneKind = (typeof ZONE_KINDS)[number];
+
+export interface MapZone {
+  id: string;
+  kind: ZoneKind;
+  name: string;
+  cells: string[];
+  color: string;
+  note: string;
+}
+
+/**
+ * Punto di interesse: dove si entra, dove si combatte, dove si muore.
+ * Serve al Master per orientarsi e al motore per verificare che la mappa
+ * stia in piedi (spawn raggiungibili, obiettivi non murati dentro).
+ */
+export const POI_KINDS = [
+  "ENTRANCE",
+  "EXIT",
+  "SPAWN",
+  "OBJECTIVE",
+  "TREASURE",
+  "SAFE",
+  "DANGER",
+  "VANTAGE",
+  "AMBUSH",
+  "ESCAPE",
+  "CHOKEPOINT",
+  "BOSS",
+  "SHRINE",
+] as const;
+export type PoiKind = (typeof POI_KINDS)[number];
+
+export interface MapPoi {
+  id: string;
+  kind: PoiKind;
+  name: string;
+  /** Casella principale del punto. */
+  cell: string;
+  /** Per gli schieramenti: di chi è questo spawn. */
+  side: CombatantSide | null;
+  /** Caselle dello schieramento, quando è un'area. */
+  cells: string[];
+  note: string;
+  visibleToPlayers: boolean;
+}
+
+/* ------------------------------------------------------------------ */
 /* Layer                                                              */
 /* ------------------------------------------------------------------ */
 
@@ -328,6 +515,8 @@ export const MAP_LAYERS = [
   "traps",
   "hazards",
   "areas",
+  "zones",
+  "poi",
   "cover",
   "lighting",
   "interactions",
@@ -371,8 +560,14 @@ export interface MapSettings {
   /** Terreni personalizzati creati dal Master per questa mappa. */
   customTerrains: TerrainDefinition[];
   showCoordinates: boolean;
-  /** Preset da cui è nata la mappa: pura memoria, nessun effetto. */
+  /** Ambiente da cui è nata la mappa: pura memoria, nessun effetto. */
   preset: string | null;
+  /**
+   * Seme della generazione: con lo stesso seme e le stesse opzioni la
+   * struttura torna identica. È ciò che rende "rigenera" un gesto
+   * ripetibile e condivisibile, non una lotteria.
+   */
+  seed: number | null;
 }
 
 export const DEFAULT_MAP_SETTINGS: MapSettings = {
@@ -383,6 +578,7 @@ export const DEFAULT_MAP_SETTINGS: MapSettings = {
   customTerrains: [],
   showCoordinates: false,
   preset: null,
+  seed: null,
 };
 
 /* ------------------------------------------------------------------ */
@@ -396,6 +592,10 @@ export interface TacticalMap {
   traps: MapTrap[];
   hazards: MapHazard[];
   areas: MapArea[];
+  /** Lettura semantica della mappa: cortile, torre, bosco, ponte. */
+  zones: MapZone[];
+  /** Ingressi, obiettivi, schieramenti, posizioni dominanti. */
+  poi: MapPoi[];
   layers: LayerStates;
   settings: MapSettings;
 }
@@ -407,6 +607,8 @@ export const EMPTY_TACTICAL_MAP: TacticalMap = {
   traps: [],
   hazards: [],
   areas: [],
+  zones: [],
+  poi: [],
   layers: DEFAULT_LAYERS,
   settings: DEFAULT_MAP_SETTINGS,
 };
@@ -419,6 +621,8 @@ export const MAP_LIMITS = {
   maxTraps: 200,
   maxHazards: 200,
   maxAreas: 100,
+  maxZones: 60,
+  maxPoi: 60,
   maxCustomTerrains: 40,
   minElevation: -4,
   maxElevation: 8,
@@ -431,18 +635,19 @@ export const MAP_LIMITS = {
 /* Strumenti dell'editor (stato UI, non persistito)                   */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Strumenti dell'editor tattico. Nessuno di questi disegna: tutti
+ * ASSEGNANO significato alle caselle già occupate dall'immagine.
+ */
 export const EDITOR_TOOLS = [
   "SELECT",
   "PAN",
   "TERRAIN",
   "ELEVATION",
-  "WALL",
-  "WATER",
-  "OBSTACLE",
-  "DOOR",
+  "BLOCK",
+  "ELEMENT",
   "TRAP",
   "HAZARD",
-  "OBJECT",
   "AREA",
   "COVER",
   "ERASER",

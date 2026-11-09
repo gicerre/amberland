@@ -1,6 +1,8 @@
 import type {
   LayerStates,
   MapArea,
+  MapPoi,
+  MapZone,
   MapCell,
   MapHazard,
   MapObject,
@@ -25,6 +27,8 @@ export interface MapPatch {
   traps?: Record<string, MapTrap | null>;
   hazards?: Record<string, MapHazard | null>;
   areas?: Record<string, MapArea | null>;
+  zones?: Record<string, MapZone | null>;
+  poi?: Record<string, MapPoi | null>;
   settings?: Partial<MapSettings>;
   layers?: Partial<LayerStates>;
 }
@@ -78,6 +82,8 @@ export function applyPatch(map: TacticalMap, patch: MapPatch): TacticalMap {
     traps: listToPatchTarget(map.traps, patch.traps),
     hazards: listToPatchTarget(map.hazards, patch.hazards),
     areas: listToPatchTarget(map.areas, patch.areas),
+    zones: listToPatchTarget(map.zones, patch.zones),
+    poi: listToPatchTarget(map.poi, patch.poi),
     settings: patch.settings
       ? { ...map.settings, ...patch.settings }
       : map.settings,
@@ -115,6 +121,8 @@ export function invertPatch(map: TacticalMap, patch: MapPatch): MapPatch {
   inverse.traps = inverseFor(map.traps, patch.traps);
   inverse.hazards = inverseFor(map.hazards, patch.hazards);
   inverse.areas = inverseFor(map.areas, patch.areas);
+  inverse.zones = inverseFor(map.zones, patch.zones);
+  inverse.poi = inverseFor(map.poi, patch.poi);
 
   if (patch.settings) {
     const settings: Partial<MapSettings> = {};
@@ -144,6 +152,8 @@ export function isEmptyPatch(patch: MapPatch): boolean {
     Object.keys(patch.traps ?? {}).length === 0 &&
     Object.keys(patch.hazards ?? {}).length === 0 &&
     Object.keys(patch.areas ?? {}).length === 0 &&
+    Object.keys(patch.zones ?? {}).length === 0 &&
+    Object.keys(patch.poi ?? {}).length === 0 &&
     Object.keys(patch.settings ?? {}).length === 0 &&
     Object.keys(patch.layers ?? {}).length === 0
   );

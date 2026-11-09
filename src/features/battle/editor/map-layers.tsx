@@ -20,7 +20,12 @@ import type {
 import { objectIcon } from "./object-icons";
 
 /* ============================================================
- * Disegno della mappa tattica.
+ * Overlay dell'EDITOR sopra l'immagine.
+ *
+ * Nulla di quanto si vede qui esiste in partita: sono aiuti visivi per
+ * chi configura. In "Vista giocatore" spariscono tutti, e resta ciò che
+ * il tavolo vedrebbe davvero — l'immagine, la griglia, le pedine e gli
+ * effetti che il Master ha reso visibili.
  *
  * Un solo `<svg>` per i fondi, con i tratti orizzontali FUSI: una
  * distesa d'erba larga trenta celle diventa un rettangolo, non trenta.
@@ -82,10 +87,12 @@ export function MapLayers({
   const width = grid.cols * cellPx;
   const height = grid.rows * cellPx;
   const tactical = mode === "TACTICAL";
+  // Vista giocatore: l'immagine parla da sola.
+  const playerView = mode === "PREVIEW";
 
   /* --------------------------- Terreno ---------------------------- */
   const terrainRuns = useMemo(() => {
-    if (!layers.terrain.visible) return [];
+    if (!layers.terrain.visible || playerView) return [];
     return buildRuns(grid, (x, y) => {
       const definition = terrainById(
         cellAt(map, `${x},${y}`).terrain,
@@ -93,11 +100,11 @@ export function MapLayers({
       );
       return definition.color === "transparent" ? null : definition.color;
     });
-  }, [map, grid, layers.terrain.visible]);
+  }, [map, grid, layers.terrain.visible, playerView]);
 
   /* -------------------------- Elevazione --------------------------- */
   const elevationRuns = useMemo(() => {
-    if (!layers.elevation.visible) return [];
+    if (!layers.elevation.visible || playerView) return [];
     return buildRuns(grid, (x, y) => {
       const level = cellAt(map, `${x},${y}`).elevation;
       if (level === 0) return null;
@@ -107,11 +114,11 @@ export function MapLayers({
         ? `rgba(255, 255, 255, ${strength})`
         : `rgba(0, 0, 0, ${strength + 0.08})`;
     });
-  }, [map, grid, layers.elevation.visible]);
+  }, [map, grid, layers.elevation.visible, playerView]);
 
   /** Bordi fra quote diverse: sono le curve di livello del campo. */
   const contours = useMemo(() => {
-    if (!layers.elevation.visible) return [];
+    if (!layers.elevation.visible || playerView) return [];
     const segments: { x1: number; y1: number; x2: number; y2: number }[] = [];
     for (let y = 0; y < grid.rows; y++) {
       for (let x = 0; x < grid.cols; x++) {
@@ -135,7 +142,7 @@ export function MapLayers({
       }
     }
     return segments;
-  }, [map, grid, cellPx, layers.elevation.visible]);
+  }, [map, grid, cellPx, layers.elevation.visible, playerView]);
 
   /* --------------------- Evidenziazioni tattiche -------------------- */
   const tacticalRuns = useMemo(() => {
@@ -207,7 +214,9 @@ export function MapLayers({
 
         {/* Aree: indipendenti dalle celle, disegnate sopra il terreno. */}
         {layers.areas.visible &&
-          map.areas.map((area) =>
+          map.areas
+            .filter((area) => !playerView || area.visibleToPlayers)
+            .map((area) =>
             area.cells.map((key) => {
               const position = parseCellKey(key);
               if (!position) return null;
@@ -227,7 +236,9 @@ export function MapLayers({
 
         {/* Pericoli: tinta piena e bordo tratteggiato. */}
         {layers.hazards.visible &&
-          map.hazards.map((hazard) =>
+          map.hazards
+            .filter((hazard) => !playerView || hazard.visibleToPlayers)
+            .map((hazard) =>
             hazard.cells.map((key) => {
               const position = parseCellKey(key);
               if (!position) return null;
@@ -250,6 +261,7 @@ export function MapLayers({
 
         {/* Copertura: spessore sul bordo della cella. */}
         {layers.cover.visible &&
+          !playerView &&
           Object.entries(map.cells).map(([key, cell]) => {
             const mark = COVER_MARK[cell.cover ?? "NONE"];
             const position = parseCellKey(key);
@@ -271,6 +283,7 @@ export function MapLayers({
 
         {/* Quote e coordinate: solo quando c'è spazio per leggerle. */}
         {showLabels &&
+          !playerView &&
           layers.elevation.visible &&
           Object.entries(map.cells).map(([key, cell]) => {
             if (cell.elevation === 0) return null;
@@ -292,6 +305,7 @@ export function MapLayers({
           })}
 
         {showCoordinates &&
+          !playerView &&
           showLabels &&
           Array.from({ length: grid.rows }, (_row, y) =>
             Array.from({ length: grid.cols }, (_col, x) => (
@@ -311,6 +325,7 @@ export function MapLayers({
 
       {/* Oggetti e trappole: DOM, così restano cliccabili e accessibili. */}
       {layers.objects.visible &&
+        !playerView &&
         map.objects.map((object) => (
           <ObjectMark
             key={object.id}
@@ -323,7 +338,21 @@ export function MapLayers({
           />
         ))}
 
+      {/* Zone semantiche: il perimetro e il nome, non una tinta piena. */}
+      {layers.zones.visible &&
+        !playerView &&
+        map.zones.map((zone) => (
+          <ZoneMark key={zone.id} zone={zone} cellPx={cellPx} />
+        ))}
+
+      {layers.poi.visible &&
+        !playerView &&
+        map.poi.map((entry) => (
+          <PoiMark key={entry.id} poi={entry} cellPx={cellPx} />
+        ))}
+
       {layers.traps.visible &&
+        !playerView &&
         map.traps.map((trap) => (
           <TrapMark key={trap.id} cells={trap.cells} cellPx={cellPx} name={trap.name} />
         ))}
@@ -485,3 +514,119 @@ export function MarqueeRect({
     />
   );
 }
+
+/** Zona: contorno tratteggiato e nome, senza coprire l'immagine. */
+function ZoneMark({
+  zone,
+  cellPx,
+}: {
+  zone: { id: string; name: string; cells: string[]; color: string };
+  cellPx: number;
+}) {
+  const positions = zone.cells
+    .map(parseCellKey)
+    .filter((cell): cell is Position => cell !== null);
+  if (positions.length === 0) return null;
+
+  const minX = Math.min(...positions.map((cell) => cell.x));
+  const minY = Math.min(...positions.map((cell) => cell.y));
+
+  return (
+    <>
+      {positions.map((cell) => (
+        <div
+          key={`${zone.id}-${cell.x},${cell.y}`}
+          className="pointer-events-none absolute"
+          style={{
+            left: cell.x * cellPx,
+            top: cell.y * cellPx,
+            width: cellPx,
+            height: cellPx,
+            backgroundColor: zone.color,
+            opacity: 0.12,
+          }}
+        />
+      ))}
+      <div
+        className="pointer-events-none absolute px-1 font-heading text-[10px] tracking-wide whitespace-nowrap text-white/80"
+        style={{
+          left: minX * cellPx + 2,
+          top: minY * cellPx + 2,
+          textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+        }}
+      >
+        {zone.name}
+      </div>
+    </>
+  );
+}
+
+/** Punto di interesse: un pallino con l'iniziale del tipo e il nome. */
+function PoiMark({
+  poi,
+  cellPx,
+}: {
+  poi: { id: string; kind: string; name: string; cell: string; cells: string[] };
+  cellPx: number;
+}) {
+  const position = parseCellKey(poi.cell);
+  if (!position) return null;
+
+  return (
+    <>
+      {poi.cells.map((key) => {
+        const cell = parseCellKey(key);
+        if (!cell) return null;
+        return (
+          <div
+            key={`${poi.id}-${key}`}
+            className="pointer-events-none absolute border border-dashed border-gold/50"
+            style={{
+              left: cell.x * cellPx,
+              top: cell.y * cellPx,
+              width: cellPx,
+              height: cellPx,
+            }}
+          />
+        );
+      })}
+      <div
+        className="pointer-events-none absolute flex items-center gap-1"
+        style={{ left: position.x * cellPx, top: position.y * cellPx }}
+        title={poi.name}
+      >
+        <span
+          className="flex items-center justify-center rounded-full border border-gold/70 bg-black/70 font-heading text-[10px] text-gold"
+          style={{ width: cellPx * 0.5, height: cellPx * 0.5 }}
+        >
+          {POI_INITIAL[poi.kind] ?? "•"}
+        </span>
+        {cellPx > 22 && (
+          <span
+            className="font-heading text-[10px] whitespace-nowrap text-white/80"
+            style={{ textShadow: "0 1px 3px rgba(0,0,0,0.9)" }}
+          >
+            {poi.name}
+          </span>
+        )}
+      </div>
+    </>
+  );
+}
+
+/** Iniziale mostrata sul segnaposto: basta a distinguerli a colpo d'occhio. */
+const POI_INITIAL: Record<string, string> = {
+  ENTRANCE: "I",
+  EXIT: "U",
+  SPAWN: "S",
+  OBJECTIVE: "O",
+  TREASURE: "T",
+  SAFE: "R",
+  DANGER: "!",
+  VANTAGE: "▲",
+  AMBUSH: "A",
+  ESCAPE: "F",
+  CHOKEPOINT: "≡",
+  BOSS: "B",
+  SHRINE: "†",
+};

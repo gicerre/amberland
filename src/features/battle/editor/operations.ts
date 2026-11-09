@@ -1,11 +1,11 @@
 import type { MapPatch } from "@/features/battle/engine/history";
 import { applyCellPatch, cellAt } from "@/features/battle/engine/tactical";
+import { ELEMENT_CATALOG, templateById } from "@/features/battle/catalog";
+import { instanceFromTemplate } from "@/features/battle/engine/elements";
 import {
   AREA_PRESETS,
   hazardFromTemplate,
   HAZARD_LIBRARY,
-  objectFromTemplate,
-  OBJECT_LIBRARY,
   trapFromTemplate,
   TRAP_LIBRARY,
 } from "@/features/battle/library";
@@ -24,16 +24,16 @@ import {
 /* ============================================================
  * Operazioni degli strumenti — MODULO PURO.
  *
- * Ogni gesto dell'editor si traduce in UNA patch e una etichetta. Non
- * esistono scorciatoie che scrivono direttamente nello stato: passando
- * tutti di qui, annulla/ripristina funziona per costruzione e nessuno
- * strumento può dimenticarsi di registrarsi nello storico.
+ * Nessuno strumento disegna: tutti ASSEGNANO significato alle caselle
+ * che già corrispondono a qualcosa nell'immagine. Ogni gesto si traduce
+ * in UNA patch e una etichetta; passando tutti di qui, annulla e
+ * ripristina funzionano per costruzione.
  * ============================================================ */
 
 export interface ToolSettings {
   tool: EditorTool;
+  /** Profilo tattico da assegnare alle caselle (fango, acqua, roccia…). */
   terrainId: TerrainId;
-  waterTerrain: TerrainId;
   /** Elevazione: variazione relativa, o valore assoluto se `set`. */
   elevationDelta: number;
   elevationMode: "RAISE" | "LOWER" | "SET" | "LEVEL";
@@ -49,13 +49,12 @@ export interface ToolSettings {
 
 export const DEFAULT_TOOL_SETTINGS: ToolSettings = {
   tool: "SELECT",
-  terrainId: "GRASS",
-  waterTerrain: "SHALLOW_WATER",
+  terrainId: "DIFFICULT",
   elevationDelta: 1,
   elevationMode: "RAISE",
   elevationValue: 1,
   coverLevel: "HALF",
-  objectTemplateId: "tree",
+  objectTemplateId: "structure.door.simple",
   trapTemplateId: "spiked-pit",
   hazardKind: "FIRE",
   areaPreset: 0,
@@ -141,23 +140,13 @@ export function buildToolPatch(
       };
     }
 
-    case "WATER": {
-      const definition = terrainById(settings.waterTerrain);
+    case "BLOCK":
+      // "Qui non si passa": il muro, la parete, la voragine che si vede
+      // nell'immagine. Nessun disegno, solo la regola.
       return {
-        label: `Acqua: ${definition.label}`,
-        patch: cellsPatch(map, keys, (cell) => ({
-          terrain: settings.waterTerrain,
-          // L'acqua sta più in basso del terreno che la circonda.
-          elevation: Math.min(cell.elevation, settings.waterTerrain === "DEEP_WATER" ? -1 : 0),
-        })),
-      };
-    }
-
-    case "WALL":
-      return {
-        label: "Muro",
+        label: "Invalicabile",
         patch: cellsPatch(map, keys, {
-          terrain: "WALL",
+          movementCost: null,
           blocked: true,
           cover: "TOTAL",
         }),
@@ -204,15 +193,15 @@ export function buildToolPatch(
         }),
       };
 
-    case "OBSTACLE":
-    case "DOOR":
-    case "OBJECT": {
+    case "ELEMENT": {
+      // Le caselle selezionate diventano UN elemento solo: la roccia 3×2
+      // dell'immagine si configura una volta, non sei. Il template del
+      // catalogo porta con sé stati, interazioni, prove e CD.
       const template =
-        OBJECT_LIBRARY.find((entry) => entry.id === settings.objectTemplateId) ??
-        OBJECT_LIBRARY[0]!;
-      const object = objectFromTemplate(template, newId(), keys);
+        templateById(settings.objectTemplateId) ?? ELEMENT_CATALOG[0]!;
+      const object = instanceFromTemplate(template, newId(), keys);
       return {
-        label: `Oggetto: ${template.label}`,
+        label: `Elemento: ${template.label}`,
         patch: { objects: { [object.id]: object } },
       };
     }
@@ -294,24 +283,28 @@ export function bulkCellPatch(
   return { label, patch: cellsPatch(map, keys, change) };
 }
 
-/** True se lo strumento dipinge celle (e quindi vuole un pennello). */
+/**
+ * True se lo strumento assegna una proprietà cella per cella: sono
+ * questi ad avere senso con un pennello o una forma.
+ */
 export function isPaintingTool(tool: EditorTool): boolean {
   return (
     tool === "TERRAIN" ||
-    tool === "WATER" ||
-    tool === "WALL" ||
+    tool === "BLOCK" ||
     tool === "ELEVATION" ||
     tool === "COVER" ||
     tool === "ERASER"
   );
 }
 
-/** True se lo strumento posa un elemento (oggetto, trappola, area…). */
-export function isStampTool(tool: EditorTool): boolean {
+/**
+ * True se lo strumento crea un'ENTITÀ dalle caselle indicate (elemento
+ * ambientale, trappola, pericolo, area): il gesto è sempre un'area, mai
+ * un tratto continuo.
+ */
+export function isEntityTool(tool: EditorTool): boolean {
   return (
-    tool === "OBSTACLE" ||
-    tool === "DOOR" ||
-    tool === "OBJECT" ||
+    tool === "ELEMENT" ||
     tool === "TRAP" ||
     tool === "HAZARD" ||
     tool === "AREA"

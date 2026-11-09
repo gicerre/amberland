@@ -4,11 +4,14 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
-import { useSaveBattleMap } from "@/features/battle/data";
+import type { CanvasApi } from "@/features/battle/components/battle-canvas";
+import { useSaveBattleMap, useUpdateBattle } from "@/features/battle/data";
 import {
   canRedo,
   canUndo,
@@ -23,6 +26,7 @@ import {
   type MapPatch,
 } from "@/features/battle/engine/history";
 import {
+  applyCellPatch,
   buildObstacleIndex,
   copySelection,
   normalizeTacticalMap,
@@ -35,11 +39,17 @@ import {
   DEFAULT_TOOL_SETTINGS,
   type ToolSettings,
 } from "@/features/battle/editor/operations";
-import type { Battle, Position } from "@/types/battle";
+import type {
+  BackgroundImage,
+  Battle,
+  GridConfig,
+  Position,
+} from "@/types/battle";
 import {
   type BrushShape,
   type EditorMode,
   type EditorTool,
+  MAP_LIMITS,
   type MapCell,
   type MapLayer,
   type TacticalMap,
@@ -55,6 +65,20 @@ import {
  * ============================================================ */
 
 export type SelectionMode = "REPLACE" | "ADD" | "TOGGLE";
+
+/** Stato del salvataggio, mostrato senza ambiguità nella testata. */
+export type SaveState = "SAVED" | "DIRTY" | "SAVING" | "ERROR";
+
+/** Dati di battaglia modificabili dall'editor. */
+export interface BattleDraft {
+  name: string;
+  description: string;
+  grid: GridConfig;
+  background: BackgroundImage | null;
+}
+
+/** Quiete prima dell'autosalvataggio. */
+const AUTOSAVE_DELAY_MS = 4000;
 
 export type ElementKind = "object" | "trap" | "hazard" | "area";
 
@@ -76,6 +100,7 @@ const newId = () =>
 
 export function useMapEditorState(battle: Battle) {
   const save = useSaveBattleMap(battle.id);
+  const updateBattle = useUpdateBattle(battle.id);
 
   const [map, setMap] = useState<TacticalMap>(() =>
     normalizeTacticalMap(battle.tactical)
@@ -88,10 +113,22 @@ export function useMapEditorState(battle: Battle) {
   const [mode, setMode] = useState<EditorMode>("EDIT");
   const [clipboard, setClipboard] = useState<MapClipboard | null>(null);
   const [dirty, setDirty] = useState(false);
-  const [grid, setGrid] = useState({
-    cols: battle.grid.cols,
-    rows: battle.grid.rows,
-  });
+  const [battleDirty, setBattleDirty] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const viewport = useRef<CanvasApi | null>(null);
+
+  /**
+   * Bozza dei dati di battaglia: nome, descrizione, griglia e immagine.
+   * Vivono qui perché l'editor è l'unico posto in cui si configura una
+   * battlemap — non esiste più una schermata di preparazione a parte.
+   */
+  const [draft, setDraft] = useState<BattleDraft>(() => ({
+    name: battle.name,
+    description: battle.description,
+    grid: battle.grid,
+    background: battle.background,
+  }));
+  const grid = draft.grid;
 
   /** Indice degli ingombri: ricalcolato solo quando cambiano gli oggetti. */
   const obstacles = useMemo(() => buildObstacleIndex(map), [map]);
@@ -128,17 +165,56 @@ export function useMapEditorState(battle: Battle) {
 
   /* --------------------------- Strumenti ---------------------------- */
 
-  /** Applica lo strumento attivo a un insieme di celle. */
+  /**
+   * Applica uno strumento a un insieme di celle. `override` serve alle
+   * azioni rapide: "crea elemento" deve funzionare senza costringere il
+   * Master a cambiare strumento prima.
+   */
   const applyTool = useCallback(
-    (keys: string[]) => {
-      const layer = layerForTool(tools.tool);
+    (keys: string[], override?: EditorTool) => {
+      const settings = override ? { ...tools, tool: override } : tools;
+      const layer = layerForTool(settings.tool);
       if (layer && map.layers[layer]?.locked) return;
 
-      const result = buildToolPatch(map, tools, keys, newId);
+      const result = buildToolPatch(map, settings, keys, newId);
       if (result) commit(result.label, result.patch);
     },
     [map, tools, commit]
   );
+
+  /** Alza o abbassa di N livelli tutte le caselle selezionate. */
+  const raiseSelection = useCallback(
+    (delta: number) => {
+      if (selection.cells.length === 0) return;
+      const { after } = applyCellPatch(
+        map.cells,
+        selection.cells,
+        (cell) => ({
+          elevation: Math.max(
+            MAP_LIMITS.minElevation,
+            Math.min(MAP_LIMITS.maxElevation, cell.elevation + delta)
+          ),
+        }),
+        map.settings.defaultTerrain
+      );
+      commit(delta > 0 ? "Rialza" : "Abbassa", { cells: after });
+    },
+    [map, selection.cells, commit]
+  );
+
+  /** Seleziona tutte le caselle configurate: base delle modifiche massive. */
+  const selectAllConfigured = useCallback(() => {
+    const keys = new Set(Object.keys(map.cells));
+    for (const element of [
+      ...map.objects,
+      ...map.traps,
+      ...map.hazards,
+      ...map.areas,
+    ]) {
+      element.cells.forEach((key) => keys.add(key));
+    }
+    setSelection({ cells: [...keys], kind: null, elementId: null });
+  }, [map]);
 
   /** Modifica in blocco le celle selezionate dal pannello proprietà. */
   const patchSelectedCells = useCallback(
@@ -291,22 +367,102 @@ export function useMapEditorState(battle: Battle) {
     setDirty(true);
   }, []);
 
-  const resizeGrid = useCallback((cols: number, rows: number) => {
-    setGrid({ cols, rows });
-    setDirty(true);
+  /** Modifica un dato della battaglia (nome, griglia, immagine…). */
+  const patchBattle = useCallback((change: Partial<BattleDraft>) => {
+    setDraft((current) => ({ ...current, ...change }));
+    setBattleDirty(true);
   }, []);
+
+  const patchGrid = useCallback(
+    (change: Partial<GridConfig>) => {
+      setDraft((current) => ({
+        ...current,
+        grid: { ...current.grid, ...change },
+      }));
+      setBattleDirty(true);
+    },
+    []
+  );
+
+  const resizeGrid = useCallback(
+    (cols: number, rows: number) => patchGrid({ cols, rows }),
+    [patchGrid]
+  );
 
   /* --------------------------- Salvataggio --------------------------- */
 
+  /**
+   * Salvataggio unico: la mappa tattica e i dati di battaglia partono
+   * insieme, così "salvato" significa davvero salvato tutto.
+   */
   const saveMap = useCallback(() => {
-    save.mutate(
-      { map, grid },
-      { onSuccess: () => setDirty(false) }
-    );
-  }, [save, map, grid]);
+    setSaveError(null);
+    const tasks: Promise<unknown>[] = [];
+
+    if (battleDirty) {
+      // Griglia e immagine si toccano solo prima dello schieramento: a
+      // scontro aperto l'API le rifiuterebbe, e con esse l'intero
+      // salvataggio. Nome e descrizione restano modificabili sempre.
+      const layoutEditable =
+        battle.status === "DRAFT" || battle.status === "READY";
+      tasks.push(
+        updateBattle.mutateAsync({
+          name: draft.name,
+          description: draft.description,
+          ...(layoutEditable
+            ? { grid: draft.grid, background: draft.background }
+            : {}),
+        })
+      );
+    }
+    if (dirty || battleDirty) {
+      tasks.push(
+        save.mutateAsync({
+          map,
+          grid: { cols: draft.grid.cols, rows: draft.grid.rows },
+        })
+      );
+    }
+    if (tasks.length === 0) return;
+
+    void Promise.all(tasks)
+      .then(() => {
+        setDirty(false);
+        setBattleDirty(false);
+      })
+      .catch((error: Error) => setSaveError(error.message));
+  }, [save, updateBattle, map, draft, dirty, battleDirty, battle.status]);
+
+  // L'autosalvataggio deve chiamare l'ULTIMA versione di `saveMap`, non
+  // quella catturata al primo render.
+  const saveRef = useRef(saveMap);
+  saveRef.current = saveMap;
+
+  /**
+   * Autosalvataggio: qualche secondo di quiete e le modifiche partono da
+   * sole. Il Master non deve ricordarsi di premere niente per non
+   * perdere mezz'ora di configurazione.
+   */
+  useEffect(() => {
+    if (!dirty && !battleDirty) return;
+    const timer = setTimeout(() => saveRef.current(), AUTOSAVE_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [dirty, battleDirty, map, draft]);
+
+  const saving = save.isPending || updateBattle.isPending;
+  const saveState: SaveState = saveError
+    ? "ERROR"
+    : saving
+      ? "SAVING"
+      : dirty || battleDirty
+        ? "DIRTY"
+        : "SAVED";
 
   return {
     battle,
+    draft,
+    patchBattle,
+    patchGrid,
     map,
     grid,
     obstacles,
@@ -323,8 +479,11 @@ export function useMapEditorState(battle: Battle) {
     mode,
     setMode,
     clipboard,
-    dirty,
-    saving: save.isPending,
+    dirty: dirty || battleDirty,
+    saving,
+    saveState,
+    saveError,
+    viewport,
     history: {
       canUndo: canUndo(history),
       canRedo: canRedo(history),
@@ -333,6 +492,8 @@ export function useMapEditorState(battle: Battle) {
       depth: history.past.length,
     },
     applyTool,
+    raiseSelection,
+    selectAllConfigured,
     patchSelectedCells,
     updateElement,
     deleteElement,
@@ -382,15 +543,10 @@ export function layerForTool(tool: EditorTool): MapLayer | null {
       return "terrain";
     case "ELEVATION":
       return "elevation";
-    case "WATER":
-      return "water";
-    case "WALL":
+    case "BLOCK":
       return "walls";
-    case "OBSTACLE":
-    case "OBJECT":
+    case "ELEMENT":
       return "objects";
-    case "DOOR":
-      return "interactions";
     case "TRAP":
       return "traps";
     case "HAZARD":

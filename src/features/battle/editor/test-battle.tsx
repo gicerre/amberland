@@ -3,6 +3,7 @@
 import { Flag, MapPin, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { describeCover, type CoverResult } from "@/features/battle/engine/cover";
 import { COVER_LABELS } from "@/features/battle/library";
 import { formatDistance } from "@/features/battle/engine/geometry";
 import type { CellReport } from "@/features/battle/engine/tactical";
@@ -24,6 +25,8 @@ export interface TestReport {
   reachable: boolean;
   reason: string | null;
   target: CellReport;
+  /** Copertura di cui godrebbe chi si trova sulla casella scelta. */
+  cover: CoverResult;
   elevationDelta: number;
 }
 
@@ -94,7 +97,12 @@ export function TestBattlePanel({
                   }${report.elevationDelta})`
             }
           />
-          <Row label="Copertura" value={COVER_LABELS[report.target.cover]} />
+          <Row label="Copertura sul posto" value={COVER_LABELS[report.target.cover]} />
+          <Row
+            label="Linea di tiro"
+            value={describeCover(report.cover)}
+            tone={report.cover.blocked ? "danger" : undefined}
+          />
           {report.target.check && (
             <Row
               label="Prova richiesta"

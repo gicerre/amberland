@@ -6,6 +6,7 @@ import {
   BattleCanvas,
   type CellPointerEvent,
 } from "@/features/battle/components/battle-canvas";
+import { coverBetween } from "@/features/battle/engine/cover";
 import { cellKey, worldDistance } from "@/features/battle/engine/geometry";
 import {
   buildOccupancy,
@@ -20,12 +21,17 @@ import {
   rectCells,
   toolCells,
 } from "@/features/battle/engine/tactical";
-import { OBJECT_LIBRARY } from "@/features/battle/library";
 import type { GridConfig, Position } from "@/types/battle";
 import { cn } from "@/lib/utils";
 
 import { CellOutline, MapLayers, MarqueeRect } from "./map-layers";
-import { isPaintingTool } from "./operations";
+import { isEntityTool, isPaintingTool } from "./operations";
+import {
+  EditorContextMenu,
+  QuickActionsBar,
+  elementAtCell,
+  type ContextTarget,
+} from "./quick-actions";
 import { TestBattlePanel, type TestReport } from "./test-battle";
 import { useEditor } from "./use-editor";
 
@@ -47,13 +53,9 @@ export function EditorCanvas({ className }: { className?: string }) {
     editor;
 
   const grid: GridConfig = useMemo(
-    () => ({
-      ...editor.battle.grid,
-      ...editor.grid,
-      // La griglia si accende e si spegne dal layer, non dal documento.
-      visible: map.layers.grid.visible,
-    }),
-    [editor.battle.grid, editor.grid, map.layers.grid.visible]
+    // La griglia si accende e si spegne dal layer, non dal documento.
+    () => ({ ...editor.grid, visible: map.layers.grid.visible }),
+    [editor.grid, map.layers.grid.visible]
   );
 
   const [hover, setHover] = useState<Position | null>(null);
@@ -63,6 +65,7 @@ export function EditorCanvas({ className }: { className?: string }) {
   );
   const dragStart = useRef<Position | null>(null);
   const stroke = useRef<Set<string>>(new Set());
+  const [contextTarget, setContextTarget] = useState<ContextTarget | null>(null);
 
   /* --------------------------- Prova sul campo ---------------------- */
   const [testToken, setTestToken] = useState<Position | null>(null);
@@ -90,6 +93,7 @@ export function EditorCanvas({ className }: { className?: string }) {
       reachable: Boolean(movement.path),
       reason: movement.path ? null : movement.reason,
       target: describeCell(map, grid, cellKey(testTarget), obstacles),
+      cover: coverBetween(map, obstacles, testToken, testTarget),
       elevationDelta:
         elevationAt(map, cellKey(testTarget)) -
         elevationAt(map, cellKey(testToken)),
@@ -98,20 +102,13 @@ export function EditorCanvas({ className }: { className?: string }) {
 
   /* ------------------------------ Gesti ------------------------------ */
 
-  const stampSpan = useMemo(() => {
-    const template = OBJECT_LIBRARY.find(
-      (entry) => entry.id === tools.objectTemplateId
-    );
-    return template?.span ?? 1;
-  }, [tools.objectTemplateId]);
-
-  /** Celle toccate dal gesto in corso, secondo strumento e forma. */
+  /**
+   * Celle toccate dal gesto in corso. Gli strumenti che creano
+   * un'ENTITÀ (elemento, trappola, pericolo, area) lavorano sempre su
+   * un'area trascinata: un elemento è fatto di tutte le sue caselle.
+   */
   const gestureCells = (from: Position, to: Position): string[] => {
-    if (tools.tool === "SELECT") return insideGrid(rectCells(from, to), grid);
-    if (tools.tool === "OBJECT" || tools.tool === "OBSTACLE" || tools.tool === "DOOR") {
-      return insideGrid(brushCells(to, stampSpan), grid);
-    }
-    if (tools.tool === "TRAP" || tools.tool === "HAZARD" || tools.tool === "AREA") {
+    if (tools.tool === "SELECT" || isEntityTool(tools.tool)) {
       return insideGrid(rectCells(from, to), grid);
     }
     if (isPaintingTool(tools.tool)) {
@@ -161,11 +158,8 @@ export function EditorCanvas({ className }: { className?: string }) {
         return;
       }
       if (
-        brushShape === "PENCIL" ||
-        brushShape === "BRUSH" ||
-        tools.tool === "OBJECT" ||
-        tools.tool === "OBSTACLE" ||
-        tools.tool === "DOOR"
+        !isEntityTool(tools.tool) &&
+        (brushShape === "PENCIL" || brushShape === "BRUSH")
       ) {
         // Tratto continuo: le celle si accumulano, la storia resta una.
         gestureCells(start, position).forEach((key) => stroke.current.add(key));
@@ -185,7 +179,7 @@ export function EditorCanvas({ className }: { className?: string }) {
       const cells = insideGrid(rectCells(start, position), grid);
       setMarquee(null);
       const single = cells.length === 1;
-      const element = single ? elementAt(cells[0]!) : null;
+      const element = single ? elementAtCell(map, cells[0]!) : null;
 
       if (element) {
         editor.selectElement(element.kind, element.id, element.cells);
@@ -199,11 +193,8 @@ export function EditorCanvas({ className }: { className?: string }) {
     }
 
     const cells =
-      brushShape === "PENCIL" ||
-      brushShape === "BRUSH" ||
-      tools.tool === "OBJECT" ||
-      tools.tool === "OBSTACLE" ||
-      tools.tool === "DOOR"
+      !isEntityTool(tools.tool) &&
+      (brushShape === "PENCIL" || brushShape === "BRUSH")
         ? [...stroke.current]
         : gestureCells(start, position);
 
@@ -212,41 +203,37 @@ export function EditorCanvas({ className }: { className?: string }) {
     if (cells.length > 0) editor.applyTool(cells);
   };
 
-  /** Elemento posato sulla cella, dal più recente al più antico. */
-  const elementAt = (key: string) => {
-    const trap = map.traps.find((entry) => entry.cells.includes(key));
-    if (trap) return { kind: "trap" as const, id: trap.id, cells: trap.cells };
-    const object = map.objects.find((entry) => entry.cells.includes(key));
-    if (object)
-      return { kind: "object" as const, id: object.id, cells: object.cells };
-    const hazard = map.hazards.find((entry) => entry.cells.includes(key));
-    if (hazard)
-      return { kind: "hazard" as const, id: hazard.id, cells: hazard.cells };
-    const area = map.areas.find((entry) => entry.cells.includes(key));
-    if (area) return { kind: "area" as const, id: area.id, cells: area.cells };
-    return null;
-  };
-
   /** Anteprima del pennello sotto il puntatore, prima ancora di premere. */
   const brushPreview = useMemo(() => {
     if (mode !== "EDIT" || !hover || dragStart.current) return [];
     if (isPaintingTool(tools.tool) && brushShape === "BRUSH") {
       return insideGrid(brushCells(hover, brushSize), grid);
     }
-    if (tools.tool === "OBJECT" || tools.tool === "OBSTACLE" || tools.tool === "DOOR") {
-      return insideGrid(brushCells(hover, stampSpan), grid);
-    }
     return [];
-  }, [mode, hover, tools.tool, brushShape, brushSize, stampSpan, grid]);
+  }, [mode, hover, tools.tool, brushShape, brushSize, grid]);
 
   const interactive = mode === "EDIT" ? tools.tool !== "PAN" : mode === "TEST";
 
   return (
     <BattleCanvas
       grid={grid}
-      background={editor.battle.background}
+      background={editor.draft.background}
       className={cn("h-full w-full rounded-none border-0", className)}
       onCellPointer={interactive ? handleCellPointer : undefined}
+      onViewportReady={(api) => {
+        editor.viewport.current = api;
+      }}
+      onCellContextMenu={
+        mode === "EDIT"
+          ? ({ position, clientX, clientY }) =>
+              setContextTarget({
+                position,
+                clientX,
+                clientY,
+                element: elementAtCell(map, cellKey(position)),
+              })
+          : undefined
+      }
       overlay={
         <>
           {/* Coordinate sotto il puntatore: sempre, senza rubare spazio. */}
@@ -255,6 +242,11 @@ export function EditorCanvas({ className }: { className?: string }) {
               {hover.x}, {hover.y}
             </div>
           )}
+          <QuickActionsBar />
+          <EditorContextMenu
+            target={contextTarget}
+            onClose={() => setContextTarget(null)}
+          />
           {mode === "TEST" && (
             <TestBattlePanel
               report={testReport}

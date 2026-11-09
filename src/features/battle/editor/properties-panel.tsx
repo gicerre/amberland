@@ -47,6 +47,7 @@ import {
   type TacticalCheck,
 } from "@/types/battlemap";
 
+import { InteractionsEditor } from "./interactions-editor";
 import { useEditor } from "./use-editor";
 
 /* ============================================================
@@ -91,7 +92,7 @@ export function PropertiesPanel() {
 function CellProperties() {
   const editor = useEditor();
   const { map, selection, obstacles } = editor;
-  const grid: GridConfig = { ...editor.battle.grid, ...editor.grid };
+  const grid: GridConfig = editor.grid;
 
   const keys = selection.cells;
   const first = describeCell(map, grid, keys[0]!, obstacles);
@@ -289,7 +290,7 @@ function ObjectProperties({ object }: { object: MapObject }) {
   return (
     <PanelShell
       title={object.name}
-      subtitle={`${OBJECT_KIND_LABELS[object.kind]} · ${object.cells.length} cella/e`}
+      subtitle={`${OBJECT_KIND_LABELS[object.kind]} · ${object.cells.length} caselle dell'immagine`}
       onDelete={() => editor.deleteElement("object", object.id)}
     >
       <Field label="Nome">
@@ -482,6 +483,39 @@ function ObjectProperties({ object }: { object: MapObject }) {
         onChange={(check) =>
           patch({ checks: { ...object.checks, force: check } }, "Sfondare")
         }
+      />
+
+      <ElementBehaviour object={object} />
+
+      <Field
+        label="Raggio di interazione"
+        hint="Da quante caselle si può agire: 1 = dalle caselle adiacenti."
+      >
+        <Input
+          type="number"
+          min={0}
+          max={20}
+          className="tabular-nums"
+          value={object.interactionRange}
+          onChange={(event) =>
+            patch(
+              { interactionRange: Number(event.target.value) },
+              "Raggio di interazione"
+            )
+          }
+        />
+      </Field>
+
+      <InteractionsEditor
+        object={object}
+        renderCheck={(value, onChange) => (
+          <CheckEditor
+            label="Prova richiesta"
+            value={value}
+            table={editor.map.settings.difficultyDc}
+            onChange={onChange}
+          />
+        )}
       />
 
       {others.length > 0 && (
@@ -876,7 +910,7 @@ function MapProperties() {
         <Stat label="Dimensioni" value={`${grid.cols} × ${grid.rows}`} />
         <Stat
           label="Scala"
-          value={`${editor.battle.grid.cellSize} ${editor.battle.grid.unit} / cella`}
+          value={`${grid.cellSize} ${grid.unit} / cella`}
         />
         <Stat label="Celle dipinte" value={String(weight.cells)} />
         <Stat label="Elementi" value={String(weight.elements)} />
@@ -1203,6 +1237,150 @@ function CheckEditor({
             </SelectContent>
           </Select>
         </div>
+      )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/* Comportamento dell'elemento                                        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Stati, resistenza, peso e arrampicata: ciò che il template ha portato
+ * con sé e che il Master può ritoccare SOLO per questa istanza.
+ */
+function ElementBehaviour({ object }: { object: MapObject }) {
+  const editor = useEditor();
+  const states = object.stateBehaviours ?? {};
+  const stateIds = Object.keys(states);
+
+  const patch = (change: Record<string, unknown>, label: string) =>
+    editor.updateElement("object", object.id, change, label);
+
+  /** Cambiare stato riscrive passabilità, copertura, vista e altezza. */
+  const changeState = (next: string) => {
+    const behaviour = states[next];
+    patch(
+      behaviour
+        ? {
+            state: next,
+            blocksMovement: behaviour.blocksMovement,
+            blocksSight: behaviour.blocksSight,
+            cover: behaviour.cover,
+            height: behaviour.height,
+          }
+        : { state: next },
+      "Stato"
+    );
+  };
+
+  return (
+    <div className="space-y-2 rounded-lg border border-hairline p-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="font-heading text-[0.65rem] tracking-[0.14em] text-gold/70 uppercase">
+          Comportamento
+        </p>
+        {object.templateId && (
+          <span className="truncate font-mono text-[10px] text-muted-foreground">
+            {object.templateId}
+          </span>
+        )}
+      </div>
+
+      {stateIds.length > 0 && (
+        <Field label="Stato corrente">
+          <Select value={object.state} onValueChange={changeState}>
+            <SelectTrigger className="h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {stateIds.map((id) => (
+                <SelectItem key={id} value={id}>
+                  {states[id]!.label}
+                  {states[id]!.terminal ? " (definitivo)" : ""}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-[11px] text-muted-foreground">
+            {states[object.state]?.description}
+          </p>
+        </Field>
+      )}
+
+      {object.destruction && (
+        <div className="grid grid-cols-3 gap-1.5">
+          <Field label="PF">
+            <Input
+              type="number"
+              className="h-8 tabular-nums"
+              value={object.destruction.hp}
+              onChange={(event) =>
+                patch(
+                  {
+                    destruction: {
+                      ...object.destruction,
+                      hp: Number(event.target.value),
+                    },
+                  },
+                  "Resistenza"
+                )
+              }
+            />
+          </Field>
+          <Field label="CA">
+            <Input
+              type="number"
+              className="h-8 tabular-nums"
+              value={object.destruction.armorClass}
+              onChange={(event) =>
+                patch(
+                  {
+                    destruction: {
+                      ...object.destruction,
+                      armorClass: Number(event.target.value),
+                    },
+                  },
+                  "Resistenza"
+                )
+              }
+            />
+          </Field>
+          <Field label="Soglia">
+            <Input
+              type="number"
+              className="h-8 tabular-nums"
+              value={object.destruction.damageThreshold}
+              onChange={(event) =>
+                patch(
+                  {
+                    destruction: {
+                      ...object.destruction,
+                      damageThreshold: Number(event.target.value),
+                    },
+                  },
+                  "Soglia di durezza"
+                )
+              }
+            />
+          </Field>
+        </div>
+      )}
+
+      {object.movable && (
+        <p className="text-[11px] text-muted-foreground">
+          Spostabile · {object.movable.weight} kg ·{" "}
+          {object.movable.check.skill} CD {object.movable.check.dc} ·{" "}
+          {object.movable.distanceCells} caselle
+        </p>
+      )}
+      {object.climb && (
+        <p className="text-[11px] text-muted-foreground">
+          Scalabile · {object.climb.check.skill} CD {object.climb.check.dc} →
+          quota {object.climb.reachesElevation}
+          {object.climb.fallDamage ? ` · caduta ${object.climb.fallDamage}` : ""}
+        </p>
       )}
     </div>
   );

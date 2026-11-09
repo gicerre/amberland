@@ -37,7 +37,7 @@ export default function BattlesPage() {
   }, [battles]);
 
   const hrefFor = (battle: Battle) =>
-    isMaster ? `/battaglie/${battle.id}/preparazione` : undefined;
+    isMaster ? `/battaglie/${battle.id}/editor` : undefined;
 
   return (
     <div>
@@ -67,7 +67,7 @@ export default function BattlesPage() {
           title="Nessun campo tracciato"
           description={
             isMaster
-              ? "Traccia il primo campo: griglia, sfondo e misure si regolano con l'anteprima dal vivo."
+              ? "Apri il primo campo: carichi l'immagine della mappa, allinei la griglia e configuri gli elementi che vi sono disegnati."
               : "Quando il Master aprirà uno scontro, lo troverai qui."
           }
         />

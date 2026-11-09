@@ -1,11 +1,15 @@
-import { BattlePreparation } from "@/features/battle/components/battle-preparation";
+import { redirect } from "next/navigation";
 
-/** Preparazione del campo di battaglia: griglia, sfondo, calibrazione. */
-export default async function BattlePreparationPage({
+/**
+ * La preparazione separata non esiste più: tutta la configurazione di una
+ * battlemap vive nell'editor. La rotta resta solo per non rompere i
+ * collegamenti già in giro.
+ */
+export default async function BattlePreparationRedirect({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  return <BattlePreparation id={id} />;
+  redirect(`/battaglie/${id}/editor`);
 }

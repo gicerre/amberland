@@ -17,7 +17,6 @@ import {
   useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
-  type WheelEvent as ReactWheelEvent,
 } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -54,6 +53,15 @@ interface Viewport {
   height: number;
 }
 
+/** Comandi della vista, per scorciatoie e pulsanti esterni. */
+export interface CanvasApi {
+  zoomBy: (factor: number) => void;
+  setZoom: (zoom: number) => void;
+  /** Rimette la mappa intera dentro il riquadro. */
+  reset: () => void;
+  focusOn: (position: Position, zoom?: number) => void;
+}
+
 /** Gesto su una cella: fase del puntatore + modificatori premuti. */
 export interface CellPointerEvent {
   position: Position;
@@ -74,6 +82,10 @@ export function BattleCanvas({
   children,
   onCellClick,
   onCellPointer,
+  focus,
+  focusZoom,
+  onCellContextMenu,
+  onViewportReady,
   overlay,
   className,
 }: {
@@ -94,6 +106,23 @@ export function BattleCanvas({
    * editor grafico.
    */
   onCellPointer?: (event: CellPointerEvent) => void;
+  /**
+   * Cella su cui centrare la vista. Cambiandola, la camera si sposta con
+   * una transizione: è così che il campo segue il turno di chi gioca.
+   * L'inquadratura resta poi libera: un pan manuale non viene annullato
+   * finché non cambia di nuovo il fuoco.
+   */
+  focus?: Position | null;
+  /** Zoom applicato quando la camera si sposta sul fuoco. */
+  focusZoom?: number;
+  /** Menu contestuale: tasto destro su una casella. */
+  onCellContextMenu?: (event: {
+    position: Position;
+    clientX: number;
+    clientY: number;
+  }) => void;
+  /** Riceve i comandi della vista (zoom, fit, centratura). */
+  onViewportReady?: (api: CanvasApi) => void;
   /** Contenuto flottante sopra il campo (pannelli, legende). */
   overlay?: ReactNode;
   className?: string;
@@ -116,6 +145,12 @@ export function BattleCanvas({
   );
   const moved = useRef(false);
   const painting = useRef(false);
+  // Il listener nativo della rotella vive fuori dal ciclo di render:
+  // legge zoom e funzione di zoom da ref sempre aggiornati.
+  const zoomValue = useRef(1);
+  const zoomRef = useRef<
+    (next: number, anchor?: { x: number; y: number }) => void
+  >(() => {});
   const [spaceHeld, setSpaceHeld] = useState(false);
 
   useLayoutEffect(() => {
@@ -175,6 +210,25 @@ export function BattleCanvas({
     resetView();
   }, [grid.cols, grid.rows, resetView]);
 
+  /**
+   * La camera segue il combattente di turno. Si centra la cella e si
+   * lascia attorno abbastanza campo da capire la situazione tattica.
+   */
+  const focusX = focus?.x ?? null;
+  const focusY = focus?.y ?? null;
+
+  useEffect(() => {
+    if (focusX === null || focusY === null || cellPx <= 0) return;
+    const nextZoom = Math.min(
+      ZOOM_MAX,
+      Math.max(ZOOM_MIN, focusZoom ?? 1.6)
+    );
+    const centerX = (focusX + 0.5) * cellPx - (grid.cols * cellPx) / 2;
+    const centerY = (focusY + 0.5) * cellPx - (grid.rows * cellPx) / 2;
+    setZoom(nextZoom);
+    setPan({ x: -centerX * nextZoom, y: -centerY * nextZoom });
+  }, [focusX, focusY, focusZoom, cellPx, grid.cols, grid.rows]);
+
   const clampZoom = (value: number) =>
     Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, value));
 
@@ -205,17 +259,30 @@ export function BattleCanvas({
     []
   );
 
-  const handleWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    // Solo con Ctrl/Cmd (o pinch da trackpad): la rotellina nuda deve
-    // continuare a scorrere la pagina.
-    if (!event.ctrlKey && !event.metaKey) return;
-    event.preventDefault();
-    const direction = event.deltaY > 0 ? -1 : 1;
-    zoomAt(zoom * (1 + direction * ZOOM_STEP), {
-      x: event.clientX,
-      y: event.clientY,
-    });
-  };
+  /**
+   * Rotella = zoom, ancorato al puntatore. Il listener è NATIVO e non
+   * passivo: React registra `onWheel` come passivo e `preventDefault()`
+   * verrebbe ignorato, con la pagina che scorre sotto la mappa.
+   */
+  useEffect(() => {
+    const element = viewportRef.current;
+    if (!element) return;
+
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      // Il trackpad manda incrementi minuti: si scala il passo sul delta
+      // per uno zoom progressivo, senza salti.
+      const intensity = Math.min(3, Math.abs(event.deltaY) / 100);
+      const direction = event.deltaY > 0 ? -1 : 1;
+      zoomRef.current(
+        zoomValue.current * (1 + direction * ZOOM_STEP * Math.max(0.4, intensity)),
+        { x: event.clientX, y: event.clientY }
+      );
+    };
+
+    element.addEventListener("wheel", onWheel, { passive: false });
+    return () => element.removeEventListener("wheel", onWheel);
+  }, []);
 
   /** Cella sotto il puntatore, o null se fuori dai confini. */
   const cellFromEvent = (
@@ -259,6 +326,25 @@ export function BattleCanvas({
     });
   };
 
+  zoomValue.current = zoom;
+  zoomRef.current = zoomAt;
+
+  useEffect(() => {
+    onViewportReady?.({
+      zoomBy: (factor) => zoomRef.current(zoomValue.current * factor),
+      setZoom: (value) => zoomRef.current(value),
+      reset: resetView,
+      focusOn: (position, nextZoom) => {
+        if (cellPx <= 0) return;
+        const target = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, nextZoom ?? 1.8));
+        const centerX = (position.x + 0.5) * cellPx - (grid.cols * cellPx) / 2;
+        const centerY = (position.y + 0.5) * cellPx - (grid.rows * cellPx) / 2;
+        setZoom(target);
+        setPan({ x: -centerX * target, y: -centerY * target });
+      },
+    });
+  }, [onViewportReady, resetView, cellPx, grid.cols, grid.rows]);
+
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     pointers.current.set(event.pointerId, {
       x: event.clientX,
@@ -279,6 +365,9 @@ export function BattleCanvas({
     // Con uno strumento attivo il tasto sinistro disegna; per la
     // panoramica restano tasto centrale e barra spaziatrice.
     const wantsPan = event.button === 1 || spaceHeld;
+    // Il tasto centrale, da solo, farebbe partire lo scorrimento
+    // automatico del browser: qui serve per la panoramica.
+    if (event.button === 1) event.preventDefault();
     if (onCellPointer && event.button === 0 && !wantsPan) {
       event.currentTarget.setPointerCapture(event.pointerId);
       painting.current = true;
@@ -388,7 +477,17 @@ export function BattleCanvas({
               ? "cursor-crosshair"
               : "cursor-grab"
         )}
-        onWheel={handleWheel}
+        onContextMenu={(event) => {
+          if (!onCellContextMenu) return;
+          event.preventDefault();
+          const position = cellFromEvent(event as unknown as ReactPointerEvent<HTMLDivElement>);
+          if (!position) return;
+          onCellContextMenu({
+            position,
+            clientX: event.clientX,
+            clientY: event.clientY,
+          });
+        }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={endPointer}

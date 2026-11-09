@@ -2,7 +2,6 @@ import { FieldValue } from "firebase-admin/firestore";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { saveMapSchema } from "@/features/battle/map-schemas";
-import { LEGACY_TERRAIN_MAP } from "@/features/battle/terrain";
 import { COLLECTIONS } from "@/lib/constants";
 import { getAdminDb } from "@/lib/firebase/admin";
 import {
@@ -10,7 +9,8 @@ import {
   handleApiError,
   requireBattleMaster,
 } from "@/lib/server/api-helpers";
-import type { Battle, TerrainKind } from "@/types/battle";
+import { deriveLegacyTerrain } from "@/lib/server/battle-map";
+import type { Battle } from "@/types/battle";
 import type { TacticalMap } from "@/types/battlemap";
 
 export const runtime = "nodejs";
@@ -19,29 +19,6 @@ type RouteContext = { params: Promise<{ id: string }> };
 
 /** Limite di sicurezza sul documento Firestore (il massimo vero è 1 MB). */
 const MAX_MAP_BYTES = 700_000;
-
-/**
- * Proiezione verso il modello legacy: `Battle.terrain` conosce sei tipi
- * e continua a servire il motore di movimento delle battaglie create
- * prima dell'editor. La verità resta `tactical.cells`; questo è solo un
- * riflesso, ricalcolato a ogni salvataggio.
- */
-function deriveLegacyTerrain(map: TacticalMap): Record<string, TerrainKind> {
-  const terrain: Record<string, TerrainKind> = {};
-  for (const [key, cell] of Object.entries(map.cells)) {
-    const legacy = LEGACY_TERRAIN_MAP[cell.terrain] ?? "NORMAL";
-    if (legacy === "NORMAL") continue;
-    terrain[key] = legacy as TerrainKind;
-  }
-  // Anche gli oggetti che sbarrano il passo diventano muri per il
-  // vecchio modello: senza, una porta chiusa sarebbe attraversabile.
-  for (const object of map.objects) {
-    if (!object.blocksMovement) continue;
-    if (object.state === "OPEN" || object.state === "BROKEN") continue;
-    for (const key of object.cells) terrain[key] = "WALL";
-  }
-  return terrain;
-}
 
 /**
  * PUT /api/battles/[id]/map — salva l'intera mappa tattica.

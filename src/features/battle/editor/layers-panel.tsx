@@ -18,6 +18,8 @@ const LAYER_LABELS: Record<MapLayer, string> = {
   traps: "Trappole",
   hazards: "Pericoli",
   areas: "Aree",
+  zones: "Zone",
+  poi: "Punti di interesse",
   cover: "Copertura",
   lighting: "Luci",
   interactions: "Interazioni",

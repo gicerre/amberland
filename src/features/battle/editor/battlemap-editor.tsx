@@ -2,7 +2,13 @@
 
 import {
   ArrowLeft,
+  AlertCircle,
   Boxes,
+  Check,
+  Keyboard,
+  Loader2,
+  ScanEye,
+  Stethoscope,
   Copy,
   Layers,
   PanelLeftClose,
@@ -20,7 +26,6 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,27 +36,36 @@ import { cn } from "@/lib/utils";
 import type { Battle } from "@/types/battle";
 import { EDITOR_MODES, type EditorMode } from "@/types/battlemap";
 
+import { AnalysisPanel } from "./analysis-panel";
+import { BattlePanel } from "./battle-panel";
+import { GeneratePanel } from "./generate-panel";
 import { EditorCanvas } from "./editor-canvas";
 import { LayersPanel } from "./layers-panel";
 import { ObjectLibrary } from "./object-library";
 import { PropertiesPanel } from "./properties-panel";
 import { QuickMapWizard } from "./quick-map-wizard";
+import { ReadImagePanel } from "./read-image-panel";
+import { ShortcutsDialog } from "./shortcuts-dialog";
 import { TOOL_ENTRIES, ToolRail } from "./tool-rail";
 import { EditorProvider, useEditor, useMapEditorState } from "./use-editor";
 
 /* ============================================================
- * Battlemap Editor.
+ * Editor tattico della battlemap.
+ *
+ * NON è un editor grafico: l'ambiente è già disegnato nell'immagine. Qui
+ * il Master lo INTERPRETA — seleziona le caselle di un muro, di una porta
+ * o di una roccia e dichiara che cosa sono e che cosa ci si può fare.
  *
  * Layout da applicazione desktop: la mappa al centro e sempre padrona
- * dello schermo, gli strumenti a sinistra, le proprietà a destra, lo
- * stato in basso. Nessun passaggio obbligato: la creazione guidata serve
- * solo a non partire dal foglio bianco, poi si modifica tutto, sempre.
+ * dello schermo, strumenti a sinistra, proprietà a destra, stato in
+ * basso. Gli overlay colorati esistono SOLO qui: in partita il giocatore
+ * vede immagine, griglia e pedine.
  * ============================================================ */
 
 const MODE_LABELS: Record<EditorMode, string> = {
-  EDIT: "Modifica",
-  PREVIEW: "Anteprima",
-  TACTICAL: "Tattica",
+  EDIT: "Configura",
+  PREVIEW: "Vista giocatore",
+  TACTICAL: "Controllo tattico",
   TEST: "Prova",
 };
 
@@ -71,11 +85,18 @@ function EditorShell() {
   const editor = useEditor();
   const [leftOpen, setLeftOpen] = useState(true);
   const [rightOpen, setRightOpen] = useState(true);
+  // Senza immagine non c'è ambiente da interpretare: il primo passo è
+  // portarla dentro e allineare la griglia.
   const [wizardOpen, setWizardOpen] = useState(
-    () => Object.keys(editor.map.cells).length === 0
+    () => !editor.battle.background
   );
 
-  useShortcuts(setLeftOpen, setRightOpen);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [generateOpen, setGenerateOpen] = useState(false);
+  const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [readOpen, setReadOpen] = useState(false);
+
+  useShortcuts(setLeftOpen, setRightOpen, setShortcutsOpen);
 
   // Avviso del browser se si esce con modifiche non salvate.
   useEffect(() => {
@@ -93,6 +114,10 @@ function EditorShell() {
         onToggleLeft={() => setLeftOpen((open) => !open)}
         onToggleRight={() => setRightOpen((open) => !open)}
         onOpenWizard={() => setWizardOpen(true)}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
+        onOpenGenerate={() => setGenerateOpen(true)}
+        onOpenAnalysis={() => setAnalysisOpen(true)}
+        onOpenRead={() => setReadOpen(true)}
       />
 
       <div className="flex min-h-0 flex-1">
@@ -119,6 +144,10 @@ function EditorShell() {
       <MobileDrawers />
 
       <QuickMapWizard open={wizardOpen} onOpenChange={setWizardOpen} />
+      <ShortcutsDialog open={shortcutsOpen} onOpenChange={setShortcutsOpen} />
+      <GeneratePanel open={generateOpen} onOpenChange={setGenerateOpen} />
+      <AnalysisPanel open={analysisOpen} onOpenChange={setAnalysisOpen} />
+      <ReadImagePanel open={readOpen} onOpenChange={setReadOpen} />
     </div>
   );
 }
@@ -131,46 +160,45 @@ function EditorHeader({
   onToggleLeft,
   onToggleRight,
   onOpenWizard,
+  onOpenShortcuts,
+  onOpenGenerate,
+  onOpenAnalysis,
+  onOpenRead,
 }: {
   leftOpen: boolean;
   rightOpen: boolean;
   onToggleLeft: () => void;
   onToggleRight: () => void;
   onOpenWizard: () => void;
+  onOpenShortcuts: () => void;
+  onOpenGenerate: () => void;
+  onOpenAnalysis: () => void;
+  onOpenRead: () => void;
 }) {
   const editor = useEditor();
-  const { battle, dirty, history, mode } = editor;
+  const { history, mode } = editor;
 
   return (
     <header className="glass flex shrink-0 items-center gap-2 border-b border-hairline px-2 py-1.5">
       <Button variant="ghost" size="icon" asChild className="shrink-0">
-        <Link
-          href={`/battaglie/${battle.id}/preparazione`}
-          aria-label="Torna alla preparazione"
-        >
+        <Link href="/battaglie" aria-label="Torna ai campi di battaglia">
           <ArrowLeft className="size-4" />
         </Link>
       </Button>
 
       <div className="hidden min-w-0 md:block">
-        <p className="truncate font-heading text-sm tracking-wide">
-          {battle.name}
-        </p>
-        <p className="text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
+        {/* Il nome si cambia dove lo si legge, senza aprire pannelli. */}
+        <Input
+          value={editor.draft.name}
+          onChange={(event) => editor.patchBattle({ name: event.target.value })}
+          className="h-7 border-transparent bg-transparent px-1 font-heading text-sm tracking-wide hover:border-hairline focus-visible:border-hairline"
+        />
+        <p className="px-1 text-[10px] tracking-[0.14em] text-muted-foreground uppercase">
           Battlemap Editor
         </p>
       </div>
 
-      <Badge
-        className={cn(
-          "ml-1 shrink-0",
-          dirty
-            ? "border-amber-500/40 bg-amber-500/10 text-amber-200"
-            : "border-hairline bg-surface-2 text-muted-foreground"
-        )}
-      >
-        {dirty ? "Non salvata" : "Salvata"}
-      </Badge>
+      <SaveBadge />
 
       <div className="mx-2 hidden items-center gap-1 sm:flex">
         <Button
@@ -219,10 +247,41 @@ function EditorHeader({
           variant="outline"
           size="sm"
           onClick={onOpenWizard}
+          className="hidden lg:inline-flex"
+        >
+          Immagine e griglia
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenRead}
           className="hidden sm:inline-flex"
+          title="Leggi l'immagine: griglia e terreni"
+        >
+          <ScanEye className="size-3.5" />
+          <span className="hidden lg:inline">Leggi</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenGenerate}
+          className="hidden sm:inline-flex"
+          title="Genera la struttura tattica"
         >
           <Wand2 className="size-3.5" />
-          Genera
+          <span className="hidden lg:inline">Genera</span>
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenAnalysis}
+          title="Analizza la battlemap"
+        >
+          <Stethoscope className="size-3.5" />
+          <span className="hidden lg:inline">Analizza</span>
         </Button>
 
         <Button
@@ -234,7 +293,21 @@ function EditorHeader({
           <span className="hidden sm:inline">Prova</span>
         </Button>
 
-        <Button size="sm" onClick={editor.saveMap} disabled={!editor.dirty || editor.saving}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onOpenShortcuts}
+          aria-label="Comandi da tastiera"
+          title="Comandi (?)"
+        >
+          <Keyboard className="size-4" />
+        </Button>
+
+        <Button
+          size="sm"
+          onClick={editor.saveMap}
+          disabled={!editor.dirty || editor.saving}
+        >
           <Save className="size-3.5" />
           Salva
         </Button>
@@ -270,15 +343,62 @@ function EditorHeader({
   );
 }
 
+/** Stato del salvataggio, senza ambiguità: si vede sempre a che punto è. */
+function SaveBadge() {
+  const { saveState, saveError, saveMap } = useEditor();
+
+  const config = {
+    SAVED: {
+      label: "Salvata",
+      className: "border-hairline bg-surface-2 text-muted-foreground",
+      icon: <Check className="size-3" />,
+    },
+    DIRTY: {
+      label: "Modifiche non salvate",
+      className: "border-amber-500/40 bg-amber-500/10 text-amber-200",
+      icon: null,
+    },
+    SAVING: {
+      label: "Salvataggio…",
+      className: "border-hairline bg-surface-2 text-muted-foreground",
+      icon: <Loader2 className="size-3 animate-spin" />,
+    },
+    ERROR: {
+      label: "Salvataggio non riuscito",
+      className: "border-crimson/50 bg-crimson/15 text-crimson-light",
+      icon: <AlertCircle className="size-3" />,
+    },
+  }[saveState];
+
+  return (
+    <button
+      type="button"
+      onClick={saveState === "ERROR" ? saveMap : undefined}
+      title={saveError ?? undefined}
+      className={cn(
+        "ml-1 flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px]",
+        config.className
+      )}
+    >
+      {config.icon}
+      <span className="hidden sm:inline">{config.label}</span>
+    </button>
+  );
+}
+
 /* ---------------------------- Pannelli destri ----------------------- */
 
 function SidePanels() {
   return (
     <Tabs defaultValue="properties" className="flex h-full min-h-0 flex-col">
-      <TabsList className="m-2 grid grid-cols-3">
+      <TabsList className="m-2 grid grid-cols-4">
         <TabsTrigger value="properties" className="gap-1.5 text-xs">
           <SlidersHorizontal className="size-3.5" />
           Proprietà
+        </TabsTrigger>
+        <TabsTrigger value="battle" className="gap-1.5 text-xs">
+          <Swords className="size-3.5" />
+          Battaglia
         </TabsTrigger>
         <TabsTrigger value="layers" className="gap-1.5 text-xs">
           <Layers className="size-3.5" />
@@ -286,11 +406,14 @@ function SidePanels() {
         </TabsTrigger>
         <TabsTrigger value="library" className="gap-1.5 text-xs">
           <Boxes className="size-3.5" />
-          Libreria
+          Profili
         </TabsTrigger>
       </TabsList>
       <TabsContent value="properties" className="min-h-0 flex-1 overflow-hidden">
         <PropertiesPanel />
+      </TabsContent>
+      <TabsContent value="battle" className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <BattlePanel />
       </TabsContent>
       <TabsContent value="layers" className="min-h-0 flex-1 overflow-y-auto">
         <LayersPanel />
@@ -308,7 +431,6 @@ function EditorStatusBar() {
   const editor = useEditor();
   const { map, grid, selection } = editor;
   const weight = useMemo(() => mapWeight(map), [map]);
-  const cell = editor.battle.grid;
 
   return (
     <footer className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1 border-t border-hairline bg-surface-1 px-3 py-1.5 text-[11px] text-muted-foreground">
@@ -340,7 +462,7 @@ function EditorStatusBar() {
       </label>
 
       <span className="tabular-nums">
-        1 cella = {cell.cellSize} {cell.unit}
+        1 cella = {grid.cellSize} {grid.unit}
       </span>
       <span className="tabular-nums">{weight.cells} celle dipinte</span>
       <span className="tabular-nums">{weight.elements} elementi</span>
@@ -463,11 +585,13 @@ function MobileDrawers() {
 /**
  * Tastiera: gli strumenti hanno una lettera, le operazioni i tasti che
  * ogni editor usa da vent'anni. Nessuna scorciatoia scatta mentre si
- * scrive in un campo.
+ * scrive in un campo, e quelle che il browser userebbe per sé (salva,
+ * seleziona tutto, zoom) vengono intercettate.
  */
 function useShortcuts(
   setLeftOpen: (update: (open: boolean) => boolean) => void,
-  setRightOpen: (update: (open: boolean) => boolean) => void
+  setRightOpen: (update: (open: boolean) => boolean) => void,
+  setShortcutsOpen: (open: boolean) => void
 ) {
   const editor = useEditor();
 
@@ -484,70 +608,104 @@ function useShortcuts(
       }
 
       const meta = event.ctrlKey || event.metaKey;
+      const key = event.key.toLowerCase();
+      const viewport = editor.viewport.current;
 
-      if (meta && event.key.toLowerCase() === "z") {
-        event.preventDefault();
-        if (event.shiftKey) editor.redo();
-        else editor.undo();
-        return;
+      if (meta) {
+        switch (key) {
+          case "z":
+            event.preventDefault();
+            if (event.shiftKey) editor.redo();
+            else editor.undo();
+            return;
+          case "y":
+            event.preventDefault();
+            editor.redo();
+            return;
+          case "s":
+            event.preventDefault();
+            editor.saveMap();
+            return;
+          case "a":
+            event.preventDefault();
+            editor.selectAllConfigured();
+            return;
+          case "c":
+            event.preventDefault();
+            editor.copy();
+            return;
+          case "v": {
+            event.preventDefault();
+            const anchor = editor.selection.cells[0]
+              ? parseCellKey(editor.selection.cells[0])
+              : null;
+            if (anchor) editor.paste(anchor);
+            return;
+          }
+          default:
+            return;
+        }
       }
-      if (meta && event.key.toLowerCase() === "y") {
-        event.preventDefault();
-        editor.redo();
-        return;
+
+      switch (event.key) {
+        case "Escape":
+          editor.clearSelection();
+          return;
+        case "Delete":
+        case "Backspace":
+          if (editor.selection.kind && editor.selection.elementId) {
+            editor.deleteElement(
+              editor.selection.kind,
+              editor.selection.elementId
+            );
+          } else if (editor.selection.cells.length > 0) {
+            editor.applyTool(editor.selection.cells, "ERASER");
+          }
+          return;
+        case "+":
+        case "=":
+          viewport?.zoomBy(1.2);
+          return;
+        case "-":
+        case "_":
+          viewport?.zoomBy(1 / 1.2);
+          return;
+        case "0":
+          viewport?.reset();
+          return;
+        case "?":
+          setShortcutsOpen(true);
+          return;
+        case "[":
+          editor.setBrushSize(Math.max(1, editor.brushSize - 1));
+          return;
+        case "]":
+          editor.setBrushSize(Math.min(9, editor.brushSize + 1));
+          return;
+        default:
+          break;
       }
-      if (meta && event.key.toLowerCase() === "s") {
-        event.preventDefault();
-        editor.saveMap();
-        return;
-      }
-      if (meta && event.key.toLowerCase() === "c") {
-        editor.copy();
-        return;
-      }
-      if (meta && event.key.toLowerCase() === "v") {
-        const anchor = editor.selection.cells[0]
+
+      // Centra la vista sulla selezione: comodo dopo un Ctrl+A o quando
+      // si torna su un elemento configurato mezz'ora prima.
+      if (key === "f") {
+        const first = editor.selection.cells[0]
           ? parseCellKey(editor.selection.cells[0])
           : null;
-        if (anchor) editor.paste(anchor);
+        if (first) viewport?.focusOn(first);
         return;
       }
-      if (meta) return;
-
-      if (event.key === "Escape") {
-        editor.clearSelection();
-        return;
-      }
-      if (event.key === "Delete" || event.key === "Backspace") {
-        if (editor.selection.kind && editor.selection.elementId) {
-          editor.deleteElement(editor.selection.kind, editor.selection.elementId);
-        } else if (editor.selection.cells.length > 0) {
-          const tool = editor.tools.tool;
-          editor.setTools((current) => ({ ...current, tool: "ERASER" }));
-          editor.applyTool(editor.selection.cells);
-          editor.setTools((current) => ({ ...current, tool }));
-        }
-        return;
-      }
-      if (event.key === "[") {
-        editor.setBrushSize(Math.max(1, editor.brushSize - 1));
-        return;
-      }
-      if (event.key === "]") {
-        editor.setBrushSize(Math.min(9, editor.brushSize + 1));
-        return;
-      }
-      if (event.key.toLowerCase() === "b") {
+      if (key === "b") {
         setLeftOpen((open) => !open);
         return;
       }
-      if (event.key.toLowerCase() === "p") {
+      if (key === "p") {
         setRightOpen((open) => !open);
         return;
       }
 
       const entry = TOOL_ENTRIES.find(
-        (tool) => tool.shortcut.toLowerCase() === event.key.toLowerCase()
+        (tool) => tool.shortcut.toLowerCase() === key
       );
       if (entry) {
         editor.setTools((current) => ({ ...current, tool: entry.tool }));
@@ -556,5 +714,5 @@ function useShortcuts(
 
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [editor, setLeftOpen, setRightOpen]);
+  }, [editor, setLeftOpen, setRightOpen, setShortcutsOpen]);
 }

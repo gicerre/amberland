@@ -45,7 +45,7 @@ export function BattleCreateDialog({
           onOpenChange(false);
           setName("");
           setDescription("");
-          router.push(`/battaglie/${id}/preparazione`);
+          router.push(`/battaglie/${id}/editor`);
         },
       }
     );

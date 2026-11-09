@@ -1,10 +1,10 @@
 import {
   DEFAULT_DIFFICULTY_DC,
   type CoverLevel,
+  type InteractionKind,
   type DifficultyTier,
   type HazardKind,
   type MapHazard,
-  type MapObject,
   type MapObjectKind,
   type MapTrap,
   type ObjectState,
@@ -14,12 +14,16 @@ import {
 } from "@/types/battlemap";
 
 /* ============================================================
- * Catalogo di oggetti, trappole e pericoli.
+ * Catalogo dei profili ambientali, delle trappole e dei pericoli.
  *
- * Ogni voce è un MODELLO: il Master lo trascina sulla mappa e ottiene un
- * elemento già configurato secondo le regole (copertura, HP, CD), che
- * resta libero di modificare. Le icone vengono da lucide-react per nome:
- * nessuna emoji nell'interfaccia, come da Constitution.
+ * Un profilo NON è un oggetto da disegnare: è la risposta pronta alla
+ * domanda "che cosa è questa roccia che si vede nell'immagine?". Il
+ * Master seleziona le caselle occupate dall'elemento, sceglie il profilo
+ * e ottiene passabilità, copertura, HP, CD e interazioni già coerenti —
+ * poi corregge ciò che vuole.
+ *
+ * Le icone servono agli overlay dell'editor e agli elenchi: in partita
+ * l'elemento è quello disegnato nell'immagine, non un'icona sopra.
  * ============================================================ */
 
 export const COVER_LABELS: Record<CoverLevel, string> = {
@@ -93,6 +97,21 @@ export const HAZARD_LABELS: Record<HazardKind, string> = {
   LIGHTNING: "Fulmini",
 };
 
+export const INTERACTION_LABELS: Record<InteractionKind, string> = {
+  OPEN: "Apri",
+  CLOSE: "Chiudi",
+  LOCK: "Blocca",
+  UNLOCK: "Sblocca",
+  DESTROY: "Distruggi",
+  INSPECT: "Ispeziona",
+  ACTIVATE: "Attiva",
+  DEACTIVATE: "Disattiva",
+  CLIMB: "Scavalca",
+  PASS: "Attraversa",
+  TAKE_COVER: "Usa come copertura",
+  CUSTOM: "Azione",
+};
+
 const check = (skill: string, difficulty: DifficultyTier): TacticalCheck => ({
   skill,
   difficulty,
@@ -103,129 +122,18 @@ const check = (skill: string, difficulty: DifficultyTier): TacticalCheck => ({
 });
 
 /* ------------------------------------------------------------------ */
-/* Oggetti                                                            */
+/* Oggetti ambientali                                                 */
 /* ------------------------------------------------------------------ */
 
-export const OBJECT_CATEGORIES = [
-  "NATURE",
-  "ARCHITECTURE",
-  "DUNGEON",
-  "BATTLEFIELD",
-] as const;
-export type ObjectCategory = (typeof OBJECT_CATEGORIES)[number];
-
-export const OBJECT_CATEGORY_LABELS: Record<ObjectCategory, string> = {
-  NATURE: "Natura",
-  ARCHITECTURE: "Architettura",
-  DUNGEON: "Sotterranei",
-  BATTLEFIELD: "Campo di battaglia",
-};
-
-/** Modello di oggetto: tutto ciò che serve a crearne uno già corretto. */
-export interface ObjectTemplate {
-  id: string;
-  label: string;
-  category: ObjectCategory;
-  kind: MapObjectKind;
-  icon: string;
-  color: string;
-  blocksMovement: boolean;
-  blocksSight: boolean;
-  cover: CoverLevel;
-  /** Altezza in metri: conta per copertura e arrampicata. */
-  height: number;
-  destructible: boolean;
-  hp: number;
-  armorClass: number;
-  material: string;
-  state: ObjectState;
-  /** Celle occupate di default (lato del quadrato). */
-  span: number;
-  keywords: string[];
-}
-
-export const OBJECT_LIBRARY: ObjectTemplate[] = [
-  // ------------------------------- Natura
-  { id: "tree", label: "Albero", category: "NATURE", kind: "OBSTACLE", icon: "TreePine", color: "#3f7a4f", blocksMovement: true, blocksSight: true, cover: "THREE_QUARTERS", height: 6, destructible: true, hp: 40, armorClass: 13, material: "Legno", state: "NONE", span: 1, keywords: ["bosco", "pianta"] },
-  { id: "bush", label: "Cespuglio", category: "NATURE", kind: "DECOR", icon: "Shrub", color: "#4f8a5c", blocksMovement: false, blocksSight: true, cover: "HALF", height: 1.5, destructible: true, hp: 10, armorClass: 10, material: "Fogliame", state: "NONE", span: 1, keywords: ["arbusto"] },
-  { id: "boulder", label: "Masso", category: "NATURE", kind: "OBSTACLE", icon: "Mountain", color: "#8a8f9c", blocksMovement: true, blocksSight: true, cover: "TOTAL", height: 2.5, destructible: false, hp: 60, armorClass: 17, material: "Pietra", state: "NONE", span: 1, keywords: ["roccia", "pietra"] },
-  { id: "log", label: "Tronco caduto", category: "NATURE", kind: "OBSTACLE", icon: "Logs", color: "#7a5c3a", blocksMovement: false, blocksSight: false, cover: "HALF", height: 1, destructible: true, hp: 20, armorClass: 12, material: "Legno", state: "NONE", span: 2, keywords: ["albero"] },
-  // --------------------------- Architettura
-  { id: "wall", label: "Muro", category: "ARCHITECTURE", kind: "WALL", icon: "BrickWall", color: "#9aa0ad", blocksMovement: true, blocksSight: true, cover: "TOTAL", height: 4, destructible: true, hp: 80, armorClass: 17, material: "Pietra", state: "NONE", span: 1, keywords: ["mura", "parete"] },
-  { id: "door", label: "Porta", category: "ARCHITECTURE", kind: "DOOR", icon: "DoorClosed", color: "#b58a52", blocksMovement: true, blocksSight: true, cover: "TOTAL", height: 2.5, destructible: true, hp: 25, armorClass: 15, material: "Legno", state: "CLOSED", span: 1, keywords: ["ingresso", "uscio"] },
-  { id: "secret-door", label: "Porta segreta", category: "ARCHITECTURE", kind: "SECRET_DOOR", icon: "DoorOpen", color: "#8f6fb0", blocksMovement: true, blocksSight: true, cover: "TOTAL", height: 2.5, destructible: true, hp: 30, armorClass: 16, material: "Pietra", state: "HIDDEN", span: 1, keywords: ["nascosta", "passaggio"] },
-  { id: "window", label: "Finestra", category: "ARCHITECTURE", kind: "DECOR", icon: "AppWindow", color: "#7fa8c4", blocksMovement: true, blocksSight: false, cover: "THREE_QUARTERS", height: 2, destructible: true, hp: 8, armorClass: 12, material: "Vetro", state: "CLOSED", span: 1, keywords: ["vetrata"] },
-  { id: "column", label: "Colonna", category: "ARCHITECTURE", kind: "OBSTACLE", icon: "Columns3", color: "#c2c6ce", blocksMovement: true, blocksSight: true, cover: "THREE_QUARTERS", height: 5, destructible: true, hp: 50, armorClass: 17, material: "Marmo", state: "NONE", span: 1, keywords: ["pilastro"] },
-  { id: "stairs", label: "Scala", category: "ARCHITECTURE", kind: "STAIRS", icon: "Footprints", color: "#a8905f", blocksMovement: false, blocksSight: false, cover: "NONE", height: 0, destructible: false, hp: 0, armorClass: 0, material: "Pietra", state: "NONE", span: 2, keywords: ["gradini", "dislivello"] },
-  { id: "bridge", label: "Ponte", category: "ARCHITECTURE", kind: "BRIDGE", icon: "Cable", color: "#9c7a4d", blocksMovement: false, blocksSight: false, cover: "NONE", height: 0, destructible: true, hp: 40, armorClass: 13, material: "Legno", state: "NONE", span: 3, keywords: ["passerella", "attraversamento"] },
-  // ------------------------------ Dungeon
-  { id: "sarcophagus", label: "Sarcofago", category: "DUNGEON", kind: "CONTAINER", icon: "Package", color: "#a09577", blocksMovement: true, blocksSight: false, cover: "HALF", height: 1.2, destructible: true, hp: 35, armorClass: 15, material: "Pietra", state: "CLOSED", span: 1, keywords: ["tomba", "bara"] },
-  { id: "altar", label: "Altare", category: "DUNGEON", kind: "DECOR", icon: "Flame", color: "#b58fd0", blocksMovement: true, blocksSight: false, cover: "HALF", height: 1.2, destructible: true, hp: 40, armorClass: 15, material: "Pietra", state: "NONE", span: 1, keywords: ["rito", "tempio"] },
-  { id: "grate", label: "Grata", category: "DUNGEON", kind: "DECOR", icon: "Grid2x2", color: "#7f8794", blocksMovement: true, blocksSight: false, cover: "HALF", height: 1, destructible: true, hp: 20, armorClass: 15, material: "Ferro", state: "CLOSED", span: 1, keywords: ["ferro", "sbarre"] },
-  { id: "hatch", label: "Botola", category: "DUNGEON", kind: "HATCH", icon: "SquareDashedBottom", color: "#8d7350", blocksMovement: false, blocksSight: false, cover: "NONE", height: 0, destructible: true, hp: 15, armorClass: 13, material: "Legno", state: "CLOSED", span: 1, keywords: ["passaggio", "sotto"] },
-  { id: "lever", label: "Leva", category: "DUNGEON", kind: "LEVER", icon: "ToggleLeft", color: "#c9a227", blocksMovement: false, blocksSight: false, cover: "NONE", height: 1, destructible: true, hp: 8, armorClass: 12, material: "Ferro", state: "OFF", span: 1, keywords: ["meccanismo", "interruttore"] },
-  { id: "chest", label: "Scrigno", category: "DUNGEON", kind: "CONTAINER", icon: "Box", color: "#a5793f", blocksMovement: false, blocksSight: false, cover: "NONE", height: 0.8, destructible: true, hp: 15, armorClass: 13, material: "Legno", state: "CLOSED", span: 1, keywords: ["tesoro", "bottino"] },
-  // -------------------------- Campo di battaglia
-  { id: "barricade", label: "Barricata", category: "BATTLEFIELD", kind: "OBSTACLE", icon: "Fence", color: "#8a6b45", blocksMovement: true, blocksSight: false, cover: "HALF", height: 1.5, destructible: true, hp: 30, armorClass: 13, material: "Legno", state: "NONE", span: 2, keywords: ["riparo", "difesa"] },
-  { id: "debris", label: "Macerie", category: "BATTLEFIELD", kind: "OBSTACLE", icon: "Blocks", color: "#948a7c", blocksMovement: false, blocksSight: false, cover: "HALF", height: 1, destructible: false, hp: 0, armorClass: 0, material: "Pietrame", state: "NONE", span: 2, keywords: ["rovine", "detriti"] },
-  { id: "cart", label: "Carro", category: "BATTLEFIELD", kind: "OBSTACLE", icon: "Truck", color: "#96703f", blocksMovement: true, blocksSight: true, cover: "THREE_QUARTERS", height: 2, destructible: true, hp: 35, armorClass: 13, material: "Legno", state: "NONE", span: 2, keywords: ["carretto", "convoglio"] },
-  { id: "tent", label: "Tenda", category: "BATTLEFIELD", kind: "DECOR", icon: "Tent", color: "#a3603f", blocksMovement: true, blocksSight: true, cover: "TOTAL", height: 2.5, destructible: true, hp: 15, armorClass: 11, material: "Tela", state: "NONE", span: 2, keywords: ["accampamento"] },
-  { id: "ballista", label: "Balista", category: "BATTLEFIELD", kind: "OBSTACLE", icon: "Crosshair", color: "#8b5a3c", blocksMovement: true, blocksSight: false, cover: "HALF", height: 2, destructible: true, hp: 50, armorClass: 15, material: "Legno e ferro", state: "NONE", span: 2, keywords: ["assedio", "arma"] },
-  { id: "wreck", label: "Relitto", category: "BATTLEFIELD", kind: "OBSTACLE", icon: "Ship", color: "#6f7c86", blocksMovement: true, blocksSight: true, cover: "THREE_QUARTERS", height: 3, destructible: false, hp: 0, armorClass: 0, material: "Legno marcio", state: "NONE", span: 3, keywords: ["nave", "rovina"] },
-];
-
-/** Prove predefinite per tipo di oggetto: porte e segreti non nascono nudi. */
-export function defaultChecksFor(kind: MapObjectKind) {
-  switch (kind) {
-    case "DOOR":
-      return {
-        lockpick: check("Rapidità di Mano", "MEDIUM"),
-        force: check("Atletica", "HARD"),
-      };
-    case "SECRET_DOOR":
-      return {
-        perception: check("Percezione", "HARD"),
-        investigation: check("Indagare", "MEDIUM"),
-      };
-    case "HATCH":
-      return { force: check("Atletica", "EASY") };
-    case "CONTAINER":
-      return { lockpick: check("Rapidità di Mano", "MEDIUM") };
-    default:
-      return {};
-  }
-}
-
-/** Oggetto pronto da inserire, generato dal modello. */
-export function objectFromTemplate(
-  template: ObjectTemplate,
-  id: string,
-  cells: string[]
-): MapObject {
-  return {
-    id,
-    kind: template.kind,
-    name: template.label,
-    cells,
-    icon: template.icon,
-    color: template.color,
-    blocksMovement: template.blocksMovement,
-    blocksSight: template.blocksSight,
-    cover: template.cover,
-    height: template.height,
-    destructible: template.destructible,
-    hp: template.hp,
-    armorClass: template.armorClass,
-    material: template.material,
-    state: template.state,
-    checks: defaultChecksFor(template.kind),
-    linkedIds: [],
-    connectsElevation:
-      template.kind === "STAIRS" ? { from: 0, to: 1 } : null,
-    visibleToPlayers: template.kind !== "SECRET_DOOR",
-    note: "",
-  };
-}
+/*
+ * Il catalogo degli elementi ambientali NON vive più qui: sta in
+ * `features/battle/catalog/`, costruito per archetipi e con stati,
+ * interazioni, metodi di risoluzione, CD e soglie di rottura.
+ * Qui restano trappole, pericoli e aree, che hanno un modello proprio.
+ *
+ * Le etichette di stato e interazione sopravvivono perché servono a
+ * tutte e tre le famiglie.
+ */
 
 /* ------------------------------------------------------------------ */
 /* Trappole                                                           */

@@ -555,6 +555,8 @@ export function normalizeTacticalMap(
     traps: raw?.traps ?? [],
     hazards: raw?.hazards ?? [],
     areas: raw?.areas ?? [],
+    zones: raw?.zones ?? [],
+    poi: raw?.poi ?? [],
     layers: { ...EMPTY_TACTICAL_MAP.layers, ...(raw?.layers ?? {}) },
     settings: { ...DEFAULT_MAP_SETTINGS, ...(raw?.settings ?? {}) },
   };
