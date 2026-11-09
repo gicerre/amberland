@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 
+import { homeFor } from "@/components/layout/nav-config";
 import { cn } from "@/lib/utils";
 
 import { loginSchema, type LoginValues } from "../schemas";
@@ -36,12 +37,12 @@ export function LoginForm() {
 
   const onSubmit = async (values: LoginValues) => {
     try {
-      const { mustChangePassword } = await loginWithUsername(
+      const { mustChangePassword, role } = await loginWithUsername(
         values.username,
         values.password
       );
       toast.success("Bentornato in Amberland");
-      router.replace(mustChangePassword ? "/cambia-password" : "/home");
+      router.replace(mustChangePassword ? "/cambia-password" : homeFor(role));
     } catch (error) {
       setDenied(true);
       setTimeout(() => setDenied(false), 700);

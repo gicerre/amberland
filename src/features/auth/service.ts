@@ -10,6 +10,7 @@ import { doc, getDoc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { COLLECTIONS } from "@/lib/constants";
 import { auth, db } from "@/lib/firebase/client";
 import { usernameToEmail } from "@/lib/utils";
+import type { Role } from "@/types/models";
 
 const AUTH_ERROR_MESSAGES: Record<string, string> = {
   "auth/invalid-credential": "Credenziali errate: le porte del regno restano chiuse.",
@@ -41,7 +42,7 @@ export function translateAuthError(error: unknown): string {
 export async function loginWithUsername(
   username: string,
   password: string
-): Promise<{ mustChangePassword: boolean }> {
+): Promise<{ mustChangePassword: boolean; role: Role | null }> {
   const credential = await signInWithEmailAndPassword(
     auth,
     usernameToEmail(username),
@@ -59,7 +60,8 @@ export async function loginWithUsername(
     () => undefined
   );
 
-  return { mustChangePassword };
+  const role = snapshot?.exists() ? ((snapshot.data().role as Role) ?? null) : null;
+  return { mustChangePassword, role };
 }
 
 /**

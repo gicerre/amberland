@@ -17,13 +17,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { homeFor } from "@/components/layout/nav-config";
 
 import { useAuth } from "../auth-provider";
 import { changePasswordSchema, type ChangePasswordValues } from "../schemas";
 import { changeOwnPassword, translateAuthError } from "../service";
 
 export function ChangePasswordForm() {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
 
   const form = useForm<ChangePasswordValues>({
@@ -38,7 +39,7 @@ export function ChangePasswordForm() {
       toast.success("Parola d'ordine aggiornata", {
         description: "La tua nuova chiave segreta è stata forgiata.",
       });
-      router.replace("/home");
+      router.replace(homeFor(profile?.role));
     } catch (error) {
       toast.error("Operazione non riuscita", {
         description: translateAuthError(error),

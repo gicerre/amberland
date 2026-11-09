@@ -21,7 +21,9 @@ import { GlobalSearchDialog } from "@/features/entities/components/global-search
 import { PartyItemsSync } from "@/features/items/data";
 import { cn } from "@/lib/utils";
 
-import { NAV_GROUPS, getActiveGroupId } from "./nav-config";
+import { useAuth } from "@/features/auth/auth-provider";
+
+import { bottomBarGroupsFor, getActiveGroupId, homeFor } from "./nav-config";
 import { AppSidebar, SidebarContent } from "./sidebar";
 import { UserMenu } from "./user-menu";
 
@@ -31,6 +33,7 @@ import { UserMenu } from "./user-menu";
  */
 function MobileBottomNav() {
   const pathname = usePathname();
+  const { role } = useAuth();
   const activeGroupId = getActiveGroupId(pathname);
 
   return (
@@ -41,7 +44,7 @@ function MobileBottomNav() {
       className="glass fixed inset-x-0 bottom-0 z-40 flex h-16 items-stretch border-x-0 border-b-0 border-t border-hairline lg:hidden"
       style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      {NAV_GROUPS.map((group) => {
+      {bottomBarGroupsFor(role).map((group) => {
         const Icon = group.icon;
         const isActive = activeGroupId === group.id;
         const primaryHref = group.entries[0]?.href ?? "/";
@@ -81,6 +84,7 @@ function MobileBottomNav() {
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { role } = useAuth();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
@@ -133,7 +137,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           {/* Brand centrato */}
           <Link
-            href="/party"
+            href={homeFor(role)}
             aria-label="Amberland"
             className="absolute left-1/2 -translate-x-1/2"
           >

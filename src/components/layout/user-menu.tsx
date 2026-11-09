@@ -1,6 +1,6 @@
 "use client";
 
-import { BookMarked, ChevronsUpDown, KeyRound, LogOut } from "lucide-react";
+import { BookMarked, ChevronsUpDown, KeyRound, LogOut, Swords } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -93,10 +93,18 @@ export function UserMenu({ compact = false }: { compact?: boolean }) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        {pc && (
+          <DropdownMenuItem asChild>
+            <Link href="/pg">
+              <Swords className="size-4" />
+              Il mio eroe
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem asChild>
           <Link href="/area-personale">
             <BookMarked className="size-4" />
-            Area Personale
+            Obiettivi e diario
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

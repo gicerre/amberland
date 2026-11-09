@@ -100,7 +100,7 @@ function CodexScreen({
 }) {
   const router = useRouter();
   const { open: openLightbox } = useLightbox();
-  const { sheet, hasSheet, canEdit, isMaster } = useCodex();
+  const { sheet, hasSheet, canEdit, isMaster, isOwner } = useCodex();
 
   const { remove, setVisibility } = useEntityMutations();
   const { setStatus, convertToFull, setPartyMember } = useCharacterMutations();
@@ -213,11 +213,12 @@ function CodexScreen({
         <Button
           size="sm"
           variant="outline"
-          onClick={() => setCombatOpen(true)}
-          aria-label="Attiva modalità combattimento"
+          // Il proprio PG ha un indirizzo stabile (/pg); gli altri un dialog.
+          onClick={() => (isOwner ? router.push("/pg") : setCombatOpen(true))}
+          aria-label="Apri la vista da tavolo"
         >
           <Swords className="size-4" />
-          <span className="hidden sm:inline">Combattimento</span>
+          <span className="hidden sm:inline">Al tavolo</span>
         </Button>
       )}
       <Button size="sm" onClick={() => setEditOpen(true)}>

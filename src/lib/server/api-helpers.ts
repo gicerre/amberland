@@ -1,7 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-import { COLLECTIONS } from "@/lib/constants";
-import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+import { getAdminAuth } from "@/lib/firebase/admin";
 import type { AdminUserDto, Role } from "@/types/models";
 
 /** Errore applicativo con status HTTP, da lanciare nei route handler. */

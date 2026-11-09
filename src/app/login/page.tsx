@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+import { homeFor } from "@/components/layout/nav-config";
 import { EmberParticles } from "@/components/shared/particles";
 import { FrameCard } from "@/design-system";
 import { useAuth } from "@/features/auth/auth-provider";
@@ -20,7 +21,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (status === "authenticated" && profile) {
       router.replace(
-        profile.mustChangePassword ? "/cambia-password" : "/home"
+        profile.mustChangePassword ? "/cambia-password" : homeFor(profile.role)
       );
     }
   }, [status, profile, router]);

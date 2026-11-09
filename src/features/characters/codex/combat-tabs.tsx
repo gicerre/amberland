@@ -1,6 +1,8 @@
 "use client";
 
 import {
+  Backpack,
+  Coins,
   Eye,
   FlaskConical,
   Gauge,
@@ -18,6 +20,11 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
+import { useState } from "react";
+
+import { formatMoney } from "@/features/items/components/fields";
+import { TakeFromBagDialog } from "@/features/items/components/take-from-bag-dialog";
+import { useItemMutations } from "@/features/items/data";
 import { cn } from "@/lib/utils";
 import {
   ABILITIES,
@@ -74,7 +81,30 @@ const CATEGORY_ORDER: EquipmentCategory[] = [
 /* ── Arsenale ─────────────────────────────────────────────── */
 
 export function ArsenalTab() {
-  const { items, updateItem } = useCodex();
+  const { items, updateItem, place, money, canEdit } = useCodex();
+  const { consume } = useItemMutations();
+  const [fromBagOpen, setFromBagOpen] = useState(false);
+
+  // Zaino condiviso (PG): prelievo dalla Borsa e monete sempre a portata.
+  const backpackBar = place ? (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-hairline bg-surface-1 px-3 py-2">
+      <span className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Coins aria-hidden className="size-4 text-gold" />
+        <span className="font-heading font-semibold text-foreground">{formatMoney(money)}</span>
+      </span>
+      {canEdit && (
+        <button
+          type="button"
+          onClick={() => setFromBagOpen(true)}
+          className="flex min-h-10 items-center gap-1.5 rounded-lg border border-hairline-strong px-3 text-sm font-medium text-foreground transition-colors hover:bg-surface-2 focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:outline-none"
+        >
+          <Backpack aria-hidden className="size-4" />
+          Prendi dalla Borsa
+        </button>
+      )}
+      <TakeFromBagDialog open={fromBagOpen} onOpenChange={setFromBagOpen} to={place} />
+    </div>
+  ) : null;
 
   const sorted = [...items].sort(
     (a, b) =>
@@ -91,9 +121,12 @@ export function ArsenalTab() {
 
   if (sorted.length === 0) {
     return (
-      <p className="rounded-xl border border-dashed border-hairline-strong p-6 text-center text-sm text-muted-foreground italic">
-        Nessun equipaggiamento. Aggiungilo dalla scheda.
-      </p>
+      <div className="space-y-4">
+        {backpackBar}
+        <p className="rounded-xl border border-dashed border-hairline-strong p-6 text-center text-sm text-muted-foreground italic">
+          Lo zaino è vuoto. Prendi qualcosa dalla Borsa o aggiungilo dalla scheda.
+        </p>
+      </div>
     );
   }
 
@@ -155,6 +188,17 @@ export function ArsenalTab() {
                     </div>
                     <Describe text={item.notes} className="mt-1" />
                   </div>
+                  {place && canEdit && item.category === "consumable" && (
+                    <button
+                      type="button"
+                      onClick={() => consume.mutate({ itemId: item.id, quantity: 1 })}
+                      disabled={consume.isPending}
+                      aria-label={`Usa ${item.name}`}
+                      className="min-h-11 shrink-0 self-start rounded-lg border border-verdant/50 px-3 text-xs font-bold tracking-[0.1em] text-verdant-bright uppercase transition-colors hover:bg-verdant/15 focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:outline-none disabled:opacity-40"
+                    >
+                      Usa
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => toggleEquipped(item.id)}
@@ -181,6 +225,7 @@ export function ArsenalTab() {
 
   return (
     <div className="space-y-4">
+      {backpackBar}
       {group("In uso", Swords, equipped, "crimson")}
       {group("Nello zaino", Package, carried, "gold")}
     </div>

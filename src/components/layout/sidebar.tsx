@@ -17,8 +17,9 @@ import { WorldTree } from "@/features/entities/components/world-tree";
 import { cn } from "@/lib/utils";
 
 import {
-  NAV_GROUPS,
   MANAGEMENT_NAV,
+  groupsFor,
+  homeFor,
   type NavEntry,
   type NavGroup,
 } from "./nav-config";
@@ -26,9 +27,10 @@ import { UserMenu } from "./user-menu";
 
 /** Marchio del regno mostrato in testa alla sidebar. */
 export function Brand({ className }: { className?: string }) {
+  const { role } = useAuth();
   return (
     <Link
-      href="/party"
+      href={homeFor(role)}
       className={cn("group flex items-center gap-3 px-2", className)}
     >
       <span className="relative flex size-11 shrink-0 items-center justify-center drop-shadow-[0_2px_5px_rgba(0,0,0,0.8)]">
@@ -223,7 +225,7 @@ export function SidebarContent({
       {/* Navigazione principale a gruppi */}
       <ScrollArea className="min-h-0 flex-1 overflow-hidden px-3 py-3">
         <nav aria-label="Navigazione principale">
-          {NAV_GROUPS.map((group: NavGroup, groupIndex: number) => (
+          {groupsFor(role).map((group: NavGroup, groupIndex: number) => (
             <div key={group.id}>
               {groupIndex > 0 && <GroupDivider />}
 
@@ -283,16 +285,6 @@ export function SidebarContent({
 export function AppSidebar({ onSearch }: { onSearch?: () => void }) {
   return (
     <aside className="fixed inset-y-0 left-0 z-40 hidden w-72 flex-col border-r border-hairline bg-sidebar lg:flex">
-      {/* Texture sottile sulla sidebar */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-[0.025]"
-        style={{
-          backgroundImage:
-            "repeating-linear-gradient(45deg, rgba(212,175,55,0.5) 0px, transparent 1px, transparent 6px, rgba(212,175,55,0.5) 7px)",
-          backgroundSize: "10px 10px",
-        }}
-      />
       <SidebarContent onSearch={onSearch} />
     </aside>
   );
